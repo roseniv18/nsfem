@@ -1,9 +1,12 @@
 cmake_minimum_required(VERSION 3.24)
 
-project(2DMatrAdd LANGUAGES CXX CUDA)
+project(NSFEM LANGUAGES CXX CUDA)
 
 set(CMAKE_CXX_STANDARD 20)
 
 add_executable(main
     main.cpp
+	parser.cpp
 )
+
+target_include_directories(main PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
