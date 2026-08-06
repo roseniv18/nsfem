@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 struct Node {
@@ -15,9 +16,22 @@ struct Node {
 
 struct Element {
   int dim;
-  int tag;
+  int entity_tag;
+  std::vector<int> physical_tags;  // gmsh allows multiple physical groups
   int type;
   std::vector<int> node_tags;
+};
+
+struct EntityPhysicalTags {
+  std::unordered_map<int, std::vector<int>> points;
+  std::unordered_map<int, std::vector<int>> curves;
+  std::unordered_map<int, std::vector<int>> surfaces;
+  std::unordered_map<int, std::vector<int>> volumes;
+};
+
+struct Mesh {
+  std::vector<Node> nodes;
+  std::vector<Element> elements;
 };
 
 struct SectionHeader {
@@ -27,30 +41,33 @@ struct SectionHeader {
   int max_tag;
 };
 
-struct NodeBlockHeader {
-  int entity_dim;
-  int entity_tag;
-  int parametric;
-  int num_nodes;
+struct EntitySectionHeader {
+  int num_points;
+  int num_curves;
+  int num_surfaces;
+  int num_volumes;
 };
 
-struct ElementBlockHeader {
-  int entity_dim;
-  int entity_tag;
-  int element_type;
-  int num_elements;
-};
+EntityPhysicalTags read_entities(std::ifstream& file,
+                                 EntitySectionHeader& entity_header);
 
-void read_nodes(std::ifstream& file,
-                std::vector<Node>& nodes,
-                SectionHeader& node_header);
+std::vector<int> get_physical_tags(const EntityPhysicalTags& entities,
+                                   int dim,
+                                   int tag);
+
+void read_nodes(std::ifstream& file, Mesh& mesh, SectionHeader& node_header);
 
 void read_elements(std::ifstream& file,
-                   std::vector<Element>& elements,
-                   SectionHeader& element_header);
+                   Mesh& mesh,
+                   SectionHeader& element_header,
+                   const EntityPhysicalTags& entities);
 
 void read_block_header(std::ifstream& file, SectionHeader& h);
 
+void read_entity_block_header(std::ifstream& file, EntitySectionHeader& h);
+
 int nodes_per_element(int type);
+
+void print_mesh(const Mesh& mesh);
 
 #endif

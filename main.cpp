@@ -10,22 +10,34 @@ int main() {
 
   file.open("square.msh");
 
-  std::vector<Node> nodes;
-  std::vector<Element> elements;
+  Mesh mesh;
 
   if (file.is_open()) {
     std::string line;
     SectionHeader nodes_header;
     SectionHeader elements_header;
+
+    EntitySectionHeader entities_header;
+
+    EntityPhysicalTags entities;
+
     int num_el_blocks, num_elements, min_el_tag, max_el_tag;
 
     while (std::getline(file, line)) {
       // ~~~~~~~~~
+      // read entities
+      // ~~~~~~~~~
+      if (line == "$Entities") {
+        read_entity_block_header(file, entities_header);
+        entities = read_entities(file, entities_header);
+      }
+
+      // ~~~~~~~~~
       // read nodes
       // ~~~~~~~~~
-      if (line == "$Nodes") {
+      else if (line == "$Nodes") {
         read_block_header(file, nodes_header);
-        read_nodes(file, nodes, nodes_header);
+        read_nodes(file, mesh, nodes_header);
       }
 
       // ~~~~~~~~~
@@ -33,25 +45,14 @@ int main() {
       // ~~~~~~~~~
       else if (line == "$Elements") {
         read_block_header(file, elements_header);
-        read_elements(file, elements, elements_header);
+        read_elements(file, mesh, elements_header, entities);
       }
     }
   }
 
   file.close();
 
-  // ~~~~~~~
-  // print stored nodes and elements
-  // ~~~~~~~
-  std::cout << "Stored " << nodes.size() << " nodes\n";
-  for (const auto& n : nodes) {
-    std::cout << n.tag << ": (" << n.x << ", " << n.y << ", " << n.z << ")\n";
-  }
-
-  std::cout << "Stored " << elements.size() << " elements\n";
-  for (const auto& e : elements) {
-    std::cout << e.tag << "\n";
-  }
+  print_mesh(mesh);
 
   return 0;
 }
