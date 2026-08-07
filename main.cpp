@@ -10,45 +10,25 @@ int main() {
 
   file.open("square.msh");
 
-  Mesh mesh;
+  if (!file.is_open()) {
+    std::cerr << "Could not open square.msh\n";
+    return 1;
+  }
 
-  if (file.is_open()) {
-    std::string line;
-    SectionHeader nodes_header;
-    SectionHeader elements_header;
+  std::string line;
+  EntitySectionHeader entities_header;
+  EntityPhysicalTags entities;
 
-    EntitySectionHeader entities_header;
-
-    EntityPhysicalTags entities;
-
-    int num_el_blocks, num_elements, min_el_tag, max_el_tag;
-
-    while (std::getline(file, line)) {
-      // ~~~~~~~~~
-      // read entities
-      // ~~~~~~~~~
-      if (line == "$Entities") {
-        read_entity_block_header(file, entities_header);
-        entities = read_entities(file, entities_header);
-      }
-
-      // ~~~~~~~~~
-      // read nodes
-      // ~~~~~~~~~
-      else if (line == "$Nodes") {
-        read_block_header(file, nodes_header);
-        read_nodes(file, mesh, nodes_header);
-      }
-
-      // ~~~~~~~~~
-      // read elements
-      // ~~~~~~~~~
-      else if (line == "$Elements") {
-        read_block_header(file, elements_header);
-        read_elements(file, mesh, elements_header, entities);
-      }
+  // entities must exists before elements are parsed
+  while (std::getline(file, line)) {
+    if (line == "$Entities") {
+      read_entity_block_header(file, entities_header);
+      entities = read_entities(file, entities_header);
+      break;
     }
   }
+
+  Mesh mesh = read_mesh(file, entities);
 
   file.close();
 

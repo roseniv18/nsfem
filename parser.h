@@ -19,7 +19,7 @@ struct Element {
   int entity_tag;
   std::vector<int> physical_tags;  // gmsh allows multiple physical groups
   int type;
-  std::vector<int> node_tags;
+  std::vector<int> node_indices;
 };
 
 struct EntityPhysicalTags {
@@ -55,10 +55,16 @@ std::vector<int> get_physical_tags(const EntityPhysicalTags& entities,
                                    int dim,
                                    int tag);
 
-void read_nodes(std::ifstream& file, Mesh& mesh, SectionHeader& node_header);
+Mesh read_mesh(std::ifstream& file, const EntityPhysicalTags& entities);
+
+void read_nodes(std::ifstream& file,
+                Mesh& mesh,
+                std::unordered_map<int, std::size_t>& node_index,
+                SectionHeader& node_header);
 
 void read_elements(std::ifstream& file,
                    Mesh& mesh,
+                   std::unordered_map<int, std::size_t>& node_index,
                    SectionHeader& element_header,
                    const EntityPhysicalTags& entities);
 

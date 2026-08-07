@@ -26,6 +26,27 @@ void read_entity_block_header(std::ifstream& file, EntitySectionHeader& e) {
   file >> e.num_points >> e.num_curves >> e.num_surfaces >> e.num_volumes;
 }
 
+Mesh read_mesh(std::ifstream& file, const EntityPhysicalTags& entities) {
+  Mesh mesh;
+  std::unordered_map<int, std::size_t> node_index;
+  std::string line;
+
+  while (std::getline(file, line)) {
+    if (line == "$Nodes") {
+      SectionHeader nodes_header;
+      read_block_header(file, nodes_header);
+      read_nodes(file, mesh, node_index, nodes_header);
+    } else if (line == "$Elements") {
+      SectionHeader elements_header;
+      read_block_header(file, elements_header);
+      read_elements(file, mesh, node_index, elements_header, entities);
+      break;  // nothing after $Elements matters here
+    }
+  }
+
+  return mesh;
+}
+
 EntityPhysicalTags read_entities(std::ifstream& file, EntitySectionHeader& eh) {
   EntityPhysicalTags entities;
 
@@ -107,7 +128,10 @@ std::vector<int> get_physical_tags(const EntityPhysicalTags& entities,
   throw std::runtime_error("Invalid dimension");
 }
 
-void read_nodes(std::ifstream& file, Mesh& mesh, SectionHeader& nh) {
+void read_nodes(std::ifstream& file,
+                Mesh& mesh,
+                std::unordered_map<int, std::size_t>& node_index,
+                SectionHeader& nh) {
   // reserve memory for storing the nodes
   mesh.nodes.reserve(nh.num_objects);
 
@@ -128,6 +152,9 @@ void read_nodes(std::ifstream& file, Mesh& mesh, SectionHeader& nh) {
       Node n;
       n.tag = tags[coord];
       file >> n.x >> n.y >> n.z;
+
+      node_index[n.tag] = mesh.nodes.size();
+
       mesh.nodes.push_back(n);
     }
   }
@@ -135,6 +162,7 @@ void read_nodes(std::ifstream& file, Mesh& mesh, SectionHeader& nh) {
 
 void read_elements(std::ifstream& file,
                    Mesh& mesh,
+                   std::unordered_map<int, std::size_t>& node_index,
                    SectionHeader& eh,
                    const EntityPhysicalTags& entities) {
   // reserve memory for storing the elements
@@ -161,7 +189,7 @@ void read_elements(std::ifstream& file,
       for (int i = 0; i < n_nodes; i++) {
         int node_tag;
         file >> node_tag;
-        el.node_tags.push_back(node_tag);
+        el.node_indices.push_back(node_index.at(node_tag));  // tag -> position
       }
 
       mesh.elements.push_back(el);
@@ -192,7 +220,7 @@ void print_mesh(const Mesh& mesh) {
 
     std::cout << "nodes: ";
 
-    for (auto id : e.node_tags)
+    for (auto id : e.node_indices)
       std::cout << id << " ";
 
     std::cout << "\n\n";
