@@ -6,8 +6,11 @@ set(CMAKE_CXX_STANDARD 20)
 
 add_executable(main
     main.cpp
-	parser.cpp
-	affine.cpp
+	mesh/parser.cpp
+	geometry/affine.cpp
 )
 
-target_include_directories(main PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(main PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} 
+	${CMAKE_CURRENT_SOURCE_DIR}/mesh 
+	${CMAKE_CURRENT_SOURCE_DIR}/geometry
+)
