@@ -3,6 +3,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include "affine.h"
 #include "parser.h"
 
 int main() {
@@ -33,6 +34,30 @@ int main() {
   file.close();
 
   print_mesh(mesh);
+
+  AffineMap am = compute_affine(mesh.elements[4], mesh);
+
+  std::cout << "Affine transformation for triangle 4: " << '\n';
+  std::cout << "Jacobian: " << '\n';
+  for (int i = 0; i < 2; i++) {
+    for (int j = 0; j < 2; j++) {
+      std::cout << am.Jacobian[i][j] << '\t';
+    }
+    std::cout << '\n';
+  }
+
+  std::cout << "----------" << '\n';
+
+  std::cout << "Det J: " << '\n';
+  std::cout << am.detJ << '\n';
+
+  std::cout << "----------" << '\n';
+
+  std::cout << "Physical gradients: " << '\n';
+  for (int i = 0; i < 3; i++) {
+    std::cout << "phys_grad " << i << ".x : " << am.phys_grads[i].x << '\n';
+    std::cout << "phys_grad " << i << ".y : " << am.phys_grads[i].y << '\n';
+  }
 
   return 0;
 }
