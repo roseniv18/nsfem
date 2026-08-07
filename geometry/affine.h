@@ -2,7 +2,7 @@
 #define AFFINE_H
 
 #include <array>
-#include "parser.h"
+#include "mesh/parser.h"
 
 struct Gradient {
   double x;

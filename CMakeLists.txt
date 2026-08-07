@@ -10,7 +10,4 @@ add_executable(main
 	geometry/affine.cpp
 )
 
-target_include_directories(main PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} 
-	${CMAKE_CURRENT_SOURCE_DIR}/mesh 
-	${CMAKE_CURRENT_SOURCE_DIR}/geometry
-)
+target_include_directories(main PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

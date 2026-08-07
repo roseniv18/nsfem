@@ -3,8 +3,8 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include "affine.h"
-#include "parser.h"
+#include "geometry/affine.h"
+#include "mesh/parser.h"
 
 int main() {
   std::ifstream file;
