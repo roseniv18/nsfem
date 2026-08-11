@@ -1,13 +1,5 @@
 #include "affine.h"
 
-std::array<Gradient, 3> get_ref_grads() {
-  Gradient a{-1, -1};
-  Gradient b{1, 0};
-  Gradient c{0, 1};
-
-  return {a, b, c};
-}
-
 AffineMap compute_affine(const Element& element) {
   // compute jacobian
   std::array<std::array<double, 2>, 2> J;
@@ -26,9 +18,9 @@ AffineMap compute_affine(const Element& element) {
   JinvT[1][0] = -J[0][1] / detJ;
   JinvT[1][1] = J[0][0] / detJ;
 
-  Gradient a_ph, b_ph, c_ph;
-  std::array<Gradient, 3> phys_grads = {a_ph, b_ph, c_ph};
-  std::array<Gradient, 3> ref_grads = get_ref_grads();
+  Point2D a_ph, b_ph, c_ph;
+  std::array<Point2D, 3> phys_grads = {a_ph, b_ph, c_ph};
+  std::array<Point2D, 3> ref_grads = basis_gradients();
 
   for (int i = 0; i < 3; i++) {
     phys_grads[i].x =

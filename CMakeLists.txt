@@ -9,6 +9,7 @@ add_executable(main
 	mesh/parser.cpp
 	geometry/affine.cpp
 	assemble/assemble.cpp
+	basis/lagrange_p1_triangle.cpp
 )
 
 target_include_directories(main PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

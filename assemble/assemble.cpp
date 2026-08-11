@@ -39,3 +39,10 @@ std::vector<std::vector<double>> assemble_gs_matrix(const Mesh& mesh) {
 
   return gs_matrix;
 }
+
+// local_vec generate_loc_vector(const Mesh& mesh,
+//                               const Element& element,
+//                               double (*f)(double, double)) {
+//   local_vec lv;
+//   AffineMap am = compute_affine(element);
+// }
