@@ -20,6 +20,6 @@ std::array<Gradient, 3> get_ref_grads();
 // For now we naively assume element is of correct type (linear triangle)
 // ? TODO: Implement Triangle struct with appropriate DOFs
 // ? TODO: compute_affine to be compatible with different types of triangles
-AffineMap compute_affine(const Element& element, const Mesh& mesh);
+AffineMap compute_affine(const Element& element);
 
 #endif

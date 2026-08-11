@@ -8,21 +8,13 @@ std::array<Gradient, 3> get_ref_grads() {
   return {a, b, c};
 }
 
-AffineMap compute_affine(const Element& element, const Mesh& mesh) {
-  // first get the element's node coordinates
-  std::array<std::array<double, 2>, 3> nodes;
-
-  for (int i = 0; i < element.node_indices.size(); i++) {
-    nodes[i][0] = mesh.nodes.at(element.node_indices[i]).x;
-    nodes[i][1] = mesh.nodes.at(element.node_indices[i]).y;
-  }
-
+AffineMap compute_affine(const Element& element) {
   // compute jacobian
   std::array<std::array<double, 2>, 2> J;
-  J[0][0] = nodes[1][0] - nodes[0][0];
-  J[0][1] = nodes[2][0] - nodes[0][0];
-  J[1][0] = nodes[1][1] - nodes[0][1];
-  J[1][1] = nodes[2][1] - nodes[0][1];
+  J[0][0] = element.nodes[1].x - element.nodes[0].x;
+  J[0][1] = element.nodes[2].x - element.nodes[0].x;
+  J[1][0] = element.nodes[1].y - element.nodes[0].y;
+  J[1][1] = element.nodes[2].y - element.nodes[0].y;
 
   // compute determinant
   double detJ = (J[0][0] * J[1][1]) - (J[0][1] * J[1][0]);

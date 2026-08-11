@@ -16,10 +16,11 @@ struct Node {
 
 struct Element {
   int dim;
-  int entity_tag;
-  std::vector<int> physical_tags;  // gmsh allows multiple physical groups
+  int element_tag;
   int type;
+  std::vector<int> physical_tags;  // gmsh allows multiple physical groups
   std::vector<int> node_indices;
+  std::vector<Node> nodes;
 };
 
 struct EntityPhysicalTags {

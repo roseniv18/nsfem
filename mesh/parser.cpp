@@ -169,18 +169,18 @@ void read_elements(std::ifstream& file,
   mesh.elements.reserve(eh.num_objects);
 
   for (int i = 0; i < eh.num_blocks; i++) {
-    int entity_dim, entity_tag, element_type, num_belements;
+    int entity_dim, element_tag, element_type, num_belements;
     // read the header for the block
-    file >> entity_dim >> entity_tag >> element_type >> num_belements;
+    file >> entity_dim >> element_tag >> element_type >> num_belements;
 
-    auto physical_tags = get_physical_tags(entities, entity_dim, entity_tag);
+    auto physical_tags = get_physical_tags(entities, entity_dim, element_tag);
     int n_nodes = nodes_per_element(element_type);
 
     // read element data
     for (int element = 0; element < num_belements; element++) {
       Element el;
 
-      file >> el.entity_tag;
+      file >> el.element_tag;
       el.dim = entity_dim;
       el.type = element_type;
       el.physical_tags = physical_tags;
@@ -189,7 +189,11 @@ void read_elements(std::ifstream& file,
       for (int i = 0; i < n_nodes; i++) {
         int node_tag;
         file >> node_tag;
-        el.node_indices.push_back(node_index.at(node_tag));  // tag -> position
+        // node position in mesh
+        // note this is not the same as its tag!
+        int node_pos = node_index.at(node_tag);
+        el.node_indices.push_back(node_pos);  // tag -> position
+        el.nodes.push_back(mesh.nodes.at(node_pos));
       }
 
       mesh.elements.push_back(el);
@@ -209,11 +213,11 @@ void print_mesh(const Mesh& mesh) {
   std::cout << "--------\n";
 
   for (auto& e : mesh.elements) {
-    std::cout << "Element " << e.entity_tag << "\n";
+    std::cout << "Element " << e.element_tag << "\n";
 
     std::cout << "dim = " << e.dim << "\n";
 
-    std::cout << "entity = " << e.entity_tag << "\n";
+    std::cout << "entity = " << e.element_tag << "\n";
 
     for (auto pt : e.physical_tags)
       std::cout << "physical = " << pt << "\n";

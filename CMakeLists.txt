@@ -8,6 +8,7 @@ add_executable(main
     main.cpp
 	mesh/parser.cpp
 	geometry/affine.cpp
+	assemble/assemble.cpp
 )
 
 target_include_directories(main PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
