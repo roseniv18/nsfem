@@ -20,7 +20,7 @@ AffineMap compute_affine(const Element& element) {
 
   Point2D a_ph, b_ph, c_ph;
   std::array<Point2D, 3> phys_grads = {a_ph, b_ph, c_ph};
-  std::array<Point2D, 3> ref_grads = basis_gradients();
+  std::array<Point2D, 3> ref_grads = basis_ref_grads();
 
   for (int i = 0; i < 3; i++) {
     phys_grads[i].x =
@@ -35,4 +35,19 @@ AffineMap compute_affine(const Element& element) {
   am.phys_grads = phys_grads;
 
   return am;
+}
+
+Point2D map_to_phys(const Element& element, const Point2D& point) {
+  Point2D phys{0.0, 0.0};
+
+  auto bfs = basis_functions();
+
+  for (int i = 0; i < 3; i++) {
+    const double N = bfs.at(i)(point);
+
+    phys.x += element.nodes.at(i).x * N;
+    phys.y += element.nodes.at(i).y * N;
+  }
+
+  return phys;
 }

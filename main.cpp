@@ -1,3 +1,4 @@
+#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -6,6 +7,11 @@
 #include "assemble/assemble.h"
 #include "geometry/affine.h"
 #include "mesh/parser.h"
+
+using std::sin;
+using std::numbers::pi;
+
+double func(const Point2D& pt);
 
 int main() {
   std::ifstream file;
@@ -71,7 +77,7 @@ int main() {
               << n.x << ", y = " << n.y << ", z = " << n.z << '\n';
   }
 
-  local_matr ls_matrix = generate_ls_matrix(mesh, mesh.elements.at(4));
+  local_matr ls_matrix = generate_ls_matrix(mesh.elements.at(4));
 
   std::cout << "----------" << '\n';
 
@@ -90,8 +96,18 @@ int main() {
   std::cout << "Global stiffness matrix " << '\n';
   for (int i = 0; i < mesh.nodes.size(); i++) {
     for (int j = 0; j < mesh.nodes.size(); j++) {
-      std::cout << gs_matrix[i][j] << '\t';
+      std::cout << gs_matrix.at(i).at(j) << '\t';
     }
+    std::cout << '\n';
+  }
+
+  std::vector<double> gl_vector = assemble_gl_vector(mesh, func);
+
+  std::cout << "----------" << '\n';
+
+  std::cout << "Global load vector " << '\n';
+  for (int i = 0; i < mesh.nodes.size(); i++) {
+    std::cout << gl_vector.at(i) << '\t';
     std::cout << '\n';
   }
 
@@ -104,4 +120,8 @@ int main() {
   }
 
   return 0;
+}
+
+double func(const Point2D& pt) {
+  return pt.y;
 }

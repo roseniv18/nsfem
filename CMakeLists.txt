@@ -10,6 +10,7 @@ add_executable(main
 	geometry/affine.cpp
 	assemble/assemble.cpp
 	basis/lagrange_p1_triangle.cpp
+	quadrature/quadrature.cpp
 )
 
 target_include_directories(main PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

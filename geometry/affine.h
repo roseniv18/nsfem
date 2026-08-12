@@ -16,4 +16,6 @@ struct AffineMap {
 // ? TODO: compute_affine to be compatible with different types of triangles
 AffineMap compute_affine(const Element& element);
 
+Point2D map_to_phys(const Element& element, const Point2D& point);
+
 #endif
