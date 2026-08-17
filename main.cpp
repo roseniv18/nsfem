@@ -24,19 +24,22 @@ int main() {
   }
 
   std::string line;
-  EntitySectionHeader entities_header;
-  EntityPhysicalTags entities;
+  EntitySectionHeader entities_header{};
+  EntityPhysicalTags entities{};
+  std::unordered_map<int, PhysicalGroup> physical_groups{};
 
   // entities must exists before elements are parsed
   while (std::getline(file, line)) {
-    if (line == "$Entities") {
+    if (line == "$PhysicalNames") {
+      physical_groups = read_physical_names(file);
+    } else if (line == "$Entities") {
       read_entity_block_header(file, entities_header);
       entities = read_entities(file, entities_header);
       break;
     }
   }
 
-  Mesh mesh = read_mesh(file, entities);
+  Mesh mesh = read_mesh(file, entities, physical_groups);
 
   file.close();
 
@@ -69,7 +72,7 @@ int main() {
   std::cout << "----------" << '\n';
 
   std::cout << "Nodes (coordinates): " << '\n';
-  for (std::size_t i = 0; i < mesh.elements[4].nodes.size(); i++) {
+  for (int i = 0; i < mesh.elements[4].nodes.size(); i++) {
     Node n = mesh.elements[4].nodes[i];
     std::cout << "(Node  " << i
               << "): "
@@ -94,8 +97,8 @@ int main() {
   std::cout << "----------" << '\n';
 
   std::cout << "Global stiffness matrix " << '\n';
-  for (std::size_t i = 0; i < mesh.nodes.size(); i++) {
-    for (std::size_t j = 0; j < mesh.nodes.size(); j++) {
+  for (int i = 0; i < mesh.nodes.size(); i++) {
+    for (int j = 0; j < mesh.nodes.size(); j++) {
       std::cout << gs_matrix.at(i).at(j) << '\t';
     }
     std::cout << '\n';
@@ -106,7 +109,7 @@ int main() {
   std::cout << "----------" << '\n';
 
   std::cout << "Global load vector " << '\n';
-  for (std::size_t i = 0; i < mesh.nodes.size(); i++) {
+  for (int i = 0; i < mesh.nodes.size(); i++) {
     std::cout << gl_vector.at(i) << '\t';
     std::cout << '\n';
   }
@@ -114,7 +117,7 @@ int main() {
   std::cout << "----------" << '\n';
 
   std::cout << "Entity tags for elements: " << '\n';
-  for (std::size_t i = 0; i < mesh.elements.size(); i++) {
+  for (int i = 0; i < mesh.elements.size(); i++) {
     std::cout << "Element " << i << ": " << mesh.elements.at(i).element_tag
               << '\n';
   }

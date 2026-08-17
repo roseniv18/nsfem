@@ -19,6 +19,7 @@ Physical Curve("Right") = {2};
 Physical Curve("Top") = {3};
 Physical Curve("Left") = {4};
 
+Physical Curve("Dirichlet") = {1,2,3,4};
 Physical Surface("Domain") = {1};
 
 Mesh 2;

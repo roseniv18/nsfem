@@ -26,10 +26,37 @@ void read_entity_block_header(std::ifstream& file, EntitySectionHeader& e) {
   file >> e.num_points >> e.num_curves >> e.num_surfaces >> e.num_volumes;
 }
 
-Mesh read_mesh(std::ifstream& file, const EntityPhysicalTags& entities) {
-  Mesh mesh;
-  std::unordered_map<int, std::size_t> node_index;
-  std::string line;
+std::unordered_map<int, PhysicalGroup> read_physical_names(
+    std::ifstream& file) {
+  int num_groups{};
+  file >> num_groups;
+
+  std::unordered_map<int, PhysicalGroup> pgs;
+
+  for (int i = 0; i < num_groups; i++) {
+    int dim{}, tag{};
+    std::string name{};
+
+    file >> dim >> tag >> name;
+
+    PhysicalGroup pg{};
+    pg.dim = dim;
+    pg.name = name;
+
+    pgs[tag] = pg;
+  }
+
+  return pgs;
+}
+
+Mesh read_mesh(std::ifstream& file,
+               const EntityPhysicalTags& entities,
+               const std::unordered_map<int, PhysicalGroup>& physical_groups) {
+  Mesh mesh{};
+  std::unordered_map<int, std::size_t> node_index{};
+  std::string line{};
+
+  mesh.physical_groups = physical_groups;
 
   while (std::getline(file, line)) {
     if (line == "$Nodes") {
@@ -48,7 +75,7 @@ Mesh read_mesh(std::ifstream& file, const EntityPhysicalTags& entities) {
 }
 
 EntityPhysicalTags read_entities(std::ifstream& file, EntitySectionHeader& eh) {
-  EntityPhysicalTags entities;
+  EntityPhysicalTags entities{};
 
   // points
   for (int p = 0; p < eh.num_points; p++) {
@@ -169,11 +196,10 @@ void read_elements(std::ifstream& file,
   mesh.elements.reserve(eh.num_objects);
 
   for (int i = 0; i < eh.num_blocks; i++) {
-    int entity_dim{}, element_tag{}, element_type{}, num_belements{};
+    int entity_dim{}, entity_tag{}, element_type{}, num_belements{};
     // read the header for the block
-    file >> entity_dim >> element_tag >> element_type >> num_belements;
+    file >> entity_dim >> entity_tag >> element_type >> num_belements;
 
-    auto physical_tags = get_physical_tags(entities, entity_dim, element_tag);
     int n_nodes = nodes_per_element(element_type);
 
     // read element data
@@ -183,7 +209,8 @@ void read_elements(std::ifstream& file,
       file >> el.element_tag;
       el.dim = entity_dim;
       el.type = element_type;
-      el.physical_tags = physical_tags;
+
+      el.physical_tags = get_physical_tags(entities, entity_dim, entity_tag);
 
       // loop through nodes
       for (int i = 0; i < n_nodes; i++) {
@@ -209,15 +236,20 @@ void print_mesh(const Mesh& mesh) {
     std::cout << n.tag << ": " << n.x << " " << n.y << " " << n.z << "\n";
   }
 
+  std::cout << "\nPhysical groups:\n";
+
+  for (const auto& [tag, pg] : mesh.physical_groups) {
+    std::cout << "tag = " << tag << ", dim = " << pg.dim
+              << ", name = " << pg.name << '\n';
+  }
+
   std::cout << "\nElements\n";
   std::cout << "--------\n";
 
-  for (auto& e : mesh.elements) {
+  for (const auto& e : mesh.elements) {
     std::cout << "Element " << e.element_tag << "\n";
 
     std::cout << "dim = " << e.dim << "\n";
-
-    std::cout << "entity = " << e.element_tag << "\n";
 
     for (auto pt : e.physical_tags)
       std::cout << "physical = " << pt << "\n";
@@ -227,6 +259,14 @@ void print_mesh(const Mesh& mesh) {
     for (auto id : e.node_indices)
       std::cout << id << " ";
 
-    std::cout << "\n\n";
+    std::cout << "\n";
+    std::cout << "physical tags: ";
+
+    for (int tag : e.physical_tags) {
+      std::cout << "    physical tag = " << tag
+                << ", name = " << mesh.physical_groups.at(tag).name << '\n';
+    }
   }
+
+  std::cout << "\n\n";
 }
