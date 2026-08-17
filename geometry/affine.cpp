@@ -18,7 +18,7 @@ AffineMap compute_affine(const Element& element) {
   JinvT[1][0] = -J[0][1] / detJ;
   JinvT[1][1] = J[0][0] / detJ;
 
-  Point2D a_ph, b_ph, c_ph;
+  Point2D a_ph{}, b_ph{}, c_ph{};
   std::array<Point2D, 3> phys_grads = {a_ph, b_ph, c_ph};
   std::array<Point2D, 3> ref_grads = basis_ref_grads();
 
@@ -29,7 +29,7 @@ AffineMap compute_affine(const Element& element) {
         JinvT[1][0] * ref_grads[i].x + JinvT[1][1] * ref_grads[i].y;
   }
 
-  AffineMap am;
+  AffineMap am{};
   am.Jacobian = J;
   am.detJ = detJ;
   am.phys_grads = phys_grads;
@@ -38,7 +38,7 @@ AffineMap compute_affine(const Element& element) {
 }
 
 Point2D map_to_phys(const Element& element, const Point2D& point) {
-  Point2D phys{0.0, 0.0};
+  Point2D phys{};
 
   auto bfs = basis_functions();
 

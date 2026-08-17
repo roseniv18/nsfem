@@ -4,7 +4,7 @@
 
 // generete local stiffness matrix
 local_matr generate_ls_matrix(const Element& element) {
-  local_matr ls_matrix;
+  local_matr ls_matrix{};
   AffineMap am = compute_affine(element);
 
   for (int i = 0; i < 3; i++) {
@@ -49,7 +49,7 @@ std::vector<std::vector<double>> assemble_gs_matrix(const Mesh& mesh) {
 // generate local load vector
 local_vec generate_loc_vector(const Element& element,
                               double (*f)(const Point2D&)) {
-  local_vec lv{0.0, 0.0, 0.0};
+  local_vec lv{};
   AffineMap am = compute_affine(element);
 
   auto bfs = bfs_at_quad();

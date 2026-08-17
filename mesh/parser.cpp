@@ -52,9 +52,9 @@ EntityPhysicalTags read_entities(std::ifstream& file, EntitySectionHeader& eh) {
 
   // points
   for (int p = 0; p < eh.num_points; p++) {
-    int tag;
-    double x, y, z;
-    int num_phys;
+    int tag{};
+    double x{}, y{}, z{};
+    int num_phys{};
 
     file >> tag >> x >> y >> z >> num_phys;
 
@@ -71,12 +71,12 @@ EntityPhysicalTags read_entities(std::ifstream& file, EntitySectionHeader& eh) {
 
   auto read_high_dimensional = [&](auto& map, int count) {
     for (int i = 0; i < count; i++) {
-      int tag;
+      int tag{};
 
-      double xmin, ymin, zmin;
-      double xmax, ymax, zmax;
+      double xmin{}, ymin{}, zmin{};
+      double xmax{}, ymax{}, zmax{};
 
-      int num_phys;
+      int num_phys{};
 
       file >> tag >> xmin >> ymin >> zmin >> xmax >> ymax >> zmax >> num_phys;
 
@@ -89,11 +89,11 @@ EntityPhysicalTags read_entities(std::ifstream& file, EntitySectionHeader& eh) {
       map[tag] = phys_tags;
 
       // skip bounding entities
-      int num_bounding;
+      int num_bounding{};
 
       file >> num_bounding;
 
-      int dummy;
+      int dummy{};
 
       for (int j = 0; j < num_bounding; j++) {
         file >> dummy;
@@ -136,7 +136,7 @@ void read_nodes(std::ifstream& file,
   mesh.nodes.reserve(nh.num_objects);
 
   for (int i = 0; i < nh.num_blocks; i++) {
-    int entity_dim, entity_tag, parametric, num_bnodes;
+    int entity_dim{}, entity_tag{}, parametric{}, num_bnodes{};
 
     // read the header for the block
     file >> entity_dim >> entity_tag >> parametric >> num_bnodes;
@@ -149,7 +149,7 @@ void read_nodes(std::ifstream& file,
 
     // read node coordinates and pair them with the tags
     for (int coord = 0; coord < num_bnodes; coord++) {
-      Node n;
+      Node n{};
       n.tag = tags[coord];
       file >> n.x >> n.y >> n.z;
 
@@ -169,7 +169,7 @@ void read_elements(std::ifstream& file,
   mesh.elements.reserve(eh.num_objects);
 
   for (int i = 0; i < eh.num_blocks; i++) {
-    int entity_dim, element_tag, element_type, num_belements;
+    int entity_dim{}, element_tag{}, element_type{}, num_belements{};
     // read the header for the block
     file >> entity_dim >> element_tag >> element_type >> num_belements;
 
@@ -178,7 +178,7 @@ void read_elements(std::ifstream& file,
 
     // read element data
     for (int element = 0; element < num_belements; element++) {
-      Element el;
+      Element el{};
 
       file >> el.element_tag;
       el.dim = entity_dim;
