@@ -13,4 +13,6 @@ add_executable(main
 	quadrature/quadrature.cpp
 )
 
+target_compile_options(main PUBLIC -Wall -Wextra)
+
 target_include_directories(main PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

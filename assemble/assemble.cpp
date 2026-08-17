@@ -54,7 +54,7 @@ local_vec generate_loc_vector(const Element& element,
 
   auto bfs = bfs_at_quad();
 
-  for (int q = 0; q < quad_nodes.size(); q++) {
+  for (std::size_t q = 0; q < quad_nodes.size(); q++) {
     Point2D ref = quad_nodes[q];
     Point2D phys = map_to_phys(element, ref);
 
