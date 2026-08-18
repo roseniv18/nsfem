@@ -11,6 +11,7 @@ add_executable(main
 	assemble/assemble.cpp
 	basis/lagrange_p1_triangle.cpp
 	quadrature/quadrature.cpp
+	helpers/helpers.cpp
 )
 
 target_compile_options(main PUBLIC -Wall -Wextra)

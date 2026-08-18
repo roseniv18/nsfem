@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "helpers/helpers.h"
 
 int nodes_per_element(int type) {
   switch (type) {
@@ -41,7 +42,8 @@ std::unordered_map<int, PhysicalGroup> read_physical_names(
 
     PhysicalGroup pg{};
     pg.dim = dim;
-    pg.name = name;
+    // .msh stores the names surrounded by quotes
+    pg.name = strip_quotes(name);
 
     pgs[tag] = pg;
   }
@@ -153,6 +155,40 @@ std::vector<int> get_physical_tags(const EntityPhysicalTags& entities,
   }
 
   throw std::runtime_error("Invalid dimension");
+}
+
+std::unordered_set<int> get_dirichlet_nodes(const Mesh& mesh) {
+  std::unordered_set<int> dirichlet_nodes{};
+
+  for (const auto& element : mesh.elements) {
+    for (int pt : element.physical_tags) {
+      const PhysicalGroup physical_group = mesh.physical_groups.at(pt);
+
+      //   std::cout << physical_group.name << '\n';
+
+      if (element.type == 1 && physical_group.name == "Dirichlet") {
+        // std::cout << "DIRICHLET EDGE FOUND\n";
+        // std::cout << "nodes: ";
+
+        // for (int node : element.node_indices)
+        //   std::cout << node << ' ';
+
+        // std::cout << '\n';
+
+        dirichlet_nodes.insert(element.node_indices.begin(),
+                               element.node_indices.end());
+
+        // std::cout << "set now: ";
+
+        // for (int node : dirichlet_nodes)
+        //   std::cout << node << ' ';
+
+        // std::cout << "\n\n";
+      }
+    }
+  }
+
+  return dirichlet_nodes;
 }
 
 void read_nodes(std::ifstream& file,

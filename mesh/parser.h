@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 struct Node {
@@ -83,6 +84,9 @@ EntityPhysicalTags read_entities(std::ifstream& file,
 std::vector<int> get_physical_tags(const EntityPhysicalTags& entities,
                                    int dim,
                                    int tag);
+
+// get tags of dirichlet nodes
+std::unordered_set<int> get_dirichlet_nodes(const Mesh& mesh);
 
 // main function to read .msh
 Mesh read_mesh(std::ifstream& file,

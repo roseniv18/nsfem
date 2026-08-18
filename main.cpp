@@ -122,6 +122,15 @@ int main() {
               << '\n';
   }
 
+  auto dirichlet_nodes = get_dirichlet_nodes(mesh);
+
+  std::cout << "Dirichlet nodes: ";
+
+  for (int node : dirichlet_nodes)
+    std::cout << node << ' ';
+
+  std::cout << '\n';
+
   return 0;
 }
 
