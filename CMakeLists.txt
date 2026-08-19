@@ -11,9 +11,10 @@ add_executable(main
 	assemble/assemble.cpp
 	basis/lagrange_p1_triangle.cpp
 	quadrature/quadrature.cpp
+	linalg/matrix.cpp
 	helpers/helpers.cpp
 )
 
-target_compile_options(main PUBLIC -Wall -Wextra)
+target_compile_options(main PUBLIC -Wall -Wextra -fopenmp)
 
 target_include_directories(main PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

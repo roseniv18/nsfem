@@ -3,10 +3,11 @@
 
 #include <array>
 #include "basis/lagrange_p1_triangle.h"
+#include "linalg/matrix.h"
 #include "mesh/parser.h"
 
 struct AffineMap {
-  std::array<std::array<double, 2>, 2> Jacobian;
+  Matrix<double> Jacobian;
   double detJ;
   std::array<Point2D, 3> phys_grads;
 };

@@ -55,7 +55,7 @@ int main() {
   std::cout << "Jacobian: " << '\n';
   for (int i = 0; i < 2; i++) {
     for (int j = 0; j < 2; j++) {
-      std::cout << am.Jacobian[i][j] << '\t';
+      std::cout << am.Jacobian(i, j) << '\t';
     }
     std::cout << '\n';
   }
@@ -73,29 +73,19 @@ int main() {
     std::cout << "phys_grad " << i << ".y : " << am.phys_grads[i].y << '\n';
   }
 
-  local_matr ls_matrix = generate_ls_matrix(el, mesh);
+  Matrix<double> ls_matrix = generate_ls_matrix(el, mesh);
 
   std::cout << "----------" << '\n';
 
   std::cout << "Local stiffness matrix (Poisson): " << '\n';
-  for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < 3; j++) {
-      std::cout << ls_matrix[i][j] << '\t';
-    }
-    std::cout << '\n';
-  }
+  ls_matrix.print_matrix();
 
-  std::vector<std::vector<double>> gs_matrix = assemble_gs_matrix(mesh);
+  Matrix<double> gs_matrix = assemble_gs_matrix(mesh);
 
   std::cout << "----------" << '\n';
 
   std::cout << "Global stiffness matrix " << '\n';
-  for (std::size_t i = 0; i < mesh.nodes.size(); i++) {
-    for (std::size_t j = 0; j < mesh.nodes.size(); j++) {
-      std::cout << gs_matrix.at(i).at(j) << '\t';
-    }
-    std::cout << '\n';
-  }
+  gs_matrix.print_matrix();
 
   std::vector<double> gl_vector = assemble_gl_vector(mesh, func);
 
@@ -131,12 +121,7 @@ int main() {
   std::cout << "----------" << '\n';
 
   std::cout << "[DIRICHLET] Global stiffness matrix " << '\n';
-  for (std::size_t i = 0; i < mesh.nodes.size(); i++) {
-    for (std::size_t j = 0; j < mesh.nodes.size(); j++) {
-      std::cout << gs_matrix.at(i).at(j) << '\t';
-    }
-    std::cout << '\n';
-  }
+  gs_matrix.print_matrix();
 
   std::cout << "----------" << '\n';
 

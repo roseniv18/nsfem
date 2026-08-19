@@ -3,20 +3,20 @@
 #include "geometry/affine.h"
 
 // generate local stiffness matrix
-local_matr generate_ls_matrix(const Element& element, const Mesh& mesh) {
-  local_matr ls_matrix{};
+Matrix<double> generate_ls_matrix(const Element& element, const Mesh& mesh) {
+  Matrix<double> ls_matrix(3, 3);
   const auto el_nodes = get_element_nodes(element, mesh);
   AffineMap am = compute_affine(element, el_nodes);
 
-  for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < 3; j++) {
+  for (int i = 0; i < ls_matrix.n; i++) {
+    for (int j = 0; j < ls_matrix.m; j++) {
       /** this calculation assumes:
        * 	1. affine mapping
        *  	2. constant gradients (true for linear Lagrange triangles)
        */
       double dot = (am.phys_grads[i].x * am.phys_grads[j].x) +
                    (am.phys_grads[i].y * am.phys_grads[j].y);
-      ls_matrix[i][j] = 0.5 * std::abs(am.detJ) * dot;
+      ls_matrix(i, j) = 0.5 * std::abs(am.detJ) * dot;
     }
   }
 
@@ -24,21 +24,21 @@ local_matr generate_ls_matrix(const Element& element, const Mesh& mesh) {
 }
 
 // assemble global stiffness matrix
-std::vector<std::vector<double>> assemble_gs_matrix(const Mesh& mesh) {
+Matrix<double> assemble_gs_matrix(const Mesh& mesh) {
   const std::size_t n = mesh.nodes.size();
 
-  std::vector<std::vector<double>> gs_matrix(n, std::vector<double>(n, 0.0));
+  Matrix<double> gs_matrix(n, n);
 
   for (const Element& element : mesh.elements) {
     if (element.type == 2) {
-      local_matr ls_matrix = generate_ls_matrix(element, mesh);
+      Matrix<double> ls_matrix = generate_ls_matrix(element, mesh);
 
       for (std::size_t i = 0; i < element.node_indices.size(); ++i) {
         for (std::size_t j = 0; j < element.node_indices.size(); ++j) {
           const std::size_t I = element.node_indices[i];
           const std::size_t J = element.node_indices[j];
 
-          gs_matrix[I][J] += ls_matrix[i][j];
+          gs_matrix(I, J) += ls_matrix(i, j);
         }
       }
     }
@@ -94,28 +94,28 @@ std::vector<double> assemble_gl_vector(const Mesh& mesh,
 }
 
 // apply Dirichlet boundary conditions
-void apply_dirichlet_bc(std::vector<std::vector<double>>& K,
+void apply_dirichlet_bc(Matrix<double>& K,
                         std::vector<double>& f,
                         const std::unordered_map<int, double>& dirichlet_vals) {
   for (const auto& [i, val] : dirichlet_vals) {
     // modify RHS
-    for (std::size_t j = 0; j < K.size(); j++) {
+    for (int j = 0; j < K.n; j++) {
       if (j != i) {
-        f[j] -= K.at(j).at(i) * val;
+        f[j] -= K(j, i) * val;
       }
     }
 
     // zero out row
-    for (std::size_t j = 0; j < K.at(0).size(); j++) {
-      K.at(i).at(j) = 0;
+    for (int j = 0; j < K.m; j++) {
+      K(i, j) = 0;
     }
 
     // zero out column
-    for (std::size_t j = 0; j < K.size(); j++) {
-      K.at(j).at(i) = 0;
+    for (int j = 0; j < K.n; j++) {
+      K(j, i) = 0;
     }
 
-    K.at(i).at(i) = 1.0;
+    K(i, i) = 1.0;
     f.at(i) = val;
   }
 }
