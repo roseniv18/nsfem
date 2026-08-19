@@ -9,14 +9,15 @@ typedef std::array<std::array<double, 3>, 3> local_matr;
 typedef std::array<double, 3> local_vec;
 
 // generate a local stiffness matrix for given element
-local_matr generate_ls_matrix(const Element& element);
+local_matr generate_ls_matrix(const Element& element, const Mesh& mesh);
 
 // assemble global stiffness matrix
 std::vector<std::vector<double>> assemble_gs_matrix(const Mesh& mesh);
 
 // generate a local load vector
 local_vec generate_loc_vector(const Element& element,
-                              double (*func)(const Point2D&));
+                              double (*func)(const Point2D&),
+                              const Mesh& mesh);
 
 // assemble global load vector
 std::vector<double> assemble_gl_vector(const Mesh& mesh,

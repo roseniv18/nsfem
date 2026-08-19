@@ -39,7 +39,6 @@ struct Element {
   int type;
   std::vector<int> physical_tags;
   std::vector<int> node_indices;
-  std::vector<Node> nodes;
 };
 
 /** Entity Physical Tags
@@ -86,6 +85,9 @@ EntityPhysicalTags read_entities(std::ifstream& file,
 std::vector<int> get_physical_tags(const EntityPhysicalTags& entities,
                                    int dim,
                                    int tag);
+
+// get the nodes of an element
+std::vector<Node> get_element_nodes(const Element& element, const Mesh& mesh);
 
 // get tags of dirichlet nodes
 std::unordered_set<int> get_dirichlet_nodes(const Mesh& mesh);

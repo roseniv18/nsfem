@@ -3,9 +3,10 @@
 #include "geometry/affine.h"
 
 // generate local stiffness matrix
-local_matr generate_ls_matrix(const Element& element) {
+local_matr generate_ls_matrix(const Element& element, const Mesh& mesh) {
   local_matr ls_matrix{};
-  AffineMap am = compute_affine(element);
+  const auto el_nodes = get_element_nodes(element, mesh);
+  AffineMap am = compute_affine(element, el_nodes);
 
   for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 3; j++) {
@@ -30,7 +31,7 @@ std::vector<std::vector<double>> assemble_gs_matrix(const Mesh& mesh) {
 
   for (const Element& element : mesh.elements) {
     if (element.type == 2) {
-      local_matr ls_matrix = generate_ls_matrix(element);
+      local_matr ls_matrix = generate_ls_matrix(element, mesh);
 
       for (std::size_t i = 0; i < element.node_indices.size(); ++i) {
         for (std::size_t j = 0; j < element.node_indices.size(); ++j) {
@@ -48,15 +49,17 @@ std::vector<std::vector<double>> assemble_gs_matrix(const Mesh& mesh) {
 
 // generate local load vector
 local_vec generate_loc_vector(const Element& element,
-                              double (*f)(const Point2D&)) {
+                              double (*f)(const Point2D&),
+                              const Mesh& mesh) {
   local_vec lv{};
-  AffineMap am = compute_affine(element);
+  const auto el_nodes = get_element_nodes(element, mesh);
+  AffineMap am = compute_affine(element, el_nodes);
 
   auto bfs = bfs_at_quad();
 
   for (std::size_t q = 0; q < quad_nodes.size(); q++) {
     Point2D ref = quad_nodes[q];
-    Point2D phys = map_to_phys(element, ref);
+    Point2D phys = map_to_phys(element, ref, el_nodes);
 
     double f_val = f(phys);
 
@@ -77,7 +80,7 @@ std::vector<double> assemble_gl_vector(const Mesh& mesh,
 
   for (const Element& element : mesh.elements) {
     if (element.type == 2) {
-      local_vec lv = generate_loc_vector(element, f);
+      local_vec lv = generate_loc_vector(element, f, mesh);
 
       for (std::size_t i = 0; i < element.node_indices.size(); ++i) {
         const std::size_t I = element.node_indices[i];

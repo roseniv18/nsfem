@@ -46,7 +46,10 @@ int main() {
 
   print_mesh(mesh);
 
-  AffineMap am = compute_affine(mesh.elements[4]);
+  const Element el = mesh.elements[4];
+  auto el_nodes = get_element_nodes(el, mesh);
+
+  AffineMap am = compute_affine(el, el_nodes);
 
   std::cout << "Affine transformation for triangle 4: " << '\n';
   std::cout << "Jacobian: " << '\n';
@@ -70,18 +73,7 @@ int main() {
     std::cout << "phys_grad " << i << ".y : " << am.phys_grads[i].y << '\n';
   }
 
-  std::cout << "----------" << '\n';
-
-  std::cout << "Nodes (coordinates): " << '\n';
-  for (int i = 0; i < mesh.elements[4].nodes.size(); i++) {
-    Node n = mesh.elements[4].nodes[i];
-    std::cout << "(Node  " << i
-              << "): "
-                 "x = "
-              << n.x << ", y = " << n.y << ", z = " << n.z << '\n';
-  }
-
-  local_matr ls_matrix = generate_ls_matrix(mesh.elements.at(4));
+  local_matr ls_matrix = generate_ls_matrix(el, mesh);
 
   std::cout << "----------" << '\n';
 
@@ -98,8 +90,8 @@ int main() {
   std::cout << "----------" << '\n';
 
   std::cout << "Global stiffness matrix " << '\n';
-  for (int i = 0; i < mesh.nodes.size(); i++) {
-    for (int j = 0; j < mesh.nodes.size(); j++) {
+  for (std::size_t i = 0; i < mesh.nodes.size(); i++) {
+    for (std::size_t j = 0; j < mesh.nodes.size(); j++) {
       std::cout << gs_matrix.at(i).at(j) << '\t';
     }
     std::cout << '\n';
@@ -110,7 +102,7 @@ int main() {
   std::cout << "----------" << '\n';
 
   std::cout << "Global load vector " << '\n';
-  for (int i = 0; i < mesh.nodes.size(); i++) {
+  for (std::size_t i = 0; i < mesh.nodes.size(); i++) {
     std::cout << gl_vector.at(i) << '\t';
     std::cout << '\n';
   }
@@ -118,7 +110,7 @@ int main() {
   std::cout << "----------" << '\n';
 
   std::cout << "Entity tags for elements: " << '\n';
-  for (int i = 0; i < mesh.elements.size(); i++) {
+  for (std::size_t i = 0; i < mesh.elements.size(); i++) {
     std::cout << "Element " << i << ": " << mesh.elements.at(i).element_tag
               << '\n';
   }
@@ -139,8 +131,8 @@ int main() {
   std::cout << "----------" << '\n';
 
   std::cout << "[DIRICHLET] Global stiffness matrix " << '\n';
-  for (int i = 0; i < mesh.nodes.size(); i++) {
-    for (int j = 0; j < mesh.nodes.size(); j++) {
+  for (std::size_t i = 0; i < mesh.nodes.size(); i++) {
+    for (std::size_t j = 0; j < mesh.nodes.size(); j++) {
       std::cout << gs_matrix.at(i).at(j) << '\t';
     }
     std::cout << '\n';
@@ -149,7 +141,7 @@ int main() {
   std::cout << "----------" << '\n';
 
   std::cout << "[DIRICHLET] Global load vector " << '\n';
-  for (int i = 0; i < mesh.nodes.size(); i++) {
+  for (std::size_t i = 0; i < mesh.nodes.size(); i++) {
     std::cout << gl_vector.at(i) << '\t';
     std::cout << '\n';
   }

@@ -1,12 +1,12 @@
 #include "affine.h"
 
-AffineMap compute_affine(const Element& element) {
+AffineMap compute_affine(const Element& el, const std::vector<Node>& nodes) {
   // compute jacobian
   std::array<std::array<double, 2>, 2> J;
-  J[0][0] = element.nodes[1].x - element.nodes[0].x;
-  J[0][1] = element.nodes[2].x - element.nodes[0].x;
-  J[1][0] = element.nodes[1].y - element.nodes[0].y;
-  J[1][1] = element.nodes[2].y - element.nodes[0].y;
+  J[0][0] = nodes[1].x - nodes[0].x;
+  J[0][1] = nodes[2].x - nodes[0].x;
+  J[1][0] = nodes[1].y - nodes[0].y;
+  J[1][1] = nodes[2].y - nodes[0].y;
 
   // compute determinant
   double detJ = (J[0][0] * J[1][1]) - (J[0][1] * J[1][0]);
@@ -37,16 +37,18 @@ AffineMap compute_affine(const Element& element) {
   return am;
 }
 
-Point2D map_to_phys(const Element& element, const Point2D& point) {
+Point2D map_to_phys(const Element& el,
+                    const Point2D& pt,
+                    const std::vector<Node>& nodes) {
   Point2D phys{};
 
   auto bfs = basis_functions();
 
   for (int i = 0; i < 3; i++) {
-    const double N = bfs.at(i)(point);
+    const double N = bfs.at(i)(pt);
 
-    phys.x += element.nodes.at(i).x * N;
-    phys.y += element.nodes.at(i).y * N;
+    phys.x += nodes[i].x * N;
+    phys.y += nodes[i].y * N;
   }
 
   return phys;

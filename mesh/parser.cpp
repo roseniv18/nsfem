@@ -157,6 +157,17 @@ std::vector<int> get_physical_tags(const EntityPhysicalTags& entities,
   throw std::runtime_error("Invalid dimension");
 }
 
+std::vector<Node> get_element_nodes(const Element& element, const Mesh& mesh) {
+  std::vector<Node> nodes{};
+  nodes.reserve(element.node_indices.size());
+
+  for (int id : element.node_indices) {
+    nodes.push_back(Node{mesh.nodes.at(id)});
+  }
+
+  return nodes;
+}
+
 std::unordered_set<int> get_dirichlet_nodes(const Mesh& mesh) {
   std::unordered_set<int> dirichlet_nodes{};
 
@@ -272,7 +283,6 @@ void read_elements(std::ifstream& file,
         // note this is not the same as its tag!
         int node_pos = node_index.at(node_tag);
         el.node_indices.push_back(node_pos);  // tag -> position
-        el.nodes.push_back(mesh.nodes.at(node_pos));
       }
 
       mesh.elements.push_back(el);
