@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "geometry/affine.h"
 
-// generete local stiffness matrix
+// generate local stiffness matrix
 local_matr generate_ls_matrix(const Element& element) {
   local_matr ls_matrix{};
   AffineMap am = compute_affine(element);
@@ -88,4 +88,31 @@ std::vector<double> assemble_gl_vector(const Mesh& mesh,
   }
 
   return gl_vector;
+}
+
+// apply Dirichlet boundary conditions
+void apply_dirichlet_bc(std::vector<std::vector<double>>& K,
+                        std::vector<double>& f,
+                        const std::unordered_map<int, double>& dirichlet_vals) {
+  for (const auto& [i, val] : dirichlet_vals) {
+    // modify RHS
+    for (std::size_t j = 0; j < K.size(); j++) {
+      if (j != i) {
+        f[j] -= K.at(j).at(i) * val;
+      }
+    }
+
+    // zero out row
+    for (std::size_t j = 0; j < K.at(0).size(); j++) {
+      K.at(i).at(j) = 0;
+    }
+
+    // zero out column
+    for (std::size_t j = 0; j < K.size(); j++) {
+      K.at(j).at(i) = 0;
+    }
+
+    K.at(i).at(i) = 1.0;
+    f.at(i) = val;
+  }
 }

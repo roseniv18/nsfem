@@ -2,11 +2,13 @@
 #define PARSER_H
 
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include "geometry/point2d.h"
 
 struct Node {
   int tag;
@@ -87,6 +89,12 @@ std::vector<int> get_physical_tags(const EntityPhysicalTags& entities,
 
 // get tags of dirichlet nodes
 std::unordered_set<int> get_dirichlet_nodes(const Mesh& mesh);
+
+// get values of function at dirichlet nodes
+std::unordered_map<int, double> get_dirichlet_values(
+    const Mesh& mesh,
+    const std::unordered_set<int>& dirichlet_nodes,
+    std::function<double(const Point2D&)> fn);
 
 // main function to read .msh
 Mesh read_mesh(std::ifstream& file,

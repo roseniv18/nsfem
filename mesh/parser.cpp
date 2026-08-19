@@ -191,6 +191,22 @@ std::unordered_set<int> get_dirichlet_nodes(const Mesh& mesh) {
   return dirichlet_nodes;
 }
 
+std::unordered_map<int, double> get_dirichlet_values(
+    const Mesh& mesh,
+    const std::unordered_set<int>& dirichlet_nodes,
+    std::function<double(const Point2D&)> fn) {
+  std::unordered_map<int, double> values;
+
+  for (int node_id : dirichlet_nodes) {
+    const auto& node = mesh.nodes.at(node_id);
+    const Point2D pt{node.x, node.y};
+
+    values[node_id] = fn(pt);
+  }
+
+  return values;
+}
+
 void read_nodes(std::ifstream& file,
                 Mesh& mesh,
                 std::unordered_map<int, std::size_t>& node_index,

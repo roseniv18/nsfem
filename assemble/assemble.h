@@ -22,4 +22,9 @@ local_vec generate_loc_vector(const Element& element,
 std::vector<double> assemble_gl_vector(const Mesh& mesh,
                                        double (*f)(const Point2D&));
 
+// apply Dirichlet boundary conditions
+void apply_dirichlet_bc(std::vector<std::vector<double>>& K,
+                        std::vector<double>& f,
+                        const std::unordered_map<int, double>& dirichlet_nodes);
+
 #endif

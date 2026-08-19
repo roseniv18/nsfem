@@ -12,6 +12,7 @@ using std::sin;
 using std::numbers::pi;
 
 double func(const Point2D& pt);
+double dir_func(const Point2D& pt);
 
 int main() {
   std::ifstream file;
@@ -131,9 +132,35 @@ int main() {
 
   std::cout << '\n';
 
+  auto dirichlet_values = get_dirichlet_values(mesh, dirichlet_nodes, dir_func);
+
+  apply_dirichlet_bc(gs_matrix, gl_vector, dirichlet_values);
+
+  std::cout << "----------" << '\n';
+
+  std::cout << "[DIRICHLET] Global stiffness matrix " << '\n';
+  for (int i = 0; i < mesh.nodes.size(); i++) {
+    for (int j = 0; j < mesh.nodes.size(); j++) {
+      std::cout << gs_matrix.at(i).at(j) << '\t';
+    }
+    std::cout << '\n';
+  }
+
+  std::cout << "----------" << '\n';
+
+  std::cout << "[DIRICHLET] Global load vector " << '\n';
+  for (int i = 0; i < mesh.nodes.size(); i++) {
+    std::cout << gl_vector.at(i) << '\t';
+    std::cout << '\n';
+  }
+
   return 0;
 }
 
 double func(const Point2D& pt) {
   return pt.y;
+}
+
+double dir_func(const Point2D& pt) {
+  return pt.x + pt.y;
 }
