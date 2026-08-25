@@ -1,21 +1,34 @@
 #include "parser.h"
 #include "helpers/helpers.h"
 
-int nodes_per_element(int type) {
+std::size_t local_node_count(ElementType type) {
   switch (type) {
-    case 1:
-      return 2;  // line
-    case 2:
-      return 3;  // triangle
-    case 3:
-      return 4;  // quad
-    case 4:
-      return 4;  // tetrahedron
-    case 5:
-      return 8;  // hexahedron
-                 // ... add more if needed
+    case ElementType::Line2:
+      return 2;
+    case ElementType::Line3:
+      return 3;
+    case ElementType::Triangle3:
+      return 3;
+    case ElementType::Triangle6:
+      return 6;
     default:
       return 0;
+  }
+}
+
+ElementType get_element_type(std::size_t gmsh_type) {
+  switch (gmsh_type) {
+    case 1:
+      return ElementType::Line2;
+    case 2:
+      return ElementType::Triangle3;
+    case 8:
+      return ElementType::Line3;
+    case 9:
+      return ElementType::Triangle6;
+    default:
+      throw std::invalid_argument("Unsupported gmsh element type: " +
+                                  std::to_string(gmsh_type));
   }
 }
 
@@ -163,7 +176,7 @@ std::vector<Node> get_element_nodes(const Element& element, const Mesh& mesh) {
   std::vector<Node> nodes{};
   nodes.reserve(element.node_indices.size());
 
-  for (int id : element.node_indices) {
+  for (std::size_t id : element.node_indices) {
     nodes.push_back(Node{mesh.nodes.at(id)});
   }
 
@@ -179,7 +192,8 @@ std::unordered_set<int> get_dirichlet_nodes(const Mesh& mesh) {
 
       //   std::cout << physical_group.name << '\n';
 
-      if (element.type == 1 && physical_group.name == "Dirichlet") {
+      if (element.type == ElementType::Line2 &&
+          physical_group.name == "Dirichlet") {
         // std::cout << "DIRICHLET EDGE FOUND\n";
         // std::cout << "nodes: ";
 
@@ -265,20 +279,19 @@ void read_elements(std::ifstream& file,
     // read the header for the block
     file >> entity_dim >> entity_tag >> element_type >> num_belements;
 
-    int n_nodes = nodes_per_element(element_type);
-
     // read element data
     for (int element = 0; element < num_belements; element++) {
       Element el{};
 
       file >> el.element_tag;
       el.dim = entity_dim;
-      el.type = element_type;
-
+      el.type = get_element_type(element_type);
       el.physical_tags = get_physical_tags(entities, entity_dim, entity_tag);
 
+      std::size_t n_nodes = local_node_count(el.type);
+
       // loop through nodes
-      for (int i = 0; i < n_nodes; i++) {
+      for (std::size_t i = 0; i < n_nodes; i++) {
         int node_tag;
         file >> node_tag;
         // node position in mesh
@@ -310,7 +323,31 @@ void print_mesh(const Mesh& mesh) {
   std::cout << "\nElements\n";
   std::cout << "--------\n";
 
+  int line2_count{}, line3_count{}, triangle3_count{}, triangle6_count{};
+
   for (const auto& e : mesh.elements) {
+    switch (e.type) {
+      case ElementType::Line2:
+        line2_count += 1;
+        break;
+
+      case ElementType::Line3:
+        line3_count += 1;
+        break;
+
+      case ElementType::Triangle3:
+        triangle3_count += 1;
+        break;
+
+      case ElementType::Triangle6:
+        triangle6_count += 1;
+        break;
+
+      default:
+        throw std::runtime_error(
+            "Error - attempted to parse element with unknown type");
+    }
+
     std::cout << "Element " << e.element_tag << "\n";
 
     std::cout << "dim = " << e.dim << "\n";
@@ -331,6 +368,12 @@ void print_mesh(const Mesh& mesh) {
                 << ", name = " << mesh.physical_groups.at(tag).name << '\n';
     }
   }
+
+  std::cout << "Element counts: " << '\n';
+  std::cout << "Line2: " << line2_count << '\n';
+  std::cout << "Line3: " << line3_count << '\n';
+  std::cout << "Triangle3: " << triangle3_count << '\n';
+  std::cout << "Triangle6: " << triangle6_count << '\n';
 
   std::cout << "\n\n";
 }

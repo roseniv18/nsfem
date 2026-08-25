@@ -10,6 +10,8 @@
 #include <vector>
 #include "geometry/point2d.h"
 
+enum class ElementType { Line2, Triangle3, Line3, Triangle6 };
+
 struct Node {
   int tag;
   double x;
@@ -36,9 +38,9 @@ struct PhysicalGroup {
 struct Element {
   int dim;
   int element_tag;
-  int type;
+  ElementType type;
   std::vector<int> physical_tags;
-  std::vector<int> node_indices;
+  std::vector<std::size_t> node_indices;
 };
 
 /** Entity Physical Tags
@@ -120,7 +122,9 @@ std::unordered_map<int, PhysicalGroup> read_physical_names(std::ifstream& file);
 
 void read_entity_block_header(std::ifstream& file, EntitySectionHeader& h);
 
-int nodes_per_element(int type);
+std::size_t local_node_count(ElementType type);
+
+ElementType get_element_type(std::size_t gmsh_type);
 
 void print_mesh(const Mesh& mesh);
 

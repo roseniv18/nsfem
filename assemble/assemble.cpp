@@ -30,7 +30,7 @@ Matrix<double> assemble_gs_matrix(const Mesh& mesh) {
   Matrix<double> gs_matrix(n, n);
 
   for (const Element& element : mesh.elements) {
-    if (element.type == 2) {
+    if (element.type == ElementType::Triangle3) {
       Matrix<double> ls_matrix = generate_ls_matrix(element, mesh);
 
       for (std::size_t i = 0; i < element.node_indices.size(); ++i) {
@@ -79,7 +79,7 @@ std::vector<double> assemble_gl_vector(const Mesh& mesh,
   std::vector<double> gl_vector(n, 0.0);
 
   for (const Element& element : mesh.elements) {
-    if (element.type == 2) {
+    if (element.type == ElementType::Triangle3) {
       local_vec lv = generate_loc_vector(element, f, mesh);
 
       for (std::size_t i = 0; i < element.node_indices.size(); ++i) {
