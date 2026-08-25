@@ -1,9 +1,11 @@
 SetFactory("Built-in");
 
-Point(1) = {0,0,0,1};
-Point(2) = {1,0,0,1};
-Point(3) = {1,1,0,1};
-Point(4) = {0,1,0,1};
+lc = 0.05;
+
+Point(1) = {0,0,0,lc};
+Point(2) = {1,0,0,lc};
+Point(3) = {1,1,0,lc};
+Point(4) = {0,1,0,lc};
 
 Line(1) = {1,2};
 Line(2) = {2,3};

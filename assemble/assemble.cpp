@@ -6,7 +6,7 @@
 Matrix<double> generate_ls_matrix(const Element& element, const Mesh& mesh) {
   Matrix<double> ls_matrix(3, 3);
   const auto el_nodes = get_element_nodes(element, mesh);
-  AffineMap am = compute_affine(element, el_nodes);
+  AffineMap am = compute_affine(el_nodes);
 
   for (int i = 0; i < ls_matrix.n; i++) {
     for (int j = 0; j < ls_matrix.m; j++) {
@@ -53,13 +53,13 @@ local_vec generate_loc_vector(const Element& element,
                               const Mesh& mesh) {
   local_vec lv{};
   const auto el_nodes = get_element_nodes(element, mesh);
-  AffineMap am = compute_affine(element, el_nodes);
+  AffineMap am = compute_affine(el_nodes);
 
   auto bfs = bfs_at_quad();
 
   for (std::size_t q = 0; q < quad_nodes.size(); q++) {
     Point2D ref = quad_nodes[q];
-    Point2D phys = map_to_phys(element, ref, el_nodes);
+    Point2D phys = map_to_phys(ref, el_nodes);
 
     double f_val = f(phys);
 

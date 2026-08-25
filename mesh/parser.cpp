@@ -158,6 +158,8 @@ std::vector<int> get_physical_tags(const EntityPhysicalTags& entities,
 }
 
 std::vector<Node> get_element_nodes(const Element& element, const Mesh& mesh) {
+  std::cout << "element " << element.element_tag << " has "
+            << element.node_indices.size() << " nodes\n";
   std::vector<Node> nodes{};
   nodes.reserve(element.node_indices.size());
 

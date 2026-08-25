@@ -49,7 +49,7 @@ int main() {
   const Element el = mesh.elements[4];
   auto el_nodes = get_element_nodes(el, mesh);
 
-  AffineMap am = compute_affine(el, el_nodes);
+  AffineMap am = compute_affine(el_nodes);
 
   std::cout << "Affine transformation for triangle 4: " << '\n';
   std::cout << "Jacobian: " << '\n';

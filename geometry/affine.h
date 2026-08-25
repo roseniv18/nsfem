@@ -15,11 +15,8 @@ struct AffineMap {
 // For now we naively assume element is of correct type (linear triangle)
 // ? TODO: Implement Triangle struct with appropriate DOFs
 // ? TODO: compute_affine to be compatible with different types of triangles
-AffineMap compute_affine(const Element& element,
-                         const std::vector<Node>& nodes);
+AffineMap compute_affine(const std::vector<Node>& nodes);
 
-Point2D map_to_phys(const Element& element,
-                    const Point2D& point,
-                    const std::vector<Node>& nodes);
+Point2D map_to_phys(const Point2D& point, const std::vector<Node>& nodes);
 
 #endif
