@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 20)
 add_executable(main
     main.cpp
 	mesh/parser.cpp
-	geometry/affine.cpp
+	geometry/triangle_geometry.cpp
 	assemble/assemble.cpp
 	basis/lagrange_p1_triangle.cpp
 	quadrature/quadrature.cpp

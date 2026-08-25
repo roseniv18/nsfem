@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 #include "assemble/assemble.h"
-#include "geometry/affine.h"
+#include "geometry/triangle_geometry.h"
 #include "mesh/parser.h"
 
 using std::sin;
@@ -46,16 +46,25 @@ int main() {
 
   print_mesh(mesh);
 
-  const Element el = mesh.elements[4];
+  Element el{};
+
+  //   test pipeline with the first encountered triangle element in mesh
+  for (const auto& e : mesh.elements) {
+    if (e.type == ElementType::Triangle3) {
+      el = e;
+      break;
+    }
+  }
+
   auto el_nodes = get_element_nodes(el, mesh);
 
-  AffineMap am = compute_affine(el_nodes);
+  TriangleGEO triangle(el, el_nodes);
 
   std::cout << "Affine transformation for triangle 4: " << '\n';
   std::cout << "Jacobian: " << '\n';
   for (int i = 0; i < 2; i++) {
     for (int j = 0; j < 2; j++) {
-      std::cout << am.Jacobian(i, j) << '\t';
+      std::cout << triangle.jacobian()(i, j) << '\t';
     }
     std::cout << '\n';
   }
@@ -63,38 +72,16 @@ int main() {
   std::cout << "----------" << '\n';
 
   std::cout << "Det J: " << '\n';
-  std::cout << am.detJ << '\n';
+  std::cout << triangle.det_jacobian() << '\n';
 
   std::cout << "----------" << '\n';
 
   std::cout << "Physical gradients: " << '\n';
   for (int i = 0; i < 3; i++) {
-    std::cout << "phys_grad " << i << ".x : " << am.phys_grads[i].x << '\n';
-    std::cout << "phys_grad " << i << ".y : " << am.phys_grads[i].y << '\n';
-  }
-
-  Matrix<double> ls_matrix = generate_ls_matrix(el, mesh);
-
-  std::cout << "----------" << '\n';
-
-  std::cout << "Local stiffness matrix (Poisson): " << '\n';
-  ls_matrix.print_matrix();
-
-  Matrix<double> gs_matrix = assemble_gs_matrix(mesh);
-
-  std::cout << "----------" << '\n';
-
-  std::cout << "Global stiffness matrix " << '\n';
-  gs_matrix.print_matrix();
-
-  std::vector<double> gl_vector = assemble_gl_vector(mesh, func);
-
-  std::cout << "----------" << '\n';
-
-  std::cout << "Global load vector " << '\n';
-  for (std::size_t i = 0; i < mesh.nodes.size(); i++) {
-    std::cout << gl_vector.at(i) << '\t';
-    std::cout << '\n';
+    std::cout << "phys_grad " << i << ".x : " << triangle.get_phys_grads()[i].x
+              << '\n';
+    std::cout << "phys_grad " << i << ".y : " << triangle.get_phys_grads()[i].y
+              << '\n';
   }
 
   std::cout << "----------" << '\n';
@@ -105,30 +92,57 @@ int main() {
               << '\n';
   }
 
-  auto dirichlet_nodes = get_dirichlet_nodes(mesh);
+  if (el.type == ElementType::Triangle3) {
+    Matrix<double> ls_matrix = generate_ls_matrix(el, mesh);
 
-  std::cout << "Dirichlet nodes: ";
+    std::cout << "----------" << '\n';
 
-  for (int node : dirichlet_nodes)
-    std::cout << node << ' ';
+    std::cout << "Local stiffness matrix (Poisson): " << '\n';
+    ls_matrix.print_matrix();
 
-  std::cout << '\n';
+    Matrix<double> gs_matrix = assemble_gs_matrix(mesh);
 
-  auto dirichlet_values = get_dirichlet_values(mesh, dirichlet_nodes, dir_func);
+    std::cout << "----------" << '\n';
 
-  apply_dirichlet_bc(gs_matrix, gl_vector, dirichlet_values);
+    std::cout << "Global stiffness matrix " << '\n';
+    gs_matrix.print_matrix();
 
-  std::cout << "----------" << '\n';
+    std::vector<double> gl_vector = assemble_gl_vector(mesh, func);
 
-  std::cout << "[DIRICHLET] Global stiffness matrix " << '\n';
-  gs_matrix.print_matrix();
+    std::cout << "----------" << '\n';
 
-  std::cout << "----------" << '\n';
+    std::cout << "Global load vector " << '\n';
+    for (std::size_t i = 0; i < mesh.nodes.size(); i++) {
+      std::cout << gl_vector.at(i) << '\t';
+      std::cout << '\n';
+    }
 
-  std::cout << "[DIRICHLET] Global load vector " << '\n';
-  for (std::size_t i = 0; i < mesh.nodes.size(); i++) {
-    std::cout << gl_vector.at(i) << '\t';
+    auto dirichlet_nodes = get_dirichlet_nodes(mesh);
+
+    std::cout << "Dirichlet nodes: ";
+
+    for (int node : dirichlet_nodes)
+      std::cout << node << ' ';
+
     std::cout << '\n';
+
+    auto dirichlet_values =
+        get_dirichlet_values(mesh, dirichlet_nodes, dir_func);
+
+    apply_dirichlet_bc(gs_matrix, gl_vector, dirichlet_values);
+
+    std::cout << "----------" << '\n';
+
+    std::cout << "[DIRICHLET] Global stiffness matrix " << '\n';
+    gs_matrix.print_matrix();
+
+    std::cout << "----------" << '\n';
+
+    std::cout << "[DIRICHLET] Global load vector " << '\n';
+    for (std::size_t i = 0; i < mesh.nodes.size(); i++) {
+      std::cout << gl_vector.at(i) << '\t';
+      std::cout << '\n';
+    }
   }
 
   return 0;
