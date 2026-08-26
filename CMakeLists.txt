@@ -12,6 +12,7 @@ add_executable(main
 	basis/lagrange_p1_triangle.cpp
 	quadrature/quadrature.cpp
 	linalg/matrix.cpp
+	linalg/conjugate_gradient.cpp
 	helpers/helpers.cpp
 )
 

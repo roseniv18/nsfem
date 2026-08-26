@@ -6,6 +6,7 @@
 #include <vector>
 #include "assemble/assemble.h"
 #include "geometry/affine.h"
+#include "linalg/conjugate_gradient.h"
 #include "mesh/parser.h"
 
 using std::sin;
@@ -128,6 +129,18 @@ int main() {
   std::cout << "[DIRICHLET] Global load vector " << '\n';
   for (std::size_t i = 0; i < mesh.nodes.size(); i++) {
     std::cout << gl_vector.at(i) << '\t';
+    std::cout << '\n';
+  }
+
+  std::cout << "----------" << '\n';
+  std::cout << "Solving linear system..." << '\n';
+  ConjugateGradient cg(gs_matrix, gl_vector);
+
+  std::vector<double> solution = cg.solve();
+
+  std::cout << "FEM Solution vector " << '\n';
+  for (std::size_t i = 0; i < solution.size(); i++) {
+    std::cout << solution.at(i) << '\t';
     std::cout << '\n';
   }
 
