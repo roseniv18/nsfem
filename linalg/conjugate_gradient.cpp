@@ -19,20 +19,16 @@ std::vector<double> ConjugateGradient::solve() {
 
   //   Conjugate Gradient
 
-  for (int k = 0; k < cols * cols; k++) {
-    residual[k] = rhs[k] - matdotdir[k];
-    dir[k] = residual[k];
-  }
+  //  initial guess
+  residual = rhs;
+  dir = residual;
 
   double rr = 0.0;
-  for (int i = 1; i < cols - 1; i++) {
-    for (int j = 1; j < cols - 1; j++) {
-      const int k = idx(i, j, cols);
-      rr += residual[k] * residual[k];
-    }
+  for (std::size_t i = 0; i < size; i++) {
+    rr += residual[i] * residual[i];
   }
 
-  double rr0 = rr;
+  const double rr0 = rr;
 
   for (std::size_t iter = 0; iter < max_iter; iter++) {
     if (rr <= tol2 * rr0) {
