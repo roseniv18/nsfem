@@ -1,6 +1,6 @@
 SetFactory("Built-in");
 
-lc = 0.05;
+lc = 0.025;
 
 Point(1) = {0,0,0,lc};
 Point(2) = {1,0,0,lc};

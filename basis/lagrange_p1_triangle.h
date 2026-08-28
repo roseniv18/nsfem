@@ -13,7 +13,7 @@ double phi2(const Point2D& p);
 double phi3(const Point2D& p);
 
 std::array<BasisFunction, 3> basis_functions();
-std::array<Point2D, 3> basis_ref_grads();
+std::array<Point2D, 3> basis_grads();
 
 // evaluate each basis function at each quadrature point
 std::array<std::array<double, 3>, 3> bfs_at_quad();

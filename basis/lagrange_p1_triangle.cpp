@@ -16,7 +16,7 @@ std::array<BasisFunction, 3> basis_functions() {
   return {phi1, phi2, phi3};
 }
 
-std::array<Point2D, 3> basis_ref_grads() {
+std::array<Point2D, 3> basis_grads() {
   Point2D grad_phi1{-1, -1};
   Point2D grad_phi2{1, 0};
   Point2D grad_phi3{0, 1};
@@ -24,6 +24,8 @@ std::array<Point2D, 3> basis_ref_grads() {
   return {grad_phi1, grad_phi2, grad_phi3};
 }
 
+// basis functions evaluated at quadrature points
+// returns quad_val[i][j] = phi_i(x_j)
 std::array<std::array<double, 3>, 3> bfs_at_quad() {
   std::array<BasisFunction, 3> bfs = basis_functions();
   std::array<std::array<double, 3>, 3> quad_val{};
@@ -37,8 +39,10 @@ std::array<std::array<double, 3>, 3> bfs_at_quad() {
   return quad_val;
 }
 
+// gradient of the basis functions evaluated at quadrature points
+// returns quad_val[i][j] = grad phi_i(x_j)
 std::array<std::array<Point2D, 3>, 3> brgrads_at_quad() {
-  std::array<Point2D, 3> br_grads = basis_ref_grads();
+  std::array<Point2D, 3> br_grads = basis_grads();
   std::array<std::array<Point2D, 3>, 3> quad_val{};
 
   // constant for linear Lagrange triangles

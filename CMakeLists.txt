@@ -13,6 +13,7 @@ add_executable(main
 	quadrature/quadrature.cpp
 	linalg/matrix.cpp
 	linalg/conjugate_gradient.cpp
+	convergence/convergence.cpp
 	helpers/helpers.cpp
 )
 

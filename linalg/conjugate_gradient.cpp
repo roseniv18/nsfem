@@ -14,9 +14,6 @@ std::vector<double> ConjugateGradient::solve() {
   std::vector<double> sol_new(size, 0.0);
   std::vector<double> residual(size, 0.0), dir(size, 0.0), matdotdir(size, 0.0);
 
-  int cols = matrix.n;
-  int rows = matrix.m;
-
   //   Conjugate Gradient
 
   //  initial guess
@@ -41,7 +38,7 @@ std::vector<double> ConjugateGradient::solve() {
       matdotdir[i] = 0.0;
 
       for (std::size_t j = 0; j < size; j++) {
-        matdotdir[j] += matrix(i, j) * dir[j];
+        matdotdir[i] += matrix(i, j) * dir[j];
       }
     }
 

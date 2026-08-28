@@ -25,44 +25,46 @@ TriangleGEO::TriangleGEO(const Element& element,
   JinvT(1, 1) = J(0, 0) / detJ;
 
   // compute physical coordinates
-  std::array<BasisFunction, 3> bfs = basis_functions();
+  auto quad_basis = bfs_at_quad();
 
-  for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < 3; j++) {
-      const double N = bfs.at(i)(phys_coords[j]);
+  for (std::size_t q = 0; q < 3; q++) {
+    for (std::size_t i = 0; i < 3; i++) {
+      // basis functions at quadrature points
+      // means: basis function i at quadrature node q
+      double N = quad_basis.at(i).at(q);
 
-      phys_coords[j].x += nodes.at(i).x * N;
-      phys_coords[j].y += nodes.at(i).y * N;
+      phys_coords.at(q).x += nodes.at(i).x * N;
+      phys_coords.at(q).y += nodes.at(i).y * N;
     }
   }
 
   // compute physical gradients
-  std::array<Point2D, 3> ref_grads = basis_ref_grads();
+  auto ref_grads = basis_grads();
 
   for (int i = 0; i < 3; i++) {
-    phys_grads[i].x =
-        JinvT(0, 0) * ref_grads[i].x + JinvT(0, 1) * ref_grads[i].y;
-    phys_grads[i].y =
-        JinvT(1, 0) * ref_grads[i].x + JinvT(1, 1) * ref_grads[i].y;
+    phys_grads.at(i).x =
+        JinvT(0, 0) * ref_grads.at(i).x + JinvT(0, 1) * ref_grads.at(i).y;
+    phys_grads.at(i).y =
+        JinvT(1, 0) * ref_grads.at(i).x + JinvT(1, 1) * ref_grads.at(i).y;
   }
 }
 
 Matrix<double> TriangleGEO::jacobian() const {
-  return this->J;
+  return J;
 }
 
 Matrix<double> TriangleGEO::jacobianInvT() const {
-  return this->JinvT;
+  return JinvT;
 }
 
 double TriangleGEO::det_jacobian() const {
-  return this->detJ;
+  return detJ;
 }
 
 std::array<Point2D, 3> TriangleGEO::get_phys_grads() const {
-  return this->phys_grads;
+  return phys_grads;
 }
 
 std::array<Point2D, 3> TriangleGEO::get_phys_coords() const {
-  return this->phys_coords;
+  return phys_coords;
 }

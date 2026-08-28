@@ -17,8 +17,8 @@ Matrix<double> generate_ls_matrix(const Element& element, const Mesh& mesh) {
        * 	1. affine mapping
        *  	2. constant gradients (true for linear Lagrange triangles)
        */
-      double dot = (phys_grads[i].x * phys_grads[j].x) +
-                   (phys_grads[i].y * phys_grads[j].y);
+      double dot = (phys_grads.at(i).x * phys_grads.at(j).x) +
+                   (phys_grads.at(i).y * phys_grads.at(j).y);
       ls_matrix(i, j) = 0.5 * std::abs(detJ) * dot;
     }
   }
@@ -109,12 +109,12 @@ void apply_dirichlet_bc(Matrix<double>& K,
     }
 
     // zero out row
-    for (int j = 0; j < K.m; j++) {
+    for (int j = 0; j < K.n; j++) {
       K(i, j) = 0;
     }
 
     // zero out column
-    for (int j = 0; j < K.n; j++) {
+    for (int j = 0; j < K.m; j++) {
       K(j, i) = 0;
     }
 
