@@ -40,7 +40,7 @@ add_executable(main src/main.cpp)
 
 target_link_libraries(main PRIVATE fem)
 
-add_executable(tests tests/hello_test.cpp)
+add_executable(tests tests/geometry_test.cpp)
 
 target_link_libraries(tests PRIVATE fem GTest::gtest_main)
 
