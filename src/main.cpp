@@ -113,7 +113,8 @@ int main() {
       auto el_nodes = get_element_nodes(el, mesh);
       TriangleGEO triangle(el, el_nodes);
 
-      local_vec lv = generate_loc_vector(el, func, mesh);
+      local_vec lv = generate_loc_vector(triangle, func);
+
       std::cout << "local RHS: " << lv[0] << " " << lv[1] << " " << lv[2]
                 << '\n';
 

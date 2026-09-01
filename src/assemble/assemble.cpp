@@ -3,13 +3,11 @@
 #include "geometry/triangle_geometry.h"
 
 // generate local stiffness matrix
-Matrix<double> generate_ls_matrix(const Element& element, const Mesh& mesh) {
+Matrix<double> generate_ls_matrix(const TriangleGEO& element) {
   Matrix<double> ls_matrix(3, 3);
-  const auto el_nodes = get_element_nodes(element, mesh);
 
-  TriangleGEO triangle(element, el_nodes);
-  auto phys_grads = triangle.get_phys_grads();
-  auto detJ = triangle.det_jacobian();
+  auto phys_grads = element.get_phys_grads();
+  auto detJ = element.det_jacobian();
 
   for (int i = 0; i < ls_matrix.n; i++) {
     for (int j = 0; j < ls_matrix.m; j++) {
@@ -34,7 +32,10 @@ Matrix<double> assemble_gs_matrix(const Mesh& mesh) {
 
   for (const Element& element : mesh.elements) {
     if (element.type == ElementType::Triangle3) {
-      Matrix<double> ls_matrix = generate_ls_matrix(element, mesh);
+      const auto el_nodes = get_element_nodes(element, mesh);
+      const TriangleGEO tr_element(element, el_nodes);
+
+      Matrix<double> ls_matrix = generate_ls_matrix(tr_element);
 
       for (std::size_t i = 0; i < element.node_indices.size(); ++i) {
         for (std::size_t j = 0; j < element.node_indices.size(); ++j) {
@@ -51,16 +52,12 @@ Matrix<double> assemble_gs_matrix(const Mesh& mesh) {
 }
 
 // generate local load vector
-local_vec generate_loc_vector(const Element& element,
-                              double (*f)(const Point2D&),
-                              const Mesh& mesh) {
+local_vec generate_loc_vector(const TriangleGEO& element,
+                              double (*f)(const Point2D&)) {
   local_vec lv{};
-  const auto el_nodes = get_element_nodes(element, mesh);
 
-  TriangleGEO triangle(element, el_nodes);
-  auto phys_points = triangle.get_phys_coords();
-  auto detJ = triangle.det_jacobian();
-
+  auto phys_points = element.get_phys_coords();
+  auto detJ = element.det_jacobian();
   auto bfs = bfs_at_quad();
 
   for (std::size_t q = 0; q < quad_nodes.size(); q++) {
@@ -83,7 +80,10 @@ std::vector<double> assemble_gl_vector(const Mesh& mesh,
 
   for (const Element& element : mesh.elements) {
     if (element.type == ElementType::Triangle3) {
-      local_vec lv = generate_loc_vector(element, f, mesh);
+      const auto el_nodes = get_element_nodes(element, mesh);
+      const TriangleGEO tr_element(element, el_nodes);
+
+      local_vec lv = generate_loc_vector(tr_element, f);
 
       for (std::size_t i = 0; i < element.node_indices.size(); ++i) {
         const std::size_t I = element.node_indices[i];
