@@ -43,6 +43,7 @@ target_link_libraries(main PRIVATE fem)
 add_executable(tests 
 	tests/geometry_test.cpp 
 	tests/local_stiffness_matrix_test.cpp
+	tests/assembly_test.cpp
 )
 
 target_link_libraries(tests PRIVATE fem GTest::gtest_main)
