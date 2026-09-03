@@ -45,6 +45,7 @@ add_executable(tests
 	tests/local_stiffness_matrix_test.cpp
 	tests/assembly_test.cpp
 	tests/dirichlet_bc_test.cpp
+	tests/cg_test.cpp
 )
 
 target_link_libraries(tests PRIVATE fem GTest::gtest_main)
