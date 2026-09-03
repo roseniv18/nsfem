@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 #include "assemble/assemble.h"
+#include "linalg/matrix.h"
+#include "mesh/parser.h"
 
 /** Global assembly test for simple mesh
  * Mesh consists of 2 triangles with nodes
