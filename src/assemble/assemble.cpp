@@ -3,11 +3,11 @@
 #include "geometry/triangle_geometry.h"
 
 // generate local stiffness matrix
-Matrix<double> generate_ls_matrix(const TriangleGEO& element) {
+Matrix<double> gen_local_stiffness_matr(const TriangleGEO& element) {
   Matrix<double> ls_matrix(3, 3);
 
   auto phys_grads = element.get_phys_grads();
-  auto detJ = element.det_jacobian();
+  const auto detJ = element.det_jacobian();
 
   for (int i = 0; i < ls_matrix.n; i++) {
     for (int j = 0; j < ls_matrix.m; j++) {
@@ -24,8 +24,54 @@ Matrix<double> generate_ls_matrix(const TriangleGEO& element) {
   return ls_matrix;
 }
 
+// generate local mass matrix
+Matrix<double> gen_local_mass_matr(const TriangleGEO& element) {
+  Matrix<double> lm_matrix(3, 3);
+
+  const auto detJ = element.det_jacobian();
+
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 3; j++) {
+      if (i == j) {
+        lm_matrix(i, j) = 0.5 * detJ / 6.0;
+      } else {
+        lm_matrix(i, j) = 0.5 * detJ / 12.0;
+      }
+    }
+  }
+
+  return lm_matrix;
+}
+
+// assemble global mass matrix
+Matrix<double> asm_global_mass_matrix(const Mesh& mesh) {
+  const std::size_t n = mesh.nodes.size();
+
+  Matrix<double> gm_matrix(n, n);
+
+  for (const Element& element : mesh.elements) {
+    if (element.type == ElementType::Triangle3) {
+      const auto el_nodes = get_element_nodes(element, mesh);
+      const TriangleGEO tr_element(element, el_nodes);
+
+      Matrix<double> ls_matrix = gen_local_stiffness_matr(tr_element);
+
+      for (std::size_t i = 0; i < element.node_indices.size(); ++i) {
+        for (std::size_t j = 0; j < element.node_indices.size(); ++j) {
+          const std::size_t I = element.node_indices[i];
+          const std::size_t J = element.node_indices[j];
+
+          gm_matrix(I, J) += ls_matrix(i, j);
+        }
+      }
+    }
+  }
+
+  return gm_matrix;
+}
+
 // assemble global stiffness matrix
-Matrix<double> assemble_gs_matrix(const Mesh& mesh) {
+Matrix<double> asm_global_stiffness_matr(const Mesh& mesh) {
   const std::size_t n = mesh.nodes.size();
 
   Matrix<double> gs_matrix(n, n);
@@ -35,7 +81,7 @@ Matrix<double> assemble_gs_matrix(const Mesh& mesh) {
       const auto el_nodes = get_element_nodes(element, mesh);
       const TriangleGEO tr_element(element, el_nodes);
 
-      Matrix<double> ls_matrix = generate_ls_matrix(tr_element);
+      Matrix<double> ls_matrix = gen_local_stiffness_matr(tr_element);
 
       for (std::size_t i = 0; i < element.node_indices.size(); ++i) {
         for (std::size_t j = 0; j < element.node_indices.size(); ++j) {
@@ -52,8 +98,8 @@ Matrix<double> assemble_gs_matrix(const Mesh& mesh) {
 }
 
 // generate local load vector
-local_vec generate_loc_vector(const TriangleGEO& element,
-                              double (*f)(const Point2D&)) {
+local_vec gen_local_vec(const TriangleGEO& element,
+                        double (*f)(const Point2D&)) {
   local_vec lv{};
 
   auto phys_points = element.get_phys_coords();
@@ -72,8 +118,8 @@ local_vec generate_loc_vector(const TriangleGEO& element,
 }
 
 // assemble global load vector
-std::vector<double> assemble_gl_vector(const Mesh& mesh,
-                                       double (*f)(const Point2D&)) {
+std::vector<double> asm_global_vec(const Mesh& mesh,
+                                   double (*f)(const Point2D&)) {
   const std::size_t n = mesh.nodes.size();
 
   std::vector<double> gl_vector(n, 0.0);
@@ -83,7 +129,7 @@ std::vector<double> assemble_gl_vector(const Mesh& mesh,
       const auto el_nodes = get_element_nodes(element, mesh);
       const TriangleGEO tr_element(element, el_nodes);
 
-      local_vec lv = generate_loc_vector(tr_element, f);
+      local_vec lv = gen_local_vec(tr_element, f);
 
       for (std::size_t i = 0; i < element.node_indices.size(); ++i) {
         const std::size_t I = element.node_indices[i];
@@ -97,28 +143,28 @@ std::vector<double> assemble_gl_vector(const Mesh& mesh,
 }
 
 // apply Dirichlet boundary conditions
-void apply_dirichlet_bc(Matrix<double>& K,
+void apply_dirichlet_bc(Matrix<double>& A,
                         std::vector<double>& f,
                         const std::unordered_map<int, double>& dirichlet_vals) {
   for (const auto& [i, val] : dirichlet_vals) {
     // modify RHS
-    for (int j = 0; j < K.n; j++) {
+    for (int j = 0; j < A.n; j++) {
       if (j != i) {
-        f[j] -= K(j, i) * val;
+        f[j] -= A(j, i) * val;
       }
     }
 
     // zero out row
-    for (int j = 0; j < K.n; j++) {
-      K(i, j) = 0;
+    for (int j = 0; j < A.n; j++) {
+      A(i, j) = 0;
     }
 
     // zero out column
-    for (int j = 0; j < K.m; j++) {
-      K(j, i) = 0;
+    for (int j = 0; j < A.m; j++) {
+      A(j, i) = 0;
     }
 
-    K(i, i) = 1.0;
+    A(i, i) = 1.0;
     f.at(i) = val;
   }
 }

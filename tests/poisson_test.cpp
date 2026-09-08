@@ -140,9 +140,9 @@ TEST(PoissonTest, L2Convergence) {
     Mesh mesh = make_unit_square_mesh(n);
 
     // Assemble system
-    Matrix<double> K = assemble_gs_matrix(mesh);
+    Matrix<double> K = asm_global_stiffness_matr(mesh);
 
-    std::vector<double> rhs = assemble_gl_vector(mesh, func);
+    std::vector<double> rhs = asm_global_vec(mesh, func);
 
     // Find Dirichlet nodes
     const auto dirichlet_nodes = get_dirichlet_nodes(mesh);

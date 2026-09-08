@@ -43,6 +43,7 @@ target_link_libraries(main PRIVATE fem)
 add_executable(tests 
 	tests/geometry_test.cpp 
 	tests/local_stiffness_matrix_test.cpp
+	tests/local_mass_matrix_test.cpp
 	tests/assembly_test.cpp
 	tests/dirichlet_bc_test.cpp
 	tests/cg_test.cpp

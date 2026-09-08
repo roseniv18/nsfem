@@ -46,11 +46,11 @@ int main() {
 
   std::cout << "----------" << '\n';
   std::cout << "Assembling global stiffness matrix..." << '\n';
-  Matrix<double> gs_matrix = assemble_gs_matrix(mesh);
+  Matrix<double> gs_matrix = asm_global_stiffness_matr(mesh);
 
   std::cout << "----------" << '\n';
   std::cout << "Assembling global load vector..." << '\n';
-  std::vector<double> gl_vector = assemble_gl_vector(mesh, func);
+  std::vector<double> gl_vector = asm_global_vec(mesh, func);
 
   auto dirichlet_nodes = get_dirichlet_nodes(mesh);
   auto dirichlet_values = get_dirichlet_values(mesh, dirichlet_nodes, dir_func);
@@ -113,7 +113,7 @@ int main() {
       auto el_nodes = get_element_nodes(el, mesh);
       TriangleGEO triangle(el, el_nodes);
 
-      local_vec lv = generate_loc_vector(triangle, func);
+      local_vec lv = gen_local_vec(triangle, func);
 
       std::cout << "local RHS: " << lv[0] << " " << lv[1] << " " << lv[2]
                 << '\n';

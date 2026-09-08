@@ -10,18 +10,24 @@
 typedef std::array<double, 3> local_vec;
 
 // generate a local stiffness matrix for given element
-Matrix<double> generate_ls_matrix(const TriangleGEO& element);
+Matrix<double> gen_local_stiffness_matr(const TriangleGEO& element);
 
 // assemble global stiffness matrix
-Matrix<double> assemble_gs_matrix(const Mesh& mesh);
+Matrix<double> asm_global_stiffness_matr(const Mesh& mesh);
+
+// generate a local mass matrix for given element
+Matrix<double> gen_local_mass_matr(const TriangleGEO& element);
+
+// assemble global mass matrix
+Matrix<double> asm_global_mass_matrix(const Mesh& mesh);
 
 // generate a local load vector
-local_vec generate_loc_vector(const TriangleGEO& element,
-                              double (*func)(const Point2D&));
+local_vec gen_local_vec(const TriangleGEO& element,
+                        double (*func)(const Point2D&));
 
 // assemble global load vector
-std::vector<double> assemble_gl_vector(const Mesh& mesh,
-                                       double (*f)(const Point2D&));
+std::vector<double> asm_global_vec(const Mesh& mesh,
+                                   double (*f)(const Point2D&));
 
 // apply Dirichlet boundary conditions
 void apply_dirichlet_bc(Matrix<double>& K,

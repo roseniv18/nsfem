@@ -15,7 +15,7 @@ TriangleGEO::TriangleGEO(const Element& element,
   // compute determinant
   detJ = (J(0, 0) * J(1, 1)) - (J(0, 1) * J(1, 0));
 
-  if (detJ <= 1e-14)
+  if (std::abs(detJ) <= 1e-14)
     throw std::runtime_error("Degenerate triangle (detJ ~= 0)");
 
   // compute JinvT
