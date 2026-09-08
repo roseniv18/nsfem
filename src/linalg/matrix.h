@@ -139,8 +139,17 @@ class Matrix {
 template <typename T>
 Matrix<T> operator+(Matrix<T>& lhs, const Matrix<T>& rhs);
 
+// Multiply 2 matrices
 template <typename T>
 Matrix<T> operator*(Matrix<T>& lhs, const Matrix<T>& rhs);
+
+// Multiply by vector
+template <typename T>
+std::vector<T> operator*(const Matrix<T>& lhs, const std::vector<T> rhs);
+
+//   Multiply by scalar
+template <typename T>
+Matrix<T> operator*(const Matrix<T>& lhs, T scalar);
 
 template <typename T>
 Matrix<T>::Matrix() : m(1), n(1), elements(nullptr) {}
@@ -236,6 +245,41 @@ Matrix<T> operator*(Matrix<T>& lhs, const Matrix<T>& rhs) {
   Matrix<T> product(lhs);
   product *= rhs;
   return product;
+}
+
+template <typename T>
+Matrix<T> operator*(const Matrix<T>& lhs, T scalar) {
+  Matrix<T> result(lhs);
+
+#pragma omp parallel for
+  for (int i = 0; i < result.m; i++) {
+    for (int j = 0; j < result.n; j++) {
+      result(i, j) *= scalar;
+    }
+  }
+
+  return result;
+}
+
+template <typename T>
+std::vector<T> operator*(const Matrix<T>& lhs, const std::vector<T> rhs) {
+  if (lhs.n != rhs.size()) {
+    throw MatrixSizeIncompatible(
+        "Wrong dimensions for matrix * vector operation");
+  }
+
+  std::vector<T> result(lhs.m);
+
+#pragma omp parallel for
+  for (int i = 0; i < lhs.m; i++) {
+    T dot{};
+    for (int j = 0; j < lhs.n; j++) {
+      dot += lhs(i, j) * rhs[j];
+    }
+    result[i] = dot;
+  }
+
+  return result;
 }
 
 template <typename T>
