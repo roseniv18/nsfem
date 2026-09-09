@@ -13,10 +13,10 @@
 enum class ElementType { Line2, Triangle3, Line3, Triangle6 };
 
 struct Node {
-  int tag;
-  double x;
-  double y;
-  double z;  // msh files store z coordinate even for 2D meshes
+  int tag{};
+  double x{};
+  double y{};
+  double z{};  // msh files store z coordinate even for 2D meshes
 };
 
 /** Entity Physical Groups

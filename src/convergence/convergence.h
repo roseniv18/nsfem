@@ -1,6 +1,7 @@
 #ifndef CONVERGENCE_H
 #define CONVERGENCE_H
 
+#include <vector>
 #include "basis/lagrange_p1_triangle.h"
 #include "geometry/triangle_geometry.h"
 #include "mesh/parser.h"

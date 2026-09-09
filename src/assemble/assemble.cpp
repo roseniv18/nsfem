@@ -1,6 +1,4 @@
 #include "assemble.h"
-#include <stdlib.h>
-#include "geometry/triangle_geometry.h"
 
 // generate local stiffness matrix
 Matrix<double> gen_local_stiffness_matr(const TriangleGEO& element) {
@@ -44,7 +42,7 @@ Matrix<double> gen_local_mass_matr(const TriangleGEO& element) {
 }
 
 // assemble global mass matrix
-Matrix<double> asm_global_mass_matrix(const Mesh& mesh) {
+Matrix<double> asm_global_mass_matr(const Mesh& mesh) {
   const std::size_t n = mesh.nodes.size();
 
   Matrix<double> gm_matrix(n, n);
@@ -144,13 +142,13 @@ std::vector<double> asm_global_vec(const Mesh& mesh,
 
 // apply Dirichlet boundary conditions
 void apply_dirichlet_bc(Matrix<double>& A,
-                        std::vector<double>& f,
+                        std::vector<double>& vec,
                         const std::unordered_map<int, double>& dirichlet_vals) {
   for (const auto& [i, val] : dirichlet_vals) {
     // modify RHS
     for (int j = 0; j < A.n; j++) {
       if (j != i) {
-        f[j] -= A(j, i) * val;
+        vec[j] -= A(j, i) * val;
       }
     }
 
@@ -165,6 +163,41 @@ void apply_dirichlet_bc(Matrix<double>& A,
     }
 
     A(i, i) = 1.0;
-    f.at(i) = val;
+    vec.at(i) = val;
+  }
+}
+
+void apply_dirichlet_bc_matr(
+    Matrix<double>& A,
+    const std::unordered_map<int, double>& dirichlet_vals) {
+  for (const auto& [i, val] : dirichlet_vals) {
+    // zero out row
+    for (int j = 0; j < A.n; j++) {
+      A(i, j) = 0;
+    }
+
+    // zero out column
+    for (int j = 0; j < A.m; j++) {
+      A(j, i) = 0;
+    }
+
+    A(i, i) = 1.0;
+  }
+}
+
+// apply Dirichlet boundary conditions
+void apply_dirichlet_bc_vec(
+    Matrix<double>& A,
+    std::vector<double>& vec,
+    const std::unordered_map<int, double>& dirichlet_vals) {
+  for (const auto& [i, val] : dirichlet_vals) {
+    // modify RHS
+    for (int j = 0; j < A.n; j++) {
+      if (j != i) {
+        vec[j] -= A(j, i) * val;
+      }
+    }
+
+    vec.at(i) = val;
   }
 }

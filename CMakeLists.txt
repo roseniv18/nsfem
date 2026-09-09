@@ -26,13 +26,15 @@ add_library(fem
 	src/quadrature/quadrature.cpp
 	src/linalg/matrix.cpp
 	src/linalg/conjugate_gradient.cpp
+	src/heat_eq/heat_eq.cpp
+	src/heat_eq/implicit_euler.cpp
 	src/convergence/convergence.cpp
 	src/helpers/helpers.cpp
 )
 
 target_include_directories(fem PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-target_link_libraries(fem PRIVATE OpenMP::OpenMP_CXX)
+target_link_libraries(fem PUBLIC OpenMP::OpenMP_CXX)
 
 target_compile_options(fem PUBLIC -Wall -Wextra)
 
@@ -48,6 +50,7 @@ add_executable(tests
 	tests/dirichlet_bc_test.cpp
 	tests/cg_test.cpp
 	tests/poisson_test.cpp
+	tests/heat_eq_test.cpp
 )
 
 target_link_libraries(tests PRIVATE fem GTest::gtest_main)

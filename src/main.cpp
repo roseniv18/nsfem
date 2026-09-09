@@ -7,6 +7,8 @@
 #include "assemble/assemble.h"
 #include "convergence/convergence.h"
 #include "geometry/triangle_geometry.h"
+#include "heat_eq/heat_eq.h"
+#include "heat_eq/implicit_euler.h"
 #include "linalg/conjugate_gradient.h"
 #include "mesh/parser.h"
 
