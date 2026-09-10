@@ -25,14 +25,14 @@ TEST(PoissonTest, L2Convergence) {
     std::vector<double> rhs = asm_global_vec(mesh, func);
 
     // Find Dirichlet nodes
-    const auto dirichlet_nodes = get_dirichlet_nodes(mesh);
+    const auto is_dirichlet = get_dirichlet_nodes(mesh);
 
     // Compute Dirichlet values
     const auto dirichlet_values =
-        get_dirichlet_values(mesh, dirichlet_nodes, dir_func);
+        get_dirichlet_values(mesh, is_dirichlet, dir_func);
 
     // Apply BCs
-    apply_dirichlet_bc(K, rhs, dirichlet_values);
+    apply_dirichlet_bc(K, rhs, is_dirichlet, dirichlet_values);
 
     // Solve K u = f
     ConjugateGradient cg(K, rhs);

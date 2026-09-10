@@ -181,52 +181,46 @@ std::vector<Node> get_element_nodes(const Element& element, const Mesh& mesh) {
   return nodes;
 }
 
-std::unordered_set<int> get_dirichlet_nodes(const Mesh& mesh) {
-  std::unordered_set<int> dirichlet_nodes{};
+std::vector<bool> get_dirichlet_nodes(const Mesh& mesh) {
+  // this vector tells us which nodes are Dirichlet
+  std::vector<bool> is_dirichlet(mesh.nodes.size(), false);
 
+  /**
+   * loop through all elements in the mesh
+   * for each element, analyze which physical groups it belongs to, as well if
+   * it is a line element (Dirichlet boundary line)
+   */
   for (const auto& element : mesh.elements) {
     for (int pt : element.physical_tags) {
-      const PhysicalGroup physical_group = mesh.physical_groups.at(pt);
+      const auto& physical_group = mesh.physical_groups.at(pt);
 
       //   std::cout << physical_group.name << '\n';
 
       if (element.type == ElementType::Line2 &&
           physical_group.name == "Dirichlet") {
-        // std::cout << "DIRICHLET EDGE FOUND\n";
-        // std::cout << "nodes: ";
-
-        // for (int node : element.node_indices)
-        //   std::cout << node << ' ';
-
-        // std::cout << '\n';
-
-        dirichlet_nodes.insert(element.node_indices.begin(),
-                               element.node_indices.end());
-
-        // std::cout << "set now: ";
-
-        // for (int node : dirichlet_nodes)
-        //   std::cout << node << ' ';
-
-        // std::cout << "\n\n";
+        for (int node_id : element.node_indices) {
+          is_dirichlet[node_id] = true;
+        }
       }
     }
   }
 
-  return dirichlet_nodes;
+  return is_dirichlet;
 }
 
-std::unordered_map<int, double> get_dirichlet_values(
+std::vector<double> get_dirichlet_values(
     const Mesh& mesh,
-    const std::unordered_set<int>& dirichlet_nodes,
+    const std::vector<bool>& is_dirichlet,
     std::function<double(const Point2D&)> fn) {
-  std::unordered_map<int, double> values;
+  std::vector<double> values(mesh.nodes.size());
 
-  for (int node_id : dirichlet_nodes) {
-    const auto& node = mesh.nodes.at(node_id);
-    const Point2D pt{node.x, node.y};
+  for (int node_id = 0; node_id < mesh.nodes.size(); node_id++) {
+    if (is_dirichlet[node_id]) {
+      const auto& node = mesh.nodes[node_id];
+      const Point2D pt{node.x, node.y};
 
-    values[node_id] = fn(pt);
+      values[node_id] = fn(pt);
+    }
   }
 
   return values;

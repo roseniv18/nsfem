@@ -27,7 +27,6 @@ add_library(fem
 	src/linalg/matrix.cpp
 	src/linalg/conjugate_gradient.cpp
 	src/heat_eq/heat_eq.cpp
-	src/heat_eq/implicit_euler.cpp
 	src/convergence/convergence.cpp
 	src/helpers/helpers.cpp
 )
@@ -50,7 +49,6 @@ add_executable(tests
 	tests/dirichlet_bc_test.cpp
 	tests/cg_test.cpp
 	tests/poisson_test.cpp
-	tests/heat_eq_test.cpp
 )
 
 target_link_libraries(tests PRIVATE fem GTest::gtest_main)

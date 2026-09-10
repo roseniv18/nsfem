@@ -92,12 +92,12 @@ std::vector<int> get_physical_tags(const EntityPhysicalTags& entities,
 std::vector<Node> get_element_nodes(const Element& element, const Mesh& mesh);
 
 // get tags of dirichlet nodes
-std::unordered_set<int> get_dirichlet_nodes(const Mesh& mesh);
+std::vector<bool> get_dirichlet_nodes(const Mesh& mesh);
 
 // get values of function at dirichlet nodes
-std::unordered_map<int, double> get_dirichlet_values(
+std::vector<double> get_dirichlet_values(
     const Mesh& mesh,
-    const std::unordered_set<int>& dirichlet_nodes,
+    const std::vector<bool>& is_dirichlet,
     std::function<double(const Point2D&)> fn);
 
 // main function to read .msh

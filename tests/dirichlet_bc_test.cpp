@@ -28,9 +28,13 @@ TEST(DirichletBCTest, ApplySingleDirichletValue) {
 
     std::vector<double> f{1.0, 2.0, 3.0};
 
-    std::unordered_map<int, double> dirichlet_vals{{0, 5.0}};
+    std::vector<bool> is_dirichlet(3, false);
+    is_dirichlet[0] = true;
 
-    apply_dirichlet_bc(K, f, dirichlet_vals);
+    std::vector<double> dirichlet_vals(3);
+    dirichlet_vals[0] = 5.0;
+
+    apply_dirichlet_bc(K, f, is_dirichlet, dirichlet_vals);
 
     // Modified matrix
     EXPECT_NEAR(K(0, 0), 1.0, 1e-12);
@@ -77,9 +81,15 @@ TEST(DirichletBCTest, AppliesMultipleDirichletValues) {
 
   std::vector<double> f{1.0, 2.0, 3.0};
 
-  std::unordered_map<int, double> dirichlet_vals{{0, 5.0}, {2, 10.0}};
+  std::vector<bool> is_dirichlet(3, false);
+  is_dirichlet[0] = true;
+  is_dirichlet[2] = true;
 
-  apply_dirichlet_bc(K, f, dirichlet_vals);
+  std::vector<double> dirichlet_vals(3);
+  dirichlet_vals[0] = 5.0;
+  dirichlet_vals[2] = 10.0;
+
+  apply_dirichlet_bc(K, f, is_dirichlet, dirichlet_vals);
 
   EXPECT_NEAR(K(0, 0), 1.0, 1e-12);
   EXPECT_NEAR(K(0, 1), 0.0, 1e-12);
@@ -118,9 +128,10 @@ TEST(DirichletBCTest, PreservesSymmetry) {
 
   std::vector<double> f{1.0, 2.0, 3.0};
 
-  std::unordered_map<int, double> dirichlet_vals{{1, 4.0}};
+  std::vector<bool> is_dirichlet(3);
+  is_dirichlet[1] = true;
 
-  apply_dirichlet_bc(K, f, dirichlet_vals);
+  apply_dirichlet_bc_matr(K, is_dirichlet);
 
   for (int i = 0; i < K.n; ++i) {
     for (int j = 0; j < K.m; ++j) {

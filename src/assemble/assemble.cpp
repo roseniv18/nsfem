@@ -143,61 +143,71 @@ std::vector<double> asm_global_vec(const Mesh& mesh,
 // apply Dirichlet boundary conditions
 void apply_dirichlet_bc(Matrix<double>& A,
                         std::vector<double>& vec,
-                        const std::unordered_map<int, double>& dirichlet_vals) {
-  for (const auto& [i, val] : dirichlet_vals) {
-    // modify RHS
-    for (int j = 0; j < A.n; j++) {
-      if (j != i) {
-        vec[j] -= A(j, i) * val;
+                        const std::vector<bool>& is_dirichlet,
+                        const std::vector<double>& dirichlet_vals) {
+  for (int i = 0; i < A.n; i++) {
+    if (is_dirichlet.at(i)) {
+      const double val = dirichlet_vals.at(i);
+
+      // modify RHS
+      for (int j = 0; j < A.n; j++) {
+        if (j != i) {
+          vec[j] -= A(j, i) * val;
+        }
       }
-    }
 
-    // zero out row
-    for (int j = 0; j < A.n; j++) {
-      A(i, j) = 0;
-    }
+      // zero out row
+      for (int j = 0; j < A.n; j++) {
+        A(i, j) = 0;
+      }
 
-    // zero out column
-    for (int j = 0; j < A.m; j++) {
-      A(j, i) = 0;
-    }
+      // zero out column
+      for (int j = 0; j < A.m; j++) {
+        A(j, i) = 0;
+      }
 
-    A(i, i) = 1.0;
-    vec.at(i) = val;
+      A(i, i) = 1.0;
+      vec.at(i) = val;
+    }
   }
 }
 
-void apply_dirichlet_bc_matr(
-    Matrix<double>& A,
-    const std::unordered_map<int, double>& dirichlet_vals) {
-  for (const auto& [i, val] : dirichlet_vals) {
-    // zero out row
-    for (int j = 0; j < A.n; j++) {
-      A(i, j) = 0;
-    }
+void apply_dirichlet_bc_matr(Matrix<double>& A,
+                             const std::vector<bool>& is_dirichlet) {
+  for (int i = 0; i < A.n; i++) {
+    if (is_dirichlet.at(i)) {
+      // zero out row
+      for (int j = 0; j < A.n; j++) {
+        A(i, j) = 0;
+      }
 
-    // zero out column
-    for (int j = 0; j < A.m; j++) {
-      A(j, i) = 0;
-    }
+      // zero out column
+      for (int j = 0; j < A.m; j++) {
+        A(j, i) = 0;
+      }
 
-    A(i, i) = 1.0;
+      A(i, i) = 1.0;
+    }
   }
 }
 
 // apply Dirichlet boundary conditions
-void apply_dirichlet_bc_vec(
-    Matrix<double>& A,
-    std::vector<double>& vec,
-    const std::unordered_map<int, double>& dirichlet_vals) {
-  for (const auto& [i, val] : dirichlet_vals) {
-    // modify RHS
-    for (int j = 0; j < A.n; j++) {
-      if (j != i) {
-        vec[j] -= A(j, i) * val;
-      }
-    }
+void apply_dirichlet_bc_vec(Matrix<double>& A,
+                            std::vector<double>& vec,
+                            const std::vector<double>& dirichlet_vals,
+                            const std::vector<bool>& is_dirichlet) {
+  for (int i = 0; i < A.n; i++) {
+    const double val = dirichlet_vals.at(i);
 
-    vec.at(i) = val;
+    if (is_dirichlet.at(i)) {
+      // modify RHS
+      for (int j = 0; j < A.n; j++) {
+        if (j != i) {
+          vec[j] -= A(j, i) * val;
+        }
+      }
+
+      vec.at(i) = val;
+    }
   }
 }

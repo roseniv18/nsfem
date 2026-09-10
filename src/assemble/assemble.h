@@ -34,15 +34,15 @@ std::vector<double> asm_global_vec(const Mesh& mesh,
 // apply Dirichlet boundary conditions
 void apply_dirichlet_bc(Matrix<double>& A,
                         std::vector<double>& vec,
-                        const std::unordered_map<int, double>& dirichlet_vals);
+                        const std::vector<bool>& is_dirichlet,
+                        const std::vector<double>& dirichlet_vals);
 
-void apply_dirichlet_bc_matr(
-    Matrix<double>& A,
-    const std::unordered_map<int, double>& dirichlet_vals);
+void apply_dirichlet_bc_matr(Matrix<double>& A,
+                             const std::vector<bool>& is_dirichlet);
 
-void apply_dirichlet_bc_vec(
-    Matrix<double>& A,
-    std::vector<double>& vec,
-    const std::unordered_map<int, double>& dirichlet_vals);
+void apply_dirichlet_bc_vec(Matrix<double>& A,
+                            std::vector<double>& vec,
+                            const std::vector<double>& dirichlet_vals,
+                            const std::vector<bool>& is_dirichlet);
 
 #endif

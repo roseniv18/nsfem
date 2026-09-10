@@ -8,7 +8,6 @@
 #include "convergence/convergence.h"
 #include "geometry/triangle_geometry.h"
 #include "heat_eq/heat_eq.h"
-#include "heat_eq/implicit_euler.h"
 #include "linalg/conjugate_gradient.h"
 #include "mesh/parser.h"
 
@@ -54,10 +53,10 @@ int main() {
   std::cout << "Assembling global load vector..." << '\n';
   std::vector<double> gl_vector = asm_global_vec(mesh, func);
 
-  auto dirichlet_nodes = get_dirichlet_nodes(mesh);
-  auto dirichlet_values = get_dirichlet_values(mesh, dirichlet_nodes, dir_func);
+  auto is_dirichlet = get_dirichlet_nodes(mesh);
+  auto dirichlet_values = get_dirichlet_values(mesh, is_dirichlet, dir_func);
 
-  apply_dirichlet_bc(gs_matrix, gl_vector, dirichlet_values);
+  apply_dirichlet_bc(gs_matrix, gl_vector, is_dirichlet, dirichlet_values);
 
   std::cout << "----------" << '\n';
   std::cout << "Solving linear system..." << '\n';

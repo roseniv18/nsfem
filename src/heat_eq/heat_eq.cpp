@@ -31,24 +31,24 @@ std::vector<double> HeatEq::solve(const Mesh& mesh) {
   std::vector<double> u = initial_condition;
 
   //   Find Dirichlet nodes
-  const auto dirichlet_nodes = get_dirichlet_nodes(mesh);
+  const auto is_dirichlet = get_dirichlet_nodes(mesh);
 
   // Compute Dirichlet values
   const auto dirichlet_values =
-      get_dirichlet_values(mesh, dirichlet_nodes, dirichlet_func);
+      get_dirichlet_values(mesh, is_dirichlet, dirichlet_func);
 
   // Build matrix for implicit Euler (once before loop)
   Matrix<double> A = M + K * dt;
 
   //   Apply BC to A
-  apply_dirichlet_bc_matr(A, dirichlet_values);
+  apply_dirichlet_bc_matr(A, is_dirichlet);
 
   //   Time stepping
   for (int i = 0; i < n_steps; i++) {
     // rhs = M * u^n
     std::vector<double> rhs = M * u;
 
-    apply_dirichlet_bc_vec(A, rhs, dirichlet_values);
+    apply_dirichlet_bc_vec(A, rhs, dirichlet_values, is_dirichlet);
 
     // Solve Au^{n+1} = rhs
     ConjugateGradient cg(A, rhs);
