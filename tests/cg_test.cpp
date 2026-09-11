@@ -16,8 +16,9 @@ TEST(ConjugateGradientTest, SolveSmallSPDSystem) {
   A(1, 1) = 3.0;
 
   std::vector<double> b{6.0, 7.0};
+  std::vector<double> initial_guess{0.0, 0.0};
 
-  ConjugateGradient cg(A, b);
+  ConjugateGradient cg(A, b, initial_guess);
 
   const auto x = cg.solve();
 

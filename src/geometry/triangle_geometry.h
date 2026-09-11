@@ -3,7 +3,7 @@
 
 #include "basis/lagrange_p1_triangle.h"
 #include "linalg/matrix.h"
-#include "mesh/parser.h"
+#include "mesh/mesh.h"
 #include "quadrature/quadrature.h"
 
 class TriangleGEO {

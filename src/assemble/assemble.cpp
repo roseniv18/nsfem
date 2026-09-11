@@ -96,8 +96,7 @@ Matrix<double> asm_global_stiffness_matr(const Mesh& mesh) {
 }
 
 // generate local load vector
-local_vec gen_local_vec(const TriangleGEO& element,
-                        double (*f)(const Point2D&)) {
+local_vec gen_local_vec(const TriangleGEO& element, STFunction func, double t) {
   local_vec lv{};
 
   auto phys_points = element.get_phys_coords();
@@ -105,7 +104,7 @@ local_vec gen_local_vec(const TriangleGEO& element,
   auto bfs = bfs_at_quad();
 
   for (std::size_t q = 0; q < quad_nodes.size(); q++) {
-    double f_val = f(phys_points[q]);
+    double f_val = func(phys_points[q].x, phys_points[q].y, t);
 
     for (int i = 0; i < 3; i++) {
       lv[i] += std::abs(detJ) * quad_weights[q] * bfs[i][q] * f_val;
@@ -117,7 +116,8 @@ local_vec gen_local_vec(const TriangleGEO& element,
 
 // assemble global load vector
 std::vector<double> asm_global_vec(const Mesh& mesh,
-                                   double (*f)(const Point2D&)) {
+                                   STFunction func,
+                                   double t) {
   const std::size_t n = mesh.nodes.size();
 
   std::vector<double> gl_vector(n, 0.0);
@@ -127,7 +127,7 @@ std::vector<double> asm_global_vec(const Mesh& mesh,
       const auto el_nodes = get_element_nodes(element, mesh);
       const TriangleGEO tr_element(element, el_nodes);
 
-      local_vec lv = gen_local_vec(tr_element, f);
+      local_vec lv = gen_local_vec(tr_element, func, t);
 
       for (std::size_t i = 0; i < element.node_indices.size(); ++i) {
         const std::size_t I = element.node_indices[i];

@@ -22,25 +22,27 @@ TEST(PoissonTest, L2Convergence) {
     // Assemble system
     Matrix<double> K = asm_global_stiffness_matr(mesh);
 
-    std::vector<double> rhs = asm_global_vec(mesh, func);
+    std::vector<double> rhs = asm_global_vec(mesh, func, 0.0);
 
     // Find Dirichlet nodes
     const auto is_dirichlet = get_dirichlet_nodes(mesh);
 
     // Compute Dirichlet values
     const auto dirichlet_values =
-        get_dirichlet_values(mesh, is_dirichlet, dir_func);
+        get_dirichlet_values(mesh, is_dirichlet, dir_func, 0.0);
 
     // Apply BCs
     apply_dirichlet_bc(K, rhs, is_dirichlet, dirichlet_values);
 
+    const std::vector<double> initial_guess(mesh.nodes.size(), 0.0);
+
     // Solve K u = f
-    ConjugateGradient cg(K, rhs);
+    ConjugateGradient cg(K, rhs, initial_guess);
 
     const std::vector<double> solution = cg.solve();
 
     // Compute L2 error
-    const double error = global_l2_err(mesh, solution);
+    const double error = global_l2_err(mesh, solution, sol_func, 0.0);
 
     errors.push_back(error);
 

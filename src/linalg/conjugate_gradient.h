@@ -6,7 +6,8 @@
 class ConjugateGradient {
  public:
   ConjugateGradient(const Matrix<double>& matrix,
-                    const std::vector<double>& rhs);
+                    const std::vector<double>& rhs,
+                    const std::vector<double>& guess);
   std::vector<double> solve();
 
   int max_iter = 100;
@@ -16,6 +17,7 @@ class ConjugateGradient {
   Matrix<double> matrix;
   std::vector<double> rhs;
   std::vector<double> solution;
+  std::vector<double> guess;
 };
 
 #endif

@@ -20,13 +20,15 @@ enable_testing()
 
 add_library(fem
 	src/mesh/parser.cpp
+	src/mesh/mesh.cpp
 	src/geometry/triangle_geometry.cpp
 	src/assemble/assemble.cpp
 	src/basis/lagrange_p1_triangle.cpp
 	src/quadrature/quadrature.cpp
 	src/linalg/matrix.cpp
 	src/linalg/conjugate_gradient.cpp
-	src/heat_eq/heat_eq.cpp
+	src/solvers/heat_eq/heat_eq.cpp
+	src/solvers/poisson/poisson.cpp
 	src/convergence/convergence.cpp
 	src/helpers/helpers.cpp
 )
