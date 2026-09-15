@@ -16,6 +16,13 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(googletest)
 
+FetchContent_Declare(
+	eigen
+	URL https://gitlab.com/libeigen/eigen/-/archive/5.0.0/eigen-5.0.0.tar.gz
+)
+
+FetchContent_MakeAvailable(eigen)
+
 enable_testing()
 
 add_library(fem
@@ -34,7 +41,7 @@ add_library(fem
 
 target_include_directories(fem PUBLIC 
 	${CMAKE_CURRENT_SOURCE_DIR}/src 
-	${CMAKE_CURRENT_SOURCE_DIR}/libs/eigen-5.0.0
+	${eigen_SOURCE_DIR}
 )
 
 target_link_libraries(fem PUBLIC OpenMP::OpenMP_CXX)
