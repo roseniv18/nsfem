@@ -1,22 +1,22 @@
 #include "conjugate_gradient.h"
 
-ConjugateGradient::ConjugateGradient(const Matrix<double>& matrix_,
-                                     const std::vector<double>& rhs_,
-                                     const std::vector<double>& initial_guess)
+ConjugateGradient::ConjugateGradient(const MatrixXd& matrix_,
+                                     const VectorXd& rhs_,
+                                     const VectorXd& initial_guess)
     : matrix(matrix_),
       rhs(rhs_),
       solution(initial_guess),
       guess(initial_guess) {}
 
-std::vector<double> ConjugateGradient::solve() {
+VectorXd ConjugateGradient::solve() {
   const std::size_t size = rhs.size();
 
   // Start from the provided initial guess
-  std::vector<double> sol = guess;
+  VectorXd sol = guess;
 
-  std::vector<double> residual(size, 0.0);
-  std::vector<double> dir(size, 0.0);
-  std::vector<double> matdotdir(size, 0.0);
+  VectorXd residual = VectorXd::Zero(size);
+  VectorXd dir = VectorXd::Zero(size);
+  VectorXd matdotdir = VectorXd::Zero(size);
 
   // r_0 = b - A*x_0
   for (std::size_t i = 0; i < size; ++i) {

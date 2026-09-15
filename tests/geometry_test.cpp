@@ -1,7 +1,8 @@
 #include <gtest/gtest.h>
-
-#include <vector>
+#include <Eigen/Dense>
 #include "geometry/triangle_geometry.h"
+
+using Eigen::VectorXd;
 
 /** Jacobian Reference Triangle
  * Test if the Jacobian matrix for the reference triangle

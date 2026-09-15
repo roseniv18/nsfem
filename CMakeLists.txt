@@ -25,7 +25,6 @@ add_library(fem
 	src/assemble/assemble.cpp
 	src/basis/lagrange_p1_triangle.cpp
 	src/quadrature/quadrature.cpp
-	src/linalg/matrix.cpp
 	src/linalg/conjugate_gradient.cpp
 	src/solvers/heat_eq/heat_eq.cpp
 	src/solvers/poisson/poisson.cpp
@@ -33,7 +32,10 @@ add_library(fem
 	src/helpers/helpers.cpp
 )
 
-target_include_directories(fem PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_include_directories(fem PUBLIC 
+	${CMAKE_CURRENT_SOURCE_DIR}/src 
+	${CMAKE_CURRENT_SOURCE_DIR}/libs/eigen-5.0.0
+)
 
 target_link_libraries(fem PUBLIC OpenMP::OpenMP_CXX)
 

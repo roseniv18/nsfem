@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
+#include <Eigen/Dense>
 #include "assemble/assemble.h"
-#include "linalg/matrix.h"
+
+using Eigen::MatrixXd, Eigen::VectorXd;
 
 /** Test applying single Dirichlet value to system
  * We prescribe the Dirichlet DOF u0 = 5
@@ -12,7 +14,7 @@
  */
 TEST(DirichletBCTest, ApplySingleDirichletValue) {
   {
-    Matrix<double> K(3, 3);
+    MatrixXd K = MatrixXd::Zero(3, 3);
 
     K(0, 0) = 2.0;
     K(0, 1) = -1.0;
@@ -26,7 +28,8 @@ TEST(DirichletBCTest, ApplySingleDirichletValue) {
     K(2, 1) = -1.0;
     K(2, 2) = 2.0;
 
-    std::vector<double> f{1.0, 2.0, 3.0};
+    VectorXd f(3);
+    f << 1.0, 2.0, 3.0;
 
     std::vector<bool> is_dirichlet(3, false);
     is_dirichlet[0] = true;
@@ -65,7 +68,7 @@ TEST(DirichletBCTest, ApplySingleDirichletValue) {
  * and modified global load vector [5, 17, 10]
  */
 TEST(DirichletBCTest, AppliesMultipleDirichletValues) {
-  Matrix<double> K(3, 3);
+  MatrixXd K = MatrixXd::Zero(3, 3);
 
   K(0, 0) = 2.0;
   K(0, 1) = -1.0;
@@ -79,7 +82,8 @@ TEST(DirichletBCTest, AppliesMultipleDirichletValues) {
   K(2, 1) = -1.0;
   K(2, 2) = 2.0;
 
-  std::vector<double> f{1.0, 2.0, 3.0};
+  VectorXd f(3);
+  f << 1.0, 2.0, 3.0;
 
   std::vector<bool> is_dirichlet(3, false);
   is_dirichlet[0] = true;
@@ -112,7 +116,7 @@ TEST(DirichletBCTest, AppliesMultipleDirichletValues) {
  * matrix
  */
 TEST(DirichletBCTest, PreservesSymmetry) {
-  Matrix<double> K(3, 3);
+  MatrixXd K = MatrixXd::Zero(3, 3);
 
   K(0, 0) = 2.0;
   K(0, 1) = -1.0;
@@ -126,15 +130,16 @@ TEST(DirichletBCTest, PreservesSymmetry) {
   K(2, 1) = -1.0;
   K(2, 2) = 2.0;
 
-  std::vector<double> f{1.0, 2.0, 3.0};
+  VectorXd f(3);
+  f << 1.0, 2.0, 3.0;
 
   std::vector<bool> is_dirichlet(3);
   is_dirichlet[1] = true;
 
   apply_dirichlet_bc_matr(K, is_dirichlet);
 
-  for (int i = 0; i < K.n; ++i) {
-    for (int j = 0; j < K.m; ++j) {
+  for (int i = 0; i < K.cols(); ++i) {
+    for (int j = 0; j < K.rows(); ++j) {
       EXPECT_NEAR(K(i, j), K(j, i), 1e-12);
     }
   }

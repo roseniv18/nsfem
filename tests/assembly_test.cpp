@@ -1,7 +1,9 @@
 #include <gtest/gtest.h>
+#include <Eigen/Dense>
 #include "assemble/assemble.h"
-#include "linalg/matrix.h"
 #include "mesh/parser.h"
+
+using Eigen::MatrixXd;
 
 /** Global stiffness matrix assembly test for simple mesh
  * Mesh consists of 2 triangles with nodes
@@ -25,7 +27,7 @@ TEST(GlobalAssemblyTest, SimpleMesh) {
               .node_indices = {0, 2, 3}},
   };
 
-  const Matrix<double> K = asm_global_stiffness_matr(mesh);
+  const MatrixXd K = asm_global_stiffness_matr(mesh);
 
   const double expected[4][4] = {{1.0, -0.5, 0.0, -0.5},
                                  {-0.5, 1.0, -0.5, 0.0},
@@ -59,7 +61,7 @@ TEST(GlobalAssemblyTest, IsGlobalStiffnessMatrixSymmetric) {
               .node_indices = {0, 2, 3}},
   };
 
-  const Matrix<double> K = asm_global_stiffness_matr(mesh);
+  const MatrixXd K = asm_global_stiffness_matr(mesh);
 
   for (std::size_t i = 0; i < 4; i++) {
     for (std::size_t j = 0; j < 4; j++) {

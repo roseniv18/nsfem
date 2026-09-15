@@ -1,6 +1,7 @@
 #ifndef HEAT_EQ_H
 #define HEAT_EQ_H
 
+#include <Eigen/Dense>
 #include <cmath>
 #include <vector>
 #include "assemble/assemble.h"
@@ -8,6 +9,7 @@
 #include "linalg/conjugate_gradient.h"
 #include "mesh/mesh.h"
 
+using Eigen::MatrixXd, Eigen::VectorXd;
 using std::exp;
 using std::sin;
 using std::numbers::pi;
@@ -26,11 +28,11 @@ class HeatEq {
          STFunction h_func,
          STFunction h_dir_func);
   void update_rhs(const Mesh& mesh, double t);
-  std::vector<double> solve(const Mesh& mesh);
+  VectorXd solve(const Mesh& mesh);
 
  private:
-  std::vector<double> initial_condition;
-  std::vector<double> rhs_vec;
+  VectorXd initial_condition;
+  VectorXd rhs_vec;
 
   STFunction h_func;
   STFunction h_dir_func;

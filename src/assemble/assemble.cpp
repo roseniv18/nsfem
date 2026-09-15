@@ -1,14 +1,14 @@
 #include "assemble.h"
 
 // generate local stiffness matrix
-Matrix<double> gen_local_stiffness_matr(const TriangleGEO& element) {
-  Matrix<double> ls_matrix(3, 3);
+MatrixXd gen_local_stiffness_matr(const TriangleGEO& element) {
+  MatrixXd ls_matrix = MatrixXd::Zero(3, 3);
 
   auto phys_grads = element.get_phys_grads();
   const auto detJ = element.det_jacobian();
 
-  for (int i = 0; i < ls_matrix.n; i++) {
-    for (int j = 0; j < ls_matrix.m; j++) {
+  for (int i = 0; i < ls_matrix.cols(); i++) {
+    for (int j = 0; j < ls_matrix.rows(); j++) {
       /** this calculation assumes:
        * 	1. affine mapping
        *  	2. constant gradients (true for linear Lagrange triangles)
@@ -23,13 +23,13 @@ Matrix<double> gen_local_stiffness_matr(const TriangleGEO& element) {
 }
 
 // generate local mass matrix
-Matrix<double> gen_local_mass_matr(const TriangleGEO& element) {
-  Matrix<double> lm_matrix(3, 3);
+MatrixXd gen_local_mass_matr(const TriangleGEO& element) {
+  MatrixXd lm_matrix = MatrixXd::Zero(3, 3);
 
   const auto detJ = element.det_jacobian();
 
-  for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < 3; j++) {
+  for (int i = 0; i < lm_matrix.cols(); i++) {
+    for (int j = 0; j < lm_matrix.rows(); j++) {
       if (i == j) {
         lm_matrix(i, j) = 0.5 * detJ / 6.0;
       } else {
@@ -42,17 +42,17 @@ Matrix<double> gen_local_mass_matr(const TriangleGEO& element) {
 }
 
 // assemble global mass matrix
-Matrix<double> asm_global_mass_matr(const Mesh& mesh) {
+MatrixXd asm_global_mass_matr(const Mesh& mesh) {
   const std::size_t n = mesh.nodes.size();
 
-  Matrix<double> gm_matrix(n, n);
+  MatrixXd gm_matrix = MatrixXd::Zero(n, n);
 
   for (const Element& element : mesh.elements) {
     if (element.type == ElementType::Triangle3) {
       const auto el_nodes = get_element_nodes(element, mesh);
       const TriangleGEO tr_element(element, el_nodes);
 
-      Matrix<double> ls_matrix = gen_local_stiffness_matr(tr_element);
+      MatrixXd ls_matrix = gen_local_stiffness_matr(tr_element);
 
       for (std::size_t i = 0; i < element.node_indices.size(); ++i) {
         for (std::size_t j = 0; j < element.node_indices.size(); ++j) {
@@ -69,17 +69,17 @@ Matrix<double> asm_global_mass_matr(const Mesh& mesh) {
 }
 
 // assemble global stiffness matrix
-Matrix<double> asm_global_stiffness_matr(const Mesh& mesh) {
+MatrixXd asm_global_stiffness_matr(const Mesh& mesh) {
   const std::size_t n = mesh.nodes.size();
 
-  Matrix<double> gs_matrix(n, n);
+  MatrixXd gs_matrix = MatrixXd::Zero(n, n);
 
   for (const Element& element : mesh.elements) {
     if (element.type == ElementType::Triangle3) {
       const auto el_nodes = get_element_nodes(element, mesh);
       const TriangleGEO tr_element(element, el_nodes);
 
-      Matrix<double> ls_matrix = gen_local_stiffness_matr(tr_element);
+      MatrixXd ls_matrix = gen_local_stiffness_matr(tr_element);
 
       for (std::size_t i = 0; i < element.node_indices.size(); ++i) {
         for (std::size_t j = 0; j < element.node_indices.size(); ++j) {
@@ -96,8 +96,8 @@ Matrix<double> asm_global_stiffness_matr(const Mesh& mesh) {
 }
 
 // generate local load vector
-local_vec gen_local_vec(const TriangleGEO& element, STFunction func, double t) {
-  local_vec lv{};
+VectorXd gen_local_vec(const TriangleGEO& element, STFunction func, double t) {
+  VectorXd lv = VectorXd::Zero(3);
 
   auto phys_points = element.get_phys_coords();
   auto detJ = element.det_jacobian();
@@ -107,7 +107,7 @@ local_vec gen_local_vec(const TriangleGEO& element, STFunction func, double t) {
     double f_val = func(phys_points[q].x, phys_points[q].y, t);
 
     for (int i = 0; i < 3; i++) {
-      lv[i] += std::abs(detJ) * quad_weights[q] * bfs[i][q] * f_val;
+      lv(i) += std::abs(detJ) * quad_weights[q] * bfs[i][q] * f_val;
     }
   }
 
@@ -115,24 +115,22 @@ local_vec gen_local_vec(const TriangleGEO& element, STFunction func, double t) {
 }
 
 // assemble global load vector
-std::vector<double> asm_global_vec(const Mesh& mesh,
-                                   STFunction func,
-                                   double t) {
+VectorXd asm_global_vec(const Mesh& mesh, STFunction func, double t) {
   const std::size_t n = mesh.nodes.size();
 
-  std::vector<double> gl_vector(n, 0.0);
+  VectorXd gl_vector = VectorXd::Zero(n);
 
   for (const Element& element : mesh.elements) {
     if (element.type == ElementType::Triangle3) {
       const auto el_nodes = get_element_nodes(element, mesh);
       const TriangleGEO tr_element(element, el_nodes);
 
-      local_vec lv = gen_local_vec(tr_element, func, t);
+      VectorXd lv = gen_local_vec(tr_element, func, t);
 
       for (std::size_t i = 0; i < element.node_indices.size(); ++i) {
         const std::size_t I = element.node_indices[i];
 
-        gl_vector.at(I) += lv.at(i);
+        gl_vector(I) += lv(i);
       }
     }
   }
@@ -141,48 +139,48 @@ std::vector<double> asm_global_vec(const Mesh& mesh,
 }
 
 // apply Dirichlet boundary conditions
-void apply_dirichlet_bc(Matrix<double>& A,
-                        std::vector<double>& vec,
+void apply_dirichlet_bc(MatrixXd& A,
+                        VectorXd& vec,
                         const std::vector<bool>& is_dirichlet,
                         const std::vector<double>& dirichlet_vals) {
-  for (int i = 0; i < A.n; i++) {
+  for (int i = 0; i < A.cols(); i++) {
     if (is_dirichlet.at(i)) {
       const double val = dirichlet_vals.at(i);
 
       // modify RHS
-      for (int j = 0; j < A.n; j++) {
+      for (int j = 0; j < A.cols(); j++) {
         if (j != i) {
-          vec[j] -= A(j, i) * val;
+          vec(j) -= A(j, i) * val;
         }
       }
 
       // zero out row
-      for (int j = 0; j < A.n; j++) {
+      for (int j = 0; j < A.cols(); j++) {
         A(i, j) = 0;
       }
 
       // zero out column
-      for (int j = 0; j < A.m; j++) {
+      for (int j = 0; j < A.rows(); j++) {
         A(j, i) = 0;
       }
 
       A(i, i) = 1.0;
-      vec.at(i) = val;
+      vec(i) = val;
     }
   }
 }
 
-void apply_dirichlet_bc_matr(Matrix<double>& A,
+void apply_dirichlet_bc_matr(MatrixXd& A,
                              const std::vector<bool>& is_dirichlet) {
-  for (int i = 0; i < A.n; i++) {
+  for (int i = 0; i < A.cols(); i++) {
     if (is_dirichlet.at(i)) {
       // zero out row
-      for (int j = 0; j < A.n; j++) {
+      for (int j = 0; j < A.cols(); j++) {
         A(i, j) = 0;
       }
 
       // zero out column
-      for (int j = 0; j < A.m; j++) {
+      for (int j = 0; j < A.rows(); j++) {
         A(j, i) = 0;
       }
 
@@ -192,22 +190,22 @@ void apply_dirichlet_bc_matr(Matrix<double>& A,
 }
 
 // apply Dirichlet boundary conditions
-void apply_dirichlet_bc_vec(Matrix<double>& A,
-                            std::vector<double>& vec,
-                            const std::vector<double>& dirichlet_vals,
-                            const std::vector<bool>& is_dirichlet) {
-  for (int i = 0; i < A.n; i++) {
+void apply_dirichlet_bc_vec(MatrixXd& A,
+                            VectorXd& vec,
+                            const std::vector<bool>& is_dirichlet,
+                            const std::vector<double>& dirichlet_vals) {
+  for (int i = 0; i < A.cols(); i++) {
     const double val = dirichlet_vals.at(i);
 
     if (is_dirichlet.at(i)) {
       // modify RHS
-      for (int j = 0; j < A.n; j++) {
+      for (int j = 0; j < A.cols(); j++) {
         if (j != i) {
-          vec[j] -= A(j, i) * val;
+          vec(j) -= A(j, i) * val;
         }
       }
 
-      vec.at(i) = val;
+      vec(i) = val;
     }
   }
 }

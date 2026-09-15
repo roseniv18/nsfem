@@ -49,11 +49,11 @@ TriangleGEO::TriangleGEO(const Element& element,
   }
 }
 
-Matrix<double> TriangleGEO::jacobian() const {
+MatrixXd TriangleGEO::jacobian() const {
   return J;
 }
 
-Matrix<double> TriangleGEO::jacobianInvT() const {
+MatrixXd TriangleGEO::jacobianInvT() const {
   return JinvT;
 }
 

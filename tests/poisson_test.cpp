@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <Eigen/Dense>
 #include <cmath>
 #include <iostream>
 #include <numbers>
@@ -11,6 +12,8 @@
 #include "linalg/conjugate_gradient.h"
 #include "mesh/parser.h"
 
+using Eigen::MatrixXd, Eigen::VectorXd;
+
 TEST(PoissonTest, L2Convergence) {
   const std::vector<int> resolutions{4, 8, 16, 32};
 
@@ -20,9 +23,9 @@ TEST(PoissonTest, L2Convergence) {
     Mesh mesh = make_unit_square_mesh(n);
 
     // Assemble system
-    Matrix<double> K = asm_global_stiffness_matr(mesh);
+    MatrixXd K = asm_global_stiffness_matr(mesh);
 
-    std::vector<double> rhs = asm_global_vec(mesh, func, 0.0);
+    VectorXd rhs = asm_global_vec(mesh, func, 0.0);
 
     // Find Dirichlet nodes
     const auto is_dirichlet = get_dirichlet_nodes(mesh);
@@ -34,12 +37,12 @@ TEST(PoissonTest, L2Convergence) {
     // Apply BCs
     apply_dirichlet_bc(K, rhs, is_dirichlet, dirichlet_values);
 
-    const std::vector<double> initial_guess(mesh.nodes.size(), 0.0);
+    const VectorXd initial_guess = VectorXd::Zero(mesh.nodes.size());
 
     // Solve K u = f
     ConjugateGradient cg(K, rhs, initial_guess);
 
-    const std::vector<double> solution = cg.solve();
+    const auto solution = cg.solve();
 
     // Compute L2 error
     const double error = global_l2_err(mesh, solution, sol_func, 0.0);

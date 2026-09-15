@@ -9,9 +9,9 @@ Poisson::Poisson(const Mesh& mesh, STFunction f_func_, STFunction dir_func_) {
   rhs_vec.resize(n);
 }
 
-std::vector<double> Poisson::solve(const Mesh& mesh) {
+VectorXd Poisson::solve(const Mesh& mesh) {
   // Assemble stiffness matrix
-  Matrix<double> K = asm_global_stiffness_matr(mesh);
+  MatrixXd K = asm_global_stiffness_matr(mesh);
 
   // Find Dirichlet nodes
   const auto is_dirichlet = get_dirichlet_nodes(mesh);
@@ -27,7 +27,7 @@ std::vector<double> Poisson::solve(const Mesh& mesh) {
   apply_dirichlet_bc(K, rhs_vec, is_dirichlet, dirichlet_values);
 
   //   Solve with CG
-  const std::vector<double> initial_guess(mesh.nodes.size(), 0.0);
+  const VectorXd initial_guess = VectorXd::Zero(mesh.nodes.size());
   ConjugateGradient cg(K, rhs_vec, initial_guess);
 
   return cg.solve();

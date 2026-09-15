@@ -2,17 +2,17 @@
 
 double element_l2_err_sq(const Element& element,
                          const Mesh& mesh,
-                         const std::vector<double>& fem_sol,
+                         const VectorXd& fem_sol,
                          STFunction exact_sol,
                          const double t) {
   std::vector<Node> tr_nodes = get_element_nodes(element, mesh);
-  std::vector<double> u_vals(3);
+  VectorXd u_vals = VectorXd::Zero(3);
 
   TriangleGEO tr(element, tr_nodes);
 
-  u_vals.at(0) = fem_sol.at(element.node_indices.at(0));
-  u_vals.at(1) = fem_sol.at(element.node_indices.at(1));
-  u_vals.at(2) = fem_sol.at(element.node_indices.at(2));
+  u_vals(0) = fem_sol(element.node_indices.at(0));
+  u_vals(1) = fem_sol(element.node_indices.at(1));
+  u_vals(2) = fem_sol(element.node_indices.at(2));
 
   const auto quad_basis = bfs_at_quad();
   const auto phys_coords = tr.get_phys_coords();
@@ -24,9 +24,9 @@ double element_l2_err_sq(const Element& element,
     const double u_exact =
         exact_sol(phys_coords.at(q).x, phys_coords.at(q).y, t);
 
-    const double u_h = u_vals.at(0) * quad_basis.at(0).at(q) +
-                       u_vals.at(1) * quad_basis.at(1).at(q) +
-                       u_vals.at(2) * quad_basis.at(2).at(q);
+    const double u_h = u_vals(0) * quad_basis.at(0).at(q) +
+                       u_vals(1) * quad_basis.at(1).at(q) +
+                       u_vals(2) * quad_basis.at(2).at(q);
 
     const double err = u_exact - u_h;
     element_l2err_sq += detJ * quad_weights.at(q) * err * err;
@@ -36,7 +36,7 @@ double element_l2_err_sq(const Element& element,
 }
 
 double global_l2_err(const Mesh& mesh,
-                     const std::vector<double>& fem_sol,
+                     const VectorXd& fem_sol,
                      STFunction exact_sol,
                      const double t) {
   double l2_error{};
@@ -72,11 +72,11 @@ double sol_func(const double x, const double y, const double t) {
   return sin(pi * x) * sin(pi * y);
 }
 
-std::vector<double> analytical_sol(const Mesh& mesh) {
-  std::vector<double> vec(mesh.nodes.size());
+VectorXd analytical_sol(const Mesh& mesh) {
+  VectorXd vec = VectorXd::Zero(mesh.nodes.size());
 
   for (std::size_t i = 0; i < mesh.nodes.size(); i++) {
-    vec.at(i) = sol_func(mesh.nodes.at(i).x, mesh.nodes.at(i).y);
+    vec(i) = sol_func(mesh.nodes.at(i).x, mesh.nodes.at(i).y);
   }
 
   return vec;

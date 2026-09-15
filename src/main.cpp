@@ -1,3 +1,4 @@
+#include <Eigen/Dense>
 #include <algorithm>
 #include <cmath>
 #include <fstream>
@@ -10,6 +11,8 @@
 #include "mesh/parser.h"
 #include "solvers/heat_eq/heat_eq.h"
 #include "solvers/poisson/poisson.h"
+
+using Eigen::VectorXd;
 
 int main() {
   // --------------------------------------------------------------------------
@@ -53,9 +56,9 @@ int main() {
 
   Poisson poisson(mesh, func, dir_func);
 
-  const std::vector<double> poisson_sol = poisson.solve(mesh);
+  const VectorXd poisson_sol = poisson.solve(mesh);
 
-  const std::vector<double> poisson_exact = analytical_sol(mesh);
+  const VectorXd poisson_exact = analytical_sol(mesh);
 
   std::cout << "----------\n";
   std::cout << "L2 error = " << global_l2_err(mesh, poisson_sol, sol_func, 0.0)
@@ -64,8 +67,8 @@ int main() {
   double poisson_max_error = 0.0;
 
   for (std::size_t i = 0; i < poisson_sol.size(); ++i) {
-    poisson_max_error = std::max(
-        poisson_max_error, std::abs(poisson_sol.at(i) - poisson_exact.at(i)));
+    poisson_max_error = std::max(poisson_max_error,
+                                 std::abs(poisson_sol(i) - poisson_exact(i)));
   }
 
   std::cout << "Max nodal error = " << poisson_max_error << '\n';
@@ -89,7 +92,7 @@ int main() {
 
   HeatEq heat_eq(mesh, dt, T, h_func, h_dir_func);
 
-  const std::vector<double> heat_sol = heat_eq.solve(mesh);
+  const VectorXd heat_sol = heat_eq.solve(mesh);
 
   std::cout << "----------\n";
   std::cout << "L2 error = " << global_l2_err(mesh, heat_sol, h_sol_func, T)
@@ -102,7 +105,7 @@ int main() {
 
     const double exact = h_sol_func(node.x, node.y, T);
 
-    heat_max_error = std::max(heat_max_error, std::abs(heat_sol.at(i) - exact));
+    heat_max_error = std::max(heat_max_error, std::abs(heat_sol(i) - exact));
   }
 
   std::cout << "Max nodal error = " << heat_max_error << '\n';
