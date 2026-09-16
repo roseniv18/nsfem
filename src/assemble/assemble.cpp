@@ -52,7 +52,7 @@ MatrixXd asm_global_mass_matr(const Mesh& mesh) {
       const auto el_nodes = get_element_nodes(element, mesh);
       const TriangleGEO tr_element(element, el_nodes);
 
-      MatrixXd ls_matrix = gen_local_stiffness_matr(tr_element);
+      MatrixXd ls_matrix = gen_local_mass_matr(tr_element);
 
       for (std::size_t i = 0; i < element.node_indices.size(); ++i) {
         for (std::size_t j = 0; j < element.node_indices.size(); ++j) {
