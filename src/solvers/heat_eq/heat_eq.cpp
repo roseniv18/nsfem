@@ -53,6 +53,9 @@ VectorXd HeatEq::solve(const Mesh& mesh) {
   //   Apply BC to A_bc
   apply_dirichlet_bc_matr(A_bc, is_dirichlet);
 
+  //   Initialize Eigen's CG solver
+  Eigen::ConjugateGradient<SparseMatrix, Eigen::Lower | Eigen::Upper> cg;
+
   //   Time stepping
   for (int i = 0; i < n_steps; i++) {
     const double t_new = (i + 1) * dt;
@@ -71,8 +74,17 @@ VectorXd HeatEq::solve(const Mesh& mesh) {
     apply_dirichlet_bc_vec(A, rhs, is_dirichlet, dirichlet_values);
 
     // Solve Au^{n+1} = rhs
-    ConjugateGradient cg(A, rhs, u);
-    VectorXd u_new = cg.solve();
+    cg.compute(A_bc);
+
+    if (cg.info() != Eigen::Success) {
+      throw std::runtime_error("Eigen CG decomposition failed!");
+    }
+
+    VectorXd u_new = cg.solveWithGuess(rhs, u);
+
+    if (cg.info() != Eigen::Success) {
+      throw std::runtime_error("Eigen CG failed to converge!");
+    }
 
     u = std::move(u_new);
   }

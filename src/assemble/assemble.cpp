@@ -187,7 +187,7 @@ void apply_dirichlet_bc_matr(SparseMatrix& A,
   triplets.reserve(A.nonZeros());
 
   for (int k = 0; k < A.outerSize(); k++) {
-    for (SparseMatrix::InnerIterator it; it; ++it) {
+    for (SparseMatrix::InnerIterator it(A, k); it; ++it) {
       const Eigen::Index row = it.row();
       const Eigen::Index col = it.col();
 

@@ -88,7 +88,7 @@ int main() {
   std::cout << "========================================\n";
 
   constexpr double dt = 0.001;
-  constexpr double T = 0.1;
+  constexpr double T = 1.0;
 
   HeatEq heat_eq(mesh, dt, T, h_func, h_dir_func);
 
