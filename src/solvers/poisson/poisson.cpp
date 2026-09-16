@@ -11,7 +11,7 @@ Poisson::Poisson(const Mesh& mesh, STFunction f_func_, STFunction dir_func_) {
 
 VectorXd Poisson::solve(const Mesh& mesh) {
   // Assemble stiffness matrix
-  MatrixXd K = asm_global_stiffness_matr(mesh);
+  SparseMatrix K = asm_global_stiffness_matr(mesh);
 
   // Find Dirichlet nodes
   const auto is_dirichlet = get_dirichlet_nodes(mesh);

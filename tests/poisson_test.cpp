@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <Eigen/Dense>
+#include <Eigen/Sparse>
 #include <cmath>
 #include <iostream>
 #include <numbers>
@@ -12,7 +13,8 @@
 #include "linalg/conjugate_gradient.h"
 #include "mesh/parser.h"
 
-using Eigen::MatrixXd, Eigen::VectorXd;
+using Eigen::VectorXd;
+using SparseMatrix = Eigen::SparseMatrix<double>;
 
 TEST(PoissonTest, L2Convergence) {
   const std::vector<int> resolutions{4, 8, 16, 32};
@@ -23,7 +25,7 @@ TEST(PoissonTest, L2Convergence) {
     Mesh mesh = make_unit_square_mesh(n);
 
     // Assemble system
-    MatrixXd K = asm_global_stiffness_matr(mesh);
+    SparseMatrix K = asm_global_stiffness_matr(mesh);
 
     VectorXd rhs = asm_global_vec(mesh, func, 0.0);
 

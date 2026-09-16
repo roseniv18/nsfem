@@ -35,8 +35,8 @@ void HeatEq::update_rhs(const Mesh& mesh, double t) {
 
 VectorXd HeatEq::solve(const Mesh& mesh) {
   // Assemble matrices
-  MatrixXd K = asm_global_stiffness_matr(mesh);
-  MatrixXd M = asm_global_mass_matr(mesh);
+  SparseMatrix K = asm_global_stiffness_matr(mesh);
+  SparseMatrix M = asm_global_mass_matr(mesh);
 
   // Initial condition
   VectorXd u = initial_condition;
@@ -45,10 +45,13 @@ VectorXd HeatEq::solve(const Mesh& mesh) {
   const auto is_dirichlet = get_dirichlet_nodes(mesh);
 
   // Build matrix for implicit Euler (once before loop)
-  MatrixXd A = M + K * dt;
+  SparseMatrix A = M + K * dt;
 
-  //   Apply BC to A
-  apply_dirichlet_bc_matr(A, is_dirichlet);
+  //   Keep original matrix for RHS Dirichlet boundary correction
+  SparseMatrix A_bc = A;
+
+  //   Apply BC to A_bc
+  apply_dirichlet_bc_matr(A_bc, is_dirichlet);
 
   //   Time stepping
   for (int i = 0; i < n_steps; i++) {
@@ -64,6 +67,7 @@ VectorXd HeatEq::solve(const Mesh& mesh) {
     // Compute rhs
     VectorXd rhs = M * u + dt * rhs_vec;
 
+    // Apply BC to RHS, using original matrix
     apply_dirichlet_bc_vec(A, rhs, is_dirichlet, dirichlet_values);
 
     // Solve Au^{n+1} = rhs

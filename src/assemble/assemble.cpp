@@ -42,57 +42,88 @@ MatrixXd gen_local_mass_matr(const TriangleGEO& element) {
 }
 
 // assemble global mass matrix
-MatrixXd asm_global_mass_matr(const Mesh& mesh) {
+SparseMatrix asm_global_mass_matr(const Mesh& mesh) {
   const std::size_t n = mesh.nodes.size();
 
-  MatrixXd gm_matrix = MatrixXd::Zero(n, n);
+  std::vector<Eigen::Triplet<double>> triplets;
+
+  //   Each triangle contributes at most 3*3=9 entries (linear P1)
+  triplets.reserve(mesh.elements.size() * 9);
 
   for (const Element& element : mesh.elements) {
     if (element.type == ElementType::Triangle3) {
       const auto el_nodes = get_element_nodes(element, mesh);
       const TriangleGEO tr_element(element, el_nodes);
 
-      MatrixXd ls_matrix = gen_local_mass_matr(tr_element);
+      const MatrixXd local_mass_matrix = gen_local_mass_matr(tr_element);
 
-      for (std::size_t i = 0; i < element.node_indices.size(); ++i) {
-        for (std::size_t j = 0; j < element.node_indices.size(); ++j) {
-          const std::size_t I = element.node_indices[i];
-          const std::size_t J = element.node_indices[j];
+      for (std::size_t i = 0; i < element.node_indices.size(); i++) {
+        for (std::size_t j = 0; j < element.node_indices.size(); j++) {
+          const std::size_t I = element.node_indices.at(i);
+          const std::size_t J = element.node_indices.at(j);
 
-          gm_matrix(I, J) += ls_matrix(i, j);
+          triplets.emplace_back(static_cast<Eigen::Index>(I),
+                                static_cast<Eigen::Index>(J),
+                                local_mass_matrix(i, j));
         }
       }
     }
   }
 
-  return gm_matrix;
+  SparseMatrix global_mass_matrix(static_cast<Eigen::Index>(n),
+                                  static_cast<Eigen::Index>(n));
+
+  // setFromTriplets handles duplicate entries by summing them
+  // this is exactly what FEM requires
+  global_mass_matrix.setFromTriplets(triplets.begin(), triplets.end());
+
+  // store in compressed memory format
+  global_mass_matrix.makeCompressed();
+
+  return global_mass_matrix;
 }
 
 // assemble global stiffness matrix
-MatrixXd asm_global_stiffness_matr(const Mesh& mesh) {
+SparseMatrix asm_global_stiffness_matr(const Mesh& mesh) {
   const std::size_t n = mesh.nodes.size();
 
-  MatrixXd gs_matrix = MatrixXd::Zero(n, n);
+  std::vector<Eigen::Triplet<double>> triplets;
+
+  //   Each triangle contributes at most 3*3=9 entries (linear P1)
+  triplets.reserve(mesh.elements.size() * 9);
 
   for (const Element& element : mesh.elements) {
     if (element.type == ElementType::Triangle3) {
       const auto el_nodes = get_element_nodes(element, mesh);
       const TriangleGEO tr_element(element, el_nodes);
 
-      MatrixXd ls_matrix = gen_local_stiffness_matr(tr_element);
+      const MatrixXd local_stiffness_matrix =
+          gen_local_stiffness_matr(tr_element);
 
-      for (std::size_t i = 0; i < element.node_indices.size(); ++i) {
-        for (std::size_t j = 0; j < element.node_indices.size(); ++j) {
-          const std::size_t I = element.node_indices[i];
-          const std::size_t J = element.node_indices[j];
+      for (std::size_t i = 0; i < element.node_indices.size(); i++) {
+        for (std::size_t j = 0; j < element.node_indices.size(); j++) {
+          const std::size_t I = element.node_indices.at(i);
+          const std::size_t J = element.node_indices.at(j);
 
-          gs_matrix(I, J) += ls_matrix(i, j);
+          triplets.emplace_back(static_cast<Eigen::Index>(I),
+                                static_cast<Eigen::Index>(J),
+                                local_stiffness_matrix(i, j));
         }
       }
     }
   }
 
-  return gs_matrix;
+  SparseMatrix global_stiffness_matrix(static_cast<Eigen::Index>(n),
+                                       static_cast<Eigen::Index>(n));
+
+  // setFromTriplets handles duplicate entries by summing them
+  // this is exactly what FEM requires
+  global_stiffness_matrix.setFromTriplets(triplets.begin(), triplets.end());
+
+  // store in compressed memory format
+  global_stiffness_matrix.makeCompressed();
+
+  return global_stiffness_matrix;
 }
 
 // generate local load vector
@@ -139,73 +170,71 @@ VectorXd asm_global_vec(const Mesh& mesh, STFunction func, double t) {
 }
 
 // apply Dirichlet boundary conditions
-void apply_dirichlet_bc(MatrixXd& A,
+void apply_dirichlet_bc(SparseMatrix& A,
                         VectorXd& vec,
                         const std::vector<bool>& is_dirichlet,
                         const std::vector<double>& dirichlet_vals) {
-  for (int i = 0; i < A.cols(); i++) {
-    if (is_dirichlet.at(i)) {
-      const double val = dirichlet_vals.at(i);
+  // RHS is modified using the original matrix
+  apply_dirichlet_bc_vec(A, vec, is_dirichlet, dirichlet_vals);
 
-      // modify RHS
-      for (int j = 0; j < A.cols(); j++) {
-        if (j != i) {
-          vec(j) -= A(j, i) * val;
-        }
-      }
-
-      // zero out row
-      for (int j = 0; j < A.cols(); j++) {
-        A(i, j) = 0;
-      }
-
-      // zero out column
-      for (int j = 0; j < A.rows(); j++) {
-        A(j, i) = 0;
-      }
-
-      A(i, i) = 1.0;
-      vec(i) = val;
-    }
-  }
+  // Apply BC to matrix
+  apply_dirichlet_bc_matr(A, is_dirichlet);
 }
 
-void apply_dirichlet_bc_matr(MatrixXd& A,
+void apply_dirichlet_bc_matr(SparseMatrix& A,
                              const std::vector<bool>& is_dirichlet) {
-  for (int i = 0; i < A.cols(); i++) {
-    if (is_dirichlet.at(i)) {
-      // zero out row
-      for (int j = 0; j < A.cols(); j++) {
-        A(i, j) = 0;
-      }
+  std::vector<Eigen::Triplet<double>> triplets;
+  triplets.reserve(A.nonZeros());
 
-      // zero out column
-      for (int j = 0; j < A.rows(); j++) {
-        A(j, i) = 0;
-      }
+  for (int k = 0; k < A.outerSize(); k++) {
+    for (SparseMatrix::InnerIterator it; it; ++it) {
+      const Eigen::Index row = it.row();
+      const Eigen::Index col = it.col();
 
-      A(i, i) = 1.0;
+      // Copy the original value unchanged, if the row and col are not Dirichlet
+      // otherwise, leave row and col value of 0
+      if (!is_dirichlet.at(row) && !is_dirichlet.at(col)) {
+        triplets.emplace_back(row, col, it.value());
+      }
     }
   }
+
+  //   Set diagonal to 1
+  for (Eigen::Index i = 0; i < A.rows(); i++) {
+    if (is_dirichlet.at(i)) {
+      triplets.emplace_back(i, i, 1.0);
+    }
+  }
+
+  SparseMatrix A_new(A.rows(), A.cols());
+
+  A_new.setFromTriplets(triplets.begin(), triplets.end());
+
+  A = std::move(A_new);
 }
 
 // apply Dirichlet boundary conditions
-void apply_dirichlet_bc_vec(MatrixXd& A,
+void apply_dirichlet_bc_vec(const SparseMatrix& A,
                             VectorXd& vec,
                             const std::vector<bool>& is_dirichlet,
                             const std::vector<double>& dirichlet_vals) {
-  for (int i = 0; i < A.cols(); i++) {
-    const double val = dirichlet_vals.at(i);
+  // Default SparseMatrix storage is column-major, so loop through columns
+  for (int k = 0; k < A.outerSize(); k++) {
+    for (SparseMatrix::InnerIterator it(A, k); it; ++it) {
+      const Eigen::Index row = it.row();
+      const Eigen::Index col = it.col();
 
-    if (is_dirichlet.at(i)) {
-      // modify RHS
-      for (int j = 0; j < A.cols(); j++) {
-        if (j != i) {
-          vec(j) -= A(j, i) * val;
-        }
+      //   b_row -= A_col,row
+      if (is_dirichlet.at(col) && row != col) {
+        vec(row) -= it.value() * dirichlet_vals.at(col);
       }
+    }
+  }
 
-      vec(i) = val;
+  //   apply Dirichlet value
+  for (Eigen::Index i = 0; i < A.rows(); i++) {
+    if (is_dirichlet.at(i)) {
+      vec(i) = dirichlet_vals.at(i);
     }
   }
 }

@@ -2,6 +2,7 @@
 #define HEAT_EQ_H
 
 #include <Eigen/Dense>
+#include <Eigen/Sparse>
 #include <cmath>
 #include <vector>
 #include "assemble/assemble.h"
@@ -10,6 +11,7 @@
 #include "mesh/mesh.h"
 
 using Eigen::MatrixXd, Eigen::VectorXd;
+using SparseMatrix = Eigen::SparseMatrix<double>;
 using std::exp;
 using std::sin;
 using std::numbers::pi;

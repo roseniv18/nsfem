@@ -2,6 +2,7 @@
 #define POISSON_H
 
 #include <Eigen/Dense>
+#include <Eigen/Sparse>
 #include <vector>
 #include "assemble/assemble.h"
 #include "linalg/conjugate_gradient.h"
@@ -9,6 +10,7 @@
 #include "mesh/mesh.h"
 
 using Eigen::VectorXd, Eigen::MatrixXd;
+using SparseMatrix = Eigen::SparseMatrix<double>;
 
 class Poisson {
  public:
