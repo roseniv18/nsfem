@@ -60,6 +60,7 @@ add_executable(tests
 	tests/dirichlet_bc_test.cpp
 	tests/cg_test.cpp
 	tests/poisson_test.cpp
+	tests/heat_eq_test.cpp
 )
 
 target_link_libraries(tests PRIVATE fem GTest::gtest_main)
