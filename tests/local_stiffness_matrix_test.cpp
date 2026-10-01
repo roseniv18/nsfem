@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
-#include "assemble/assemble.h"
+#include "FEM/assemble/assemble.h"
+#include "FEM/finite_element/P1_element.h"
 
 /** Local stiffness matrix for reference triangle
  * Test if the local stiffness matrix for the reference triangle
@@ -13,9 +14,11 @@ TEST(LocalStiffnessTest, ReferenceTriangle) {
                   .physical_tags = {},
                   .node_indices = {0, 1, 2}};
 
-  const TriangleGEO ref_triangle(element, nodes);
+  const P1_FE P1_element;
 
-  const auto ls_matrix = gen_local_stiffness_matr(ref_triangle);
+  const FEMap2D ref_triangle(element, nodes, P1_element);
+
+  const auto ls_matrix = gen_local_stiffness_matr(ref_triangle, P1_element);
 
   EXPECT_DOUBLE_EQ(ls_matrix(0, 0), 1.0);
   EXPECT_DOUBLE_EQ(ls_matrix(1, 0), -0.5);
@@ -41,9 +44,11 @@ TEST(LocalStiffnessTest, PhysTriangle) {
                        .physical_tags = {},
                        .node_indices = {0, 1, 2}};
 
-  const TriangleGEO phys_triangle(phys_element, phys_nodes);
+  const P1_FE P1_element;
 
-  const auto phys_ls_matrix = gen_local_stiffness_matr(phys_triangle);
+  const FEMap2D mapping(phys_element, phys_nodes, P1_element);
+
+  const auto phys_ls_matrix = gen_local_stiffness_matr(mapping, P1_element);
 
   EXPECT_NEAR(phys_ls_matrix(0, 0), 25.0 / 24.0, 1e-12);
   EXPECT_NEAR(phys_ls_matrix(1, 0), -2.0 / 3.0, 1e-12);
@@ -68,9 +73,11 @@ TEST(LocalStiffnessTest, IsSymmetric) {
                   .physical_tags = {},
                   .node_indices = {0, 1, 2}};
 
-  const TriangleGEO ref_triangle(element, nodes);
+  const P1_FE P1_element;
 
-  const auto ls_matrix = gen_local_stiffness_matr(ref_triangle);
+  const FEMap2D ref_triangle(element, nodes, P1_element);
+
+  const auto ls_matrix = gen_local_stiffness_matr(ref_triangle, P1_element);
 
   EXPECT_NEAR(ls_matrix(0, 1), ls_matrix(1, 0), 1e-12);
   EXPECT_NEAR(ls_matrix(0, 2), ls_matrix(2, 0), 1e-12);

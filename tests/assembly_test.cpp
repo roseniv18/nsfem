@@ -2,7 +2,7 @@
 
 #include <Eigen/Sparse>
 
-#include "assemble/assemble.h"
+#include "FEM/assemble/assemble.h"
 #include "mesh/parser.h"
 
 using SparseMatrix = Eigen::SparseMatrix<double>;

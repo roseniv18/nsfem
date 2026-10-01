@@ -6,17 +6,20 @@ double element_l2_err_sq(const Element& element,
                          STFunction exact_sol,
                          const double t) {
   std::vector<Node> tr_nodes = get_element_nodes(element, mesh);
-  VectorXd u_vals = VectorXd::Zero(3);
 
-  TriangleGEO tr(element, tr_nodes);
+  const P1_FE P1_element;
+  FEMap2D mapping(element, tr_nodes, P1_element);
 
-  u_vals(0) = fem_sol(element.node_indices.at(0));
-  u_vals(1) = fem_sol(element.node_indices.at(1));
-  u_vals(2) = fem_sol(element.node_indices.at(2));
+  const int ndofs = P1_element.get_ndofs();
+  VectorXd u_vals = VectorXd::Zero(ndofs);
 
-  const auto quad_basis = bfs_at_quad();
-  const auto phys_coords = tr.get_phys_coords();
-  const auto detJ = tr.det_jacobian();
+  for (std::size_t i = 0; i < element.node_indices.size(); i++) {
+    u_vals(i) = fem_sol(element.node_indices.at(i));
+  }
+
+  const auto quad_basis = P1_element.bfs_at_quad(quad_nodes);
+  const auto phys_coords = mapping.get_phys_coords();
+  const auto detJ = mapping.det_jacobian();
 
   double element_l2err_sq{};
 

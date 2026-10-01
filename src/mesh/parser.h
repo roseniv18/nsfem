@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-#include "geometry/point2d.h"
+#include "FEM/mapping/point2d.h"
 #include "mesh/mesh.h"
 
 /** Entity Physical Tags

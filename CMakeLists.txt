@@ -28,14 +28,17 @@ enable_testing()
 add_library(fem
 	src/mesh/parser.cpp
 	src/mesh/mesh.cpp
-	src/geometry/triangle_geometry.cpp
-	src/assemble/assemble.cpp
-	src/basis/lagrange_p1_triangle.cpp
-	src/quadrature/quadrature.cpp
+
+	src/FEM/finite_element/finite_element.cpp
+	src/FEM/finite_element/P1_element.cpp
+	src/FEM/mapping/fe_mapping.cpp
+	src/FEM/assemble/assemble.cpp
+	src/FEM/quadrature/quadrature.cpp
+	src/FEM/convergence/convergence.cpp
+
 	src/linalg/conjugate_gradient.cpp
 	src/solvers/heat_eq/heat_eq.cpp
 	src/solvers/poisson/poisson.cpp
-	src/convergence/convergence.cpp
 	src/helpers/helpers.cpp
 )
 

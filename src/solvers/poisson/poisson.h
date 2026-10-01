@@ -4,7 +4,7 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 #include <vector>
-#include "assemble/assemble.h"
+#include "FEM/assemble/assemble.h"
 #include "linalg/conjugate_gradient.h"
 #include "math/function.h"
 #include "mesh/mesh.h"

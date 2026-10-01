@@ -5,9 +5,9 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 #include <array>
-#include "assemble.h"
-#include "basis/lagrange_p1_triangle.h"
-#include "geometry/triangle_geometry.h"
+#include "FEM/assemble/assemble.h"
+#include "FEM/finite_element/P1_element.h"
+#include "FEM/mapping/fe_mapping.h"
 #include "math/function.h"
 #include "mesh/mesh.h"
 
@@ -15,19 +15,22 @@ using Eigen::MatrixXd, Eigen::VectorXd;
 using SparseMatrix = Eigen::SparseMatrix<double>;
 
 // generate a local stiffness matrix for given element
-MatrixXd gen_local_stiffness_matr(const TriangleGEO& element);
+MatrixXd gen_local_stiffness_matr(const FEMap2D& mapping, const FE& element);
 
 // assemble global stiffness matrix
 SparseMatrix asm_global_stiffness_matr(const Mesh& mesh);
 
 // generate a local mass matrix for given element
-MatrixXd gen_local_mass_matr(const TriangleGEO& element);
+MatrixXd gen_local_mass_matr(const FEMap2D& mapping, const FE& element);
 
 // assemble global mass matrix
 SparseMatrix asm_global_mass_matr(const Mesh& mesh);
 
 // generate a local load vector
-VectorXd gen_local_vec(const TriangleGEO& element, STFunction func, double t);
+VectorXd gen_local_vec(const FEMap2D& mapping,
+                       STFunction func,
+                       const FE& element,
+                       double t);
 
 // assemble global load vector
 VectorXd asm_global_vec(const Mesh& mesh, STFunction func, double t);

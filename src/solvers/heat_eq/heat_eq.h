@@ -5,8 +5,8 @@
 #include <Eigen/Sparse>
 #include <cmath>
 #include <vector>
-#include "assemble/assemble.h"
-#include "convergence/convergence.h"
+#include "FEM/assemble/assemble.h"
+#include "FEM/convergence/convergence.h"
 #include "linalg/conjugate_gradient.h"
 #include "mesh/mesh.h"
 

@@ -4,8 +4,8 @@
 #include <Eigen/Dense>
 #include <functional>
 #include <vector>
-#include "basis/lagrange_p1_triangle.h"
-#include "geometry/triangle_geometry.h"
+#include "FEM/finite_element/P1_element.h"
+#include "FEM/mapping/fe_mapping.h"
 #include "math/function.h"
 #include "mesh/mesh.h"
 

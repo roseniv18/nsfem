@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "convergence/convergence.h"
+#include "FEM/convergence/convergence.h"
 #include "mesh/parser.h"
 #include "solvers/heat_eq/heat_eq.h"
 #include "solvers/poisson/poisson.h"

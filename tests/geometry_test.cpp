@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include <Eigen/Dense>
-#include "geometry/triangle_geometry.h"
+#include "FEM/finite_element/P1_element.h"
+#include "FEM/mapping/fe_mapping.h"
 
 using Eigen::VectorXd;
 
@@ -8,7 +9,7 @@ using Eigen::VectorXd;
  * Test if the Jacobian matrix for the reference triangle
  * is the identity matrix [[1,0],[0,1]]
  */
-TEST(TriangleGEOTest, JacobianForReferenceTriangle) {
+TEST(FEMap2DTest, JacobianForReferenceTriangle) {
   std::vector<Node> nodes{{1, 0.0, 0.0}, {2, 1.0, 0.0}, {3, 0.0, 1.0}};
   Element element{.dim = 2,
                   .element_tag = 1,
@@ -16,9 +17,11 @@ TEST(TriangleGEOTest, JacobianForReferenceTriangle) {
                   .physical_tags = {},
                   .node_indices = {0, 1, 2}};
 
-  TriangleGEO ref_triangle(element, nodes);
+  const P1_FE P1_element;
 
-  const auto J = ref_triangle.jacobian();
+  const FEMap2D mapping(element, nodes, P1_element);
+
+  const auto J = mapping.jacobian();
 
   EXPECT_DOUBLE_EQ(J(0, 0), 1.0);
   EXPECT_DOUBLE_EQ(J(1, 0), 0.0);
@@ -30,7 +33,7 @@ TEST(TriangleGEOTest, JacobianForReferenceTriangle) {
  * Test if the Determinant of the Jacobian matrix for the reference triangle
  * is 1
  */
-TEST(TriangleGEOTest, DetJacobianForReferenceTriangle) {
+TEST(FEMap2DTest, DetJacobianForReferenceTriangle) {
   std::vector<Node> nodes{{1, 0.0, 0.0}, {2, 1.0, 0.0}, {3, 0.0, 1.0}};
   Element element{.dim = 2,
                   .element_tag = 1,
@@ -38,7 +41,9 @@ TEST(TriangleGEOTest, DetJacobianForReferenceTriangle) {
                   .physical_tags = {},
                   .node_indices = {0, 1, 2}};
 
-  TriangleGEO ref_triangle(element, nodes);
+  const P1_FE P1_element;
+
+  const FEMap2D ref_triangle(element, nodes, P1_element);
 
   const auto detJ = ref_triangle.det_jacobian();
 
@@ -50,7 +55,7 @@ TEST(TriangleGEOTest, DetJacobianForReferenceTriangle) {
  * with nodes (1,2), (4,2), (1,6)
  * is the matrix [[3,0],[0,4]]
  */
-TEST(TriangleGEOTest, JacobianForPhysicalTriangle) {
+TEST(FEMap2DTest, JacobianForPhysicalTriangle) {
   std::vector<Node> nodes{{1, 1.0, 2.0}, {2, 4.0, 2.0}, {3, 1.0, 6.0}};
   Element element{.dim = 2,
                   .element_tag = 1,
@@ -58,7 +63,9 @@ TEST(TriangleGEOTest, JacobianForPhysicalTriangle) {
                   .physical_tags = {},
                   .node_indices = {0, 1, 2}};
 
-  TriangleGEO phys_triangle(element, nodes);
+  const P1_FE P1_element;
+
+  const FEMap2D phys_triangle(element, nodes, P1_element);
 
   const auto J = phys_triangle.jacobian();
 
@@ -73,15 +80,17 @@ TEST(TriangleGEOTest, JacobianForPhysicalTriangle) {
  * with nodes (1,2), (4,2), (1,6)
  * is 12
  */
-TEST(TriangleGEOTest, DetJacobianForPhysicalTriangle) {
+TEST(FEMap2DTest, DetJacobianForPhysicalTriangle) {
   std::vector<Node> nodes{{1, 1.0, 2.0}, {2, 4.0, 2.0}, {3, 1.0, 6.0}};
-  Element element{.dim = 2,
-                  .element_tag = 1,
-                  .type = ElementType::Triangle3,
-                  .physical_tags = {},
-                  .node_indices = {0, 1, 2}};
+  const Element element{.dim = 2,
+                        .element_tag = 1,
+                        .type = ElementType::Triangle3,
+                        .physical_tags = {},
+                        .node_indices = {0, 1, 2}};
 
-  TriangleGEO phys_triangle(element, nodes);
+  const P1_FE P1_element;
+
+  const FEMap2D phys_triangle(element, nodes, P1_element);
 
   const auto detJ = phys_triangle.det_jacobian();
 
@@ -93,15 +102,17 @@ TEST(TriangleGEOTest, DetJacobianForPhysicalTriangle) {
  * with nodes (1,2), (4,2), (1,6)
  * is [[1/3,0],[0,1/4]]
  */
-TEST(TriangleGEOTest, InvJacobianTForPhysicalTriangle) {
+TEST(FEMap2DTest, InvJacobianTForPhysicalTriangle) {
   std::vector<Node> nodes{{1, 1.0, 2.0}, {2, 4.0, 2.0}, {3, 1.0, 6.0}};
-  Element element{.dim = 2,
-                  .element_tag = 1,
-                  .type = ElementType::Triangle3,
-                  .physical_tags = {},
-                  .node_indices = {0, 1, 2}};
+  const Element element{.dim = 2,
+                        .element_tag = 1,
+                        .type = ElementType::Triangle3,
+                        .physical_tags = {},
+                        .node_indices = {0, 1, 2}};
 
-  TriangleGEO phys_triangle(element, nodes);
+  const P1_FE P1_element;
+
+  const FEMap2D phys_triangle(element, nodes, P1_element);
 
   const auto JinvT = phys_triangle.jacobianInvT();
 
@@ -116,15 +127,17 @@ TEST(TriangleGEOTest, InvJacobianTForPhysicalTriangle) {
  * with nodes (1,2), (4,2), (1,6)
  * are [-1/3, -1/4], [1/3, 0], [0, 1/4]
  */
-TEST(TriangleGEOTest, ComputesPhysicalGradients) {
+TEST(FEMap2DTest, ComputesPhysicalGradients) {
   std::vector<Node> nodes{{1, 1.0, 2.0}, {2, 4.0, 2.0}, {3, 1.0, 6.0}};
-  Element element{.dim = 2,
-                  .element_tag = 1,
-                  .type = ElementType::Triangle3,
-                  .physical_tags = {},
-                  .node_indices = {0, 1, 2}};
+  const Element element{.dim = 2,
+                        .element_tag = 1,
+                        .type = ElementType::Triangle3,
+                        .physical_tags = {},
+                        .node_indices = {0, 1, 2}};
 
-  TriangleGEO phys_triangle(element, nodes);
+  const P1_FE P1_element;
+
+  const FEMap2D phys_triangle(element, nodes, P1_element);
 
   const auto grads = phys_triangle.get_phys_grads();
 
@@ -139,33 +152,39 @@ TEST(TriangleGEOTest, ComputesPhysicalGradients) {
 }
 
 /** Reject Non-Triangle Element
- * Test if the TriangleGEO constructor will throw
+ * Test if the FEMap2D constructor will throw
  * if we pass a non-triangle element
  */
-TEST(TriangleGEOTest, RejectsNonTriangleElement) {
+TEST(FEMap2DTest, RejectsNonTriangleElement) {
   std::vector<Node> nodes{{1, 0.0, 0.0}, {2, 1.0, 0.0}, {3, 0.0, 1.0}};
   //   set dim to 1 (1D)
-  Element element{.dim = 1,
-                  .element_tag = 1,
-                  .type = ElementType::Line2,
-                  .physical_tags = {},
-                  .node_indices = {0, 1}};
+  const Element element{.dim = 1,
+                        .element_tag = 1,
+                        .type = ElementType::Line2,
+                        .physical_tags = {},
+                        .node_indices = {0, 1}};
 
-  EXPECT_THROW(TriangleGEO geometry(element, nodes), std::invalid_argument);
+  const P1_FE P1_element;
+
+  EXPECT_THROW(FEMap2D mapping(element, nodes, P1_element),
+               std::invalid_argument);
 }
 
 /** Reject Degenerate Triangle (detJ ~= 0)
- * Test if the TriangleGEO constructor will throw
+ * Test if the FEMap2D constructor will throw
  * if we pass a degenerate element
  */
-TEST(TriangleGEOTest, RejectsDegenerateTriangle) {
+TEST(FEMap2DTest, RejectsDegenerateTriangle) {
   // coordinates are collinear
   std::vector<Node> nodes{{1, 0.0, 0.0}, {2, 1.0, 0.0}, {3, 2.0, 0.0}};
-  Element element{.dim = 2,
-                  .element_tag = 1,
-                  .type = ElementType::Triangle3,
-                  .physical_tags = {},
-                  .node_indices = {0, 1, 2}};
+  const Element element{.dim = 2,
+                        .element_tag = 1,
+                        .type = ElementType::Triangle3,
+                        .physical_tags = {},
+                        .node_indices = {0, 1, 2}};
 
-  EXPECT_THROW(TriangleGEO geometry(element, nodes), std::runtime_error);
+  const P1_FE P1_element;
+
+  EXPECT_THROW(FEMap2D mapping(element, nodes, P1_element),
+               std::invalid_argument);
 }

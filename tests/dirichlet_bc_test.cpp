@@ -2,7 +2,7 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 
-#include "assemble/assemble.h"
+#include "FEM/assemble/assemble.h"
 
 using Eigen::VectorXd;
 using SparseMatrix = Eigen::SparseMatrix<double>;

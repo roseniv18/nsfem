@@ -1,21 +1,38 @@
 #include "assemble.h"
 
 // generate local stiffness matrix
-MatrixXd gen_local_stiffness_matr(const TriangleGEO& element) {
-  MatrixXd ls_matrix = MatrixXd::Zero(3, 3);
+MatrixXd gen_local_stiffness_matr(const FEMap2D& mapping, const FE& element) {
+  const int ndofs = element.get_ndofs();
 
-  auto phys_grads = element.get_phys_grads();
-  const auto detJ = element.det_jacobian();
+  MatrixXd ls_matrix = MatrixXd::Zero(ndofs, ndofs);
 
-  for (int i = 0; i < ls_matrix.cols(); i++) {
-    for (int j = 0; j < ls_matrix.rows(); j++) {
-      /** this calculation assumes:
-       * 	1. affine mapping
-       *  	2. constant gradients (true for linear Lagrange triangles)
-       */
-      double dot = (phys_grads.at(i).x * phys_grads.at(j).x) +
-                   (phys_grads.at(i).y * phys_grads.at(j).y);
-      ls_matrix(i, j) = 0.5 * std::abs(detJ) * dot;
+  const double detJ = std::abs(mapping.det_jacobian());
+  const MatrixXd JinvT = mapping.jacobianInvT();
+
+  for (std::size_t q = 0; q < quad_nodes.size(); q++) {
+    const double xi = quad_nodes.at(q).at(0);
+    const double eta = quad_nodes.at(q).at(1);
+
+    const auto ref_grads = element.evaluate_grad_bfs(xi, eta);
+
+    // Physical gradients' values at this quadrature point (xi, eta)
+    std::vector<Point2D> phys_grads(ndofs);
+
+    for (int i = 0; i < ndofs; i++) {
+      phys_grads.at(i).x = JinvT(0, 0) * ref_grads.at(i).at(0) +
+                           JinvT(0, 1) * ref_grads.at(i).at(1);
+
+      phys_grads.at(i).y = JinvT(1, 0) * ref_grads.at(i).at(0) +
+                           JinvT(1, 1) * ref_grads.at(i).at(1);
+    }
+
+    for (int i = 0; i < ndofs; i++) {
+      for (int j = 0; j < ndofs; j++) {
+        const double dot = phys_grads.at(i).x * phys_grads.at(j).x +
+                           phys_grads.at(i).y * phys_grads.at(j).y;
+
+        ls_matrix(i, j) += detJ * quad_weights.at(q) * dot;
+      }
     }
   }
 
@@ -23,17 +40,22 @@ MatrixXd gen_local_stiffness_matr(const TriangleGEO& element) {
 }
 
 // generate local mass matrix
-MatrixXd gen_local_mass_matr(const TriangleGEO& element) {
-  MatrixXd lm_matrix = MatrixXd::Zero(3, 3);
+MatrixXd gen_local_mass_matr(const FEMap2D& mapping, const FE& element) {
+  const int ndofs = element.get_ndofs();
 
-  const auto detJ = element.det_jacobian();
+  MatrixXd lm_matrix = MatrixXd::Zero(ndofs, ndofs);
 
-  for (int i = 0; i < lm_matrix.cols(); i++) {
-    for (int j = 0; j < lm_matrix.rows(); j++) {
-      if (i == j) {
-        lm_matrix(i, j) = 0.5 * detJ / 6.0;
-      } else {
-        lm_matrix(i, j) = 0.5 * detJ / 12.0;
+  const double detJ = std::abs(mapping.det_jacobian());
+
+  for (std::size_t q = 0; q < quad_nodes.size(); q++) {
+    const double xi = quad_nodes.at(q).at(0);
+    const double eta = quad_nodes.at(q).at(1);
+
+    const auto bfs = element.evaluate_bfs(xi, eta);
+
+    for (int i = 0; i < ndofs; i++) {
+      for (int j = 0; j < ndofs; j++) {
+        lm_matrix(i, j) += detJ * quad_weights.at(q) * bfs.at(i) * bfs.at(j);
       }
     }
   }
@@ -47,15 +69,19 @@ SparseMatrix asm_global_mass_matr(const Mesh& mesh) {
 
   std::vector<Eigen::Triplet<double>> triplets;
 
-  //   Each triangle contributes at most 3*3=9 entries (linear P1)
-  triplets.reserve(mesh.elements.size() * 9);
+  //   Each triangle contributes at most ndofs*ndofs entries (9 for linear P1)
+  const P1_FE P1_element;
+
+  const int ndofs = P1_element.get_ndofs();
+  triplets.reserve(mesh.elements.size() * ndofs * ndofs);
 
   for (const Element& element : mesh.elements) {
     if (element.type == ElementType::Triangle3) {
       const auto el_nodes = get_element_nodes(element, mesh);
-      const TriangleGEO tr_element(element, el_nodes);
+      const FEMap2D tr_element(element, el_nodes, P1_element);
 
-      const MatrixXd local_mass_matrix = gen_local_mass_matr(tr_element);
+      const MatrixXd local_mass_matrix =
+          gen_local_mass_matr(tr_element, P1_element);
 
       for (std::size_t i = 0; i < element.node_indices.size(); i++) {
         for (std::size_t j = 0; j < element.node_indices.size(); j++) {
@@ -89,16 +115,19 @@ SparseMatrix asm_global_stiffness_matr(const Mesh& mesh) {
 
   std::vector<Eigen::Triplet<double>> triplets;
 
-  //   Each triangle contributes at most 3*3=9 entries (linear P1)
-  triplets.reserve(mesh.elements.size() * 9);
+  //   Each triangle contributes at most ndofs*ndofs entries (9 for linear P1)
+  const P1_FE P1_element;
+
+  const int ndofs = P1_element.get_ndofs();
+  triplets.reserve(mesh.elements.size() * ndofs * ndofs);
 
   for (const Element& element : mesh.elements) {
     if (element.type == ElementType::Triangle3) {
       const auto el_nodes = get_element_nodes(element, mesh);
-      const TriangleGEO tr_element(element, el_nodes);
+      const FEMap2D tr_element(element, el_nodes, P1_element);
 
       const MatrixXd local_stiffness_matrix =
-          gen_local_stiffness_matr(tr_element);
+          gen_local_stiffness_matr(tr_element, P1_element);
 
       for (std::size_t i = 0; i < element.node_indices.size(); i++) {
         for (std::size_t j = 0; j < element.node_indices.size(); j++) {
@@ -127,18 +156,23 @@ SparseMatrix asm_global_stiffness_matr(const Mesh& mesh) {
 }
 
 // generate local load vector
-VectorXd gen_local_vec(const TriangleGEO& element, STFunction func, double t) {
-  VectorXd lv = VectorXd::Zero(3);
+VectorXd gen_local_vec(const FEMap2D& mapping,
+                       STFunction func,
+                       const FE& element,
+                       double t) {
+  const int n_dofs = element.get_ndofs();
 
-  auto phys_points = element.get_phys_coords();
-  auto detJ = element.det_jacobian();
-  auto bfs = bfs_at_quad();
+  VectorXd lv = VectorXd::Zero(n_dofs);
+
+  auto phys_points = mapping.get_phys_coords();
+  const double detJ = std::abs(mapping.det_jacobian());
+  std::vector<std::vector<double>> bfs = element.bfs_at_quad(quad_nodes);
 
   for (std::size_t q = 0; q < quad_nodes.size(); q++) {
-    double f_val = func(phys_points[q].x, phys_points[q].y, t);
+    double f_val = func(phys_points.at(q).x, phys_points.at(q).y, t);
 
-    for (int i = 0; i < 3; i++) {
-      lv(i) += std::abs(detJ) * quad_weights[q] * bfs[i][q] * f_val;
+    for (int i = 0; i < n_dofs; i++) {
+      lv(i) += std::abs(detJ) * quad_weights.at(q) * bfs.at(i).at(q) * f_val;
     }
   }
 
@@ -154,9 +188,10 @@ VectorXd asm_global_vec(const Mesh& mesh, STFunction func, double t) {
   for (const Element& element : mesh.elements) {
     if (element.type == ElementType::Triangle3) {
       const auto el_nodes = get_element_nodes(element, mesh);
-      const TriangleGEO tr_element(element, el_nodes);
+      const P1_FE P1_element;
+      const FEMap2D mapping(element, el_nodes, P1_element);
 
-      VectorXd lv = gen_local_vec(tr_element, func, t);
+      VectorXd lv = gen_local_vec(mapping, func, P1_element, t);
 
       for (std::size_t i = 0; i < element.node_indices.size(); ++i) {
         const std::size_t I = element.node_indices[i];

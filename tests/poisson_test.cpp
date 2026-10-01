@@ -7,8 +7,8 @@
 #include <numbers>
 #include <vector>
 
-#include "assemble/assemble.h"
-#include "convergence/convergence.h"
+#include "FEM/assemble/assemble.h"
+#include "FEM/convergence/convergence.h"
 #include "helpers/helpers.h"
 #include "linalg/conjugate_gradient.h"
 #include "mesh/parser.h"

@@ -1,6 +1,6 @@
 #include "solvers/heat_eq/heat_eq.h"
 #include <gtest/gtest.h>
-#include "convergence/convergence.h"
+#include "FEM/convergence/convergence.h"
 #include "helpers/helpers.h"
 #include "mesh/mesh.h"
 
