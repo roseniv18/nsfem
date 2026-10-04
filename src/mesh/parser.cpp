@@ -233,7 +233,7 @@ void read_elements(std::ifstream& file,
         // node position in mesh
         // note this is not the same as its tag!
         int node_pos = node_index.at(node_tag);
-        el.node_indices.push_back(node_pos);  // tag -> position
+        el.node_ids.push_back(node_pos);  // tag -> position
       }
 
       mesh.elements.push_back(el);
@@ -293,7 +293,7 @@ void print_mesh(const Mesh& mesh) {
 
     std::cout << "nodes: ";
 
-    for (auto id : e.node_indices)
+    for (auto id : e.node_ids)
       std::cout << id << " ";
 
     std::cout << "\n";

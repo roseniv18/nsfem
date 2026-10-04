@@ -5,8 +5,11 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 #include <array>
+#include <memory>
 #include "FEM/assemble/assemble.h"
 #include "FEM/finite_element/P1_element.h"
+#include "FEM/finite_element/dof_handler.h"
+#include "FEM/finite_element/finite_element.h"
 #include "FEM/mapping/fe_mapping.h"
 #include "math/function.h"
 #include "mesh/mesh.h"
@@ -18,13 +21,13 @@ using SparseMatrix = Eigen::SparseMatrix<double>;
 MatrixXd gen_local_stiffness_matr(const FEMap2D& mapping, const FE& element);
 
 // assemble global stiffness matrix
-SparseMatrix asm_global_stiffness_matr(const Mesh& mesh);
+SparseMatrix asm_global_stiffness_matr(const Mesh& mesh, const FEType& fe_type);
 
 // generate a local mass matrix for given element
 MatrixXd gen_local_mass_matr(const FEMap2D& mapping, const FE& element);
 
 // assemble global mass matrix
-SparseMatrix asm_global_mass_matr(const Mesh& mesh);
+SparseMatrix asm_global_mass_matr(const Mesh& mesh, const FEType& fe_type);
 
 // generate a local load vector
 VectorXd gen_local_vec(const FEMap2D& mapping,

@@ -13,8 +13,8 @@ double element_l2_err_sq(const Element& element,
   const int ndofs = P1_element.get_ndofs();
   VectorXd u_vals = VectorXd::Zero(ndofs);
 
-  for (std::size_t i = 0; i < element.node_indices.size(); i++) {
-    u_vals(i) = fem_sol(element.node_indices.at(i));
+  for (std::size_t i = 0; i < element.node_ids.size(); i++) {
+    u_vals(i) = fem_sol(element.node_ids.at(i));
   }
 
   const auto quad_basis = P1_element.bfs_at_quad(quad_nodes);

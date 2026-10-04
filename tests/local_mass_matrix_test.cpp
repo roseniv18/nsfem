@@ -12,7 +12,7 @@ TEST(LocalMassTest, ReferenceTriangle) {
                   .element_tag = 1,
                   .type = ElementType::Triangle3,
                   .physical_tags = {},
-                  .node_indices = {0, 1, 2}};
+                  .node_ids = {0, 1, 2}};
 
   const P1_FE P1_element;
 
@@ -41,7 +41,7 @@ TEST(LocalMassTest, IsSymmetric) {
                   .element_tag = 1,
                   .type = ElementType::Triangle3,
                   .physical_tags = {},
-                  .node_indices = {0, 1, 2}};
+                  .node_ids = {0, 1, 2}};
 
   const P1_FE P1_element;
 

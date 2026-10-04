@@ -31,6 +31,7 @@ add_library(fem
 
 	src/FEM/finite_element/finite_element.cpp
 	src/FEM/finite_element/P1_element.cpp
+	src/FEM/finite_element/dof_handler.cpp
 	src/FEM/mapping/fe_mapping.cpp
 	src/FEM/assemble/assemble.cpp
 	src/FEM/quadrature/quadrature.cpp

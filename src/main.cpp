@@ -44,6 +44,15 @@ int main() {
 
   Mesh mesh = read_mesh(file, entities, physical_groups);
 
+  build_unique_edges_list(mesh);
+
+  std::cout << "Number of elements: " << mesh.elements.size() << '\n';
+  std::cout << "Number of unique edges: " << mesh.unique_edges.size() << '\n';
+  std::cout << "Edge ids of element 213: "
+            << mesh.elements.at(213).edge_ids.at(0) << " "
+            << mesh.elements.at(213).edge_ids.at(1) << " "
+            << mesh.elements.at(213).edge_ids.at(2) << '\n';
+
   file.close();
 
   // --------------------------------------------------------------------------

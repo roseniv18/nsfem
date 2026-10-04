@@ -79,14 +79,14 @@ Mesh make_unit_square_mesh(int n) {
                                       .element_tag = element_tag++,
                                       .type = ElementType::Triangle3,
                                       .physical_tags = {},
-                                      .node_indices = {bl, br, tr}});
+                                      .node_ids = {bl, br, tr}});
 
       // Upper-left triangle
       mesh.elements.push_back(Element{.dim = 2,
                                       .element_tag = element_tag++,
                                       .type = ElementType::Triangle3,
                                       .physical_tags = {},
-                                      .node_indices = {bl, tr, tl}});
+                                      .node_ids = {bl, tr, tl}});
     }
   }
 
@@ -99,7 +99,7 @@ Mesh make_unit_square_mesh(int n) {
                                     .element_tag = element_tag++,
                                     .type = ElementType::Line2,
                                     .physical_tags = {1},
-                                    .node_indices = {a, b}});
+                                    .node_ids = {a, b}});
   };
 
   // Bottom

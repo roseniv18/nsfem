@@ -3,6 +3,7 @@
 #include <Eigen/Sparse>
 
 #include "FEM/assemble/assemble.h"
+#include "FEM/finite_element/finite_element.h"
 #include "mesh/parser.h"
 
 using SparseMatrix = Eigen::SparseMatrix<double>;
@@ -29,18 +30,18 @@ TEST(GlobalAssemblyTest, SimpleMesh) {
           .element_tag = 1,
           .type = ElementType::Triangle3,
           .physical_tags = {},
-          .node_indices = {0, 1, 2},
+          .node_ids = {0, 1, 2},
       },
       Element{
           .dim = 2,
           .element_tag = 2,
           .type = ElementType::Triangle3,
           .physical_tags = {},
-          .node_indices = {0, 2, 3},
+          .node_ids = {0, 2, 3},
       },
   };
 
-  const SparseMatrix K = asm_global_stiffness_matr(mesh);
+  const SparseMatrix K = asm_global_stiffness_matr(mesh, FEType::P1);
 
   const double expected[4][4] = {
       {1.0, -0.5, 0.0, -0.5},
@@ -78,18 +79,18 @@ TEST(GlobalAssemblyTest, IsGlobalStiffnessMatrixSymmetric) {
           .element_tag = 1,
           .type = ElementType::Triangle3,
           .physical_tags = {},
-          .node_indices = {0, 1, 2},
+          .node_ids = {0, 1, 2},
       },
       Element{
           .dim = 2,
           .element_tag = 2,
           .type = ElementType::Triangle3,
           .physical_tags = {},
-          .node_indices = {0, 2, 3},
+          .node_ids = {0, 2, 3},
       },
   };
 
-  const SparseMatrix K = asm_global_stiffness_matr(mesh);
+  const SparseMatrix K = asm_global_stiffness_matr(mesh, FEType::P1);
 
   for (Eigen::Index i = 0; i < K.rows(); ++i) {
     for (Eigen::Index j = 0; j < K.cols(); ++j) {

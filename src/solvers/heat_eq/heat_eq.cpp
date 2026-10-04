@@ -35,8 +35,8 @@ void HeatEq::update_rhs(const Mesh& mesh, double t) {
 
 VectorXd HeatEq::solve(const Mesh& mesh) {
   // Assemble matrices
-  SparseMatrix K = asm_global_stiffness_matr(mesh);
-  SparseMatrix M = asm_global_mass_matr(mesh);
+  SparseMatrix K = asm_global_stiffness_matr(mesh, FEType::P1);
+  SparseMatrix M = asm_global_mass_matr(mesh, FEType::P1);
 
   // Initial condition
   VectorXd u = initial_condition;

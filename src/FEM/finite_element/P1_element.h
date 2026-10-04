@@ -2,6 +2,7 @@
 #define P1_ELEMENT_H
 
 #include <vector>
+#include "FEM/finite_element/dof_handler.h"
 #include "FEM/quadrature/quadrature.h"
 #include "finite_element.h"
 
@@ -13,7 +14,6 @@ class P1_FE : public FE {
   int get_ndofs() const override;
   int get_order() const override;
 
-  std::vector<DOF> get_dofs() const override;
   std::vector<double> evaluate_bfs(double xi, double eta) const override;
   std::vector<std::vector<double>> evaluate_grad_bfs(double xi,
                                                      double eta) const override;

@@ -64,29 +64,35 @@ MatrixXd gen_local_mass_matr(const FEMap2D& mapping, const FE& element) {
 }
 
 // assemble global mass matrix
-SparseMatrix asm_global_mass_matr(const Mesh& mesh) {
-  const std::size_t n = mesh.nodes.size();
+SparseMatrix asm_global_mass_matr(const Mesh& mesh, const FEType& fe_type) {
+  // build a finite element object with the given type (P1, P2, ...)
+  const std::unique_ptr<FE> fe = FE::build_fe_type(fe_type);
+  const DOFHandler dofh{mesh, *fe};
+  const int global_ndofs = dofh.get_global_ndofs();
+  const int local_ndofs = fe->get_ndofs();
+
+  const Eigen::Index n = static_cast<Eigen::Index>(global_ndofs);
 
   std::vector<Eigen::Triplet<double>> triplets;
 
   //   Each triangle contributes at most ndofs*ndofs entries (9 for linear P1)
-  const P1_FE P1_element;
 
-  const int ndofs = P1_element.get_ndofs();
-  triplets.reserve(mesh.elements.size() * ndofs * ndofs);
+  triplets.reserve(mesh.elements.size() * local_ndofs * local_ndofs);
 
-  for (const Element& element : mesh.elements) {
+  for (std::size_t e = 0; e < mesh.elements.size(); e++) {
+    const Element& element = mesh.elements.at(e);
+
     if (element.type == ElementType::Triangle3) {
       const auto el_nodes = get_element_nodes(element, mesh);
-      const FEMap2D tr_element(element, el_nodes, P1_element);
+      const auto el_dofs = dofh.get_element_dof_indices(e);
+      const FEMap2D tr_element(element, el_nodes, *fe);
 
-      const MatrixXd local_mass_matrix =
-          gen_local_mass_matr(tr_element, P1_element);
+      const MatrixXd local_mass_matrix = gen_local_mass_matr(tr_element, *fe);
 
-      for (std::size_t i = 0; i < element.node_indices.size(); i++) {
-        for (std::size_t j = 0; j < element.node_indices.size(); j++) {
-          const std::size_t I = element.node_indices.at(i);
-          const std::size_t J = element.node_indices.at(j);
+      for (std::size_t i = 0; i < el_dofs.size(); i++) {
+        for (std::size_t j = 0; j < el_dofs.size(); j++) {
+          const std::size_t I = el_dofs.at(i);
+          const std::size_t J = el_dofs.at(j);
 
           triplets.emplace_back(static_cast<Eigen::Index>(I),
                                 static_cast<Eigen::Index>(J),
@@ -110,29 +116,37 @@ SparseMatrix asm_global_mass_matr(const Mesh& mesh) {
 }
 
 // assemble global stiffness matrix
-SparseMatrix asm_global_stiffness_matr(const Mesh& mesh) {
-  const std::size_t n = mesh.nodes.size();
+SparseMatrix asm_global_stiffness_matr(const Mesh& mesh,
+                                       const FEType& fe_type) {
+  // build a finite element object with the given type (P1, P2, ...)
+  const std::unique_ptr<FE> fe = FE::build_fe_type(fe_type);
+  const DOFHandler dofh{mesh, *fe};
+  const int global_ndofs = dofh.get_global_ndofs();
+  const int local_ndofs = fe->get_ndofs();
+
+  const Eigen::Index n = static_cast<Eigen::Index>(global_ndofs);
 
   std::vector<Eigen::Triplet<double>> triplets;
 
   //   Each triangle contributes at most ndofs*ndofs entries (9 for linear P1)
-  const P1_FE P1_element;
 
-  const int ndofs = P1_element.get_ndofs();
-  triplets.reserve(mesh.elements.size() * ndofs * ndofs);
+  triplets.reserve(mesh.elements.size() * local_ndofs * local_ndofs);
 
-  for (const Element& element : mesh.elements) {
+  for (std::size_t e = 0; e < mesh.elements.size(); e++) {
+    const Element& element = mesh.elements.at(e);
+
     if (element.type == ElementType::Triangle3) {
       const auto el_nodes = get_element_nodes(element, mesh);
-      const FEMap2D tr_element(element, el_nodes, P1_element);
+      const auto el_dofs = dofh.get_element_dof_indices(e);
+      const FEMap2D tr_element(element, el_nodes, *fe);
 
       const MatrixXd local_stiffness_matrix =
-          gen_local_stiffness_matr(tr_element, P1_element);
+          gen_local_stiffness_matr(tr_element, *fe);
 
-      for (std::size_t i = 0; i < element.node_indices.size(); i++) {
-        for (std::size_t j = 0; j < element.node_indices.size(); j++) {
-          const std::size_t I = element.node_indices.at(i);
-          const std::size_t J = element.node_indices.at(j);
+      for (std::size_t i = 0; i < el_dofs.size(); i++) {
+        for (std::size_t j = 0; j < el_dofs.size(); j++) {
+          const std::size_t I = el_dofs.at(i);
+          const std::size_t J = el_dofs.at(j);
 
           triplets.emplace_back(static_cast<Eigen::Index>(I),
                                 static_cast<Eigen::Index>(J),
@@ -172,7 +186,7 @@ VectorXd gen_local_vec(const FEMap2D& mapping,
     double f_val = func(phys_points.at(q).x, phys_points.at(q).y, t);
 
     for (int i = 0; i < n_dofs; i++) {
-      lv(i) += std::abs(detJ) * quad_weights.at(q) * bfs.at(i).at(q) * f_val;
+      lv(i) += detJ * quad_weights.at(q) * bfs.at(i).at(q) * f_val;
     }
   }
 
@@ -181,20 +195,24 @@ VectorXd gen_local_vec(const FEMap2D& mapping,
 
 // assemble global load vector
 VectorXd asm_global_vec(const Mesh& mesh, STFunction func, double t) {
-  const std::size_t n = mesh.nodes.size();
+  const P1_FE P1_element{};
+  const DOFHandler dofh{mesh, P1_element};
+  const int global_ndofs = dofh.get_global_ndofs();
 
-  VectorXd gl_vector = VectorXd::Zero(n);
+  VectorXd gl_vector = VectorXd::Zero(global_ndofs);
 
-  for (const Element& element : mesh.elements) {
+  for (std::size_t e = 0; e < mesh.elements.size(); e++) {
+    const Element& element = mesh.elements.at(e);
+
     if (element.type == ElementType::Triangle3) {
       const auto el_nodes = get_element_nodes(element, mesh);
-      const P1_FE P1_element;
+      const auto el_dofs = dofh.get_element_dof_indices(e);
       const FEMap2D mapping(element, el_nodes, P1_element);
 
       VectorXd lv = gen_local_vec(mapping, func, P1_element, t);
 
-      for (std::size_t i = 0; i < element.node_indices.size(); ++i) {
-        const std::size_t I = element.node_indices[i];
+      for (std::size_t i = 0; i < el_dofs.size(); ++i) {
+        const std::size_t I = el_dofs.at(i);
 
         gl_vector(I) += lv(i);
       }
@@ -259,7 +277,7 @@ void apply_dirichlet_bc_vec(const SparseMatrix& A,
       const Eigen::Index row = it.row();
       const Eigen::Index col = it.col();
 
-      //   b_row -= A_col,row
+      //   b_row -= A_col,row * u_D(col)
       if (is_dirichlet.at(col) && row != col) {
         vec(row) -= it.value() * dirichlet_vals.at(col);
       }

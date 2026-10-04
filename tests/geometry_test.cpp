@@ -15,7 +15,7 @@ TEST(FEMap2DTest, JacobianForReferenceTriangle) {
                   .element_tag = 1,
                   .type = ElementType::Triangle3,
                   .physical_tags = {},
-                  .node_indices = {0, 1, 2}};
+                  .node_ids = {0, 1, 2}};
 
   const P1_FE P1_element;
 
@@ -39,7 +39,7 @@ TEST(FEMap2DTest, DetJacobianForReferenceTriangle) {
                   .element_tag = 1,
                   .type = ElementType::Triangle3,
                   .physical_tags = {},
-                  .node_indices = {0, 1, 2}};
+                  .node_ids = {0, 1, 2}};
 
   const P1_FE P1_element;
 
@@ -61,7 +61,7 @@ TEST(FEMap2DTest, JacobianForPhysicalTriangle) {
                   .element_tag = 1,
                   .type = ElementType::Triangle3,
                   .physical_tags = {},
-                  .node_indices = {0, 1, 2}};
+                  .node_ids = {0, 1, 2}};
 
   const P1_FE P1_element;
 
@@ -86,7 +86,7 @@ TEST(FEMap2DTest, DetJacobianForPhysicalTriangle) {
                         .element_tag = 1,
                         .type = ElementType::Triangle3,
                         .physical_tags = {},
-                        .node_indices = {0, 1, 2}};
+                        .node_ids = {0, 1, 2}};
 
   const P1_FE P1_element;
 
@@ -108,7 +108,7 @@ TEST(FEMap2DTest, InvJacobianTForPhysicalTriangle) {
                         .element_tag = 1,
                         .type = ElementType::Triangle3,
                         .physical_tags = {},
-                        .node_indices = {0, 1, 2}};
+                        .node_ids = {0, 1, 2}};
 
   const P1_FE P1_element;
 
@@ -133,7 +133,7 @@ TEST(FEMap2DTest, ComputesPhysicalGradients) {
                         .element_tag = 1,
                         .type = ElementType::Triangle3,
                         .physical_tags = {},
-                        .node_indices = {0, 1, 2}};
+                        .node_ids = {0, 1, 2}};
 
   const P1_FE P1_element;
 
@@ -162,7 +162,7 @@ TEST(FEMap2DTest, RejectsNonTriangleElement) {
                         .element_tag = 1,
                         .type = ElementType::Line2,
                         .physical_tags = {},
-                        .node_indices = {0, 1}};
+                        .node_ids = {0, 1}};
 
   const P1_FE P1_element;
 
@@ -181,7 +181,7 @@ TEST(FEMap2DTest, RejectsDegenerateTriangle) {
                         .element_tag = 1,
                         .type = ElementType::Triangle3,
                         .physical_tags = {},
-                        .node_indices = {0, 1, 2}};
+                        .node_ids = {0, 1, 2}};
 
   const P1_FE P1_element;
 

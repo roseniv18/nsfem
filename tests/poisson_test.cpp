@@ -9,6 +9,7 @@
 
 #include "FEM/assemble/assemble.h"
 #include "FEM/convergence/convergence.h"
+#include "FEM/finite_element/finite_element.h"
 #include "helpers/helpers.h"
 #include "linalg/conjugate_gradient.h"
 #include "mesh/parser.h"
@@ -25,7 +26,7 @@ TEST(PoissonTest, L2Convergence) {
     Mesh mesh = make_unit_square_mesh(n);
 
     // Assemble system
-    SparseMatrix K = asm_global_stiffness_matr(mesh);
+    SparseMatrix K = asm_global_stiffness_matr(mesh, FEType::P1);
 
     VectorXd rhs = asm_global_vec(mesh, func, 0.0);
 

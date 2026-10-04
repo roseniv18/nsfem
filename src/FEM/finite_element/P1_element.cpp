@@ -3,7 +3,9 @@
 P1_FE::P1_FE()
     : dofs({{0, DOFLoc::Vertex, 0},
             {1, DOFLoc::Vertex, 1},
-            {2, DOFLoc::Vertex, 2}}) {}
+            {2, DOFLoc::Vertex, 2}}) {
+  type = FEType::P1;
+}
 
 int P1_FE::get_ndofs() const {
   return 3;
@@ -11,10 +13,6 @@ int P1_FE::get_ndofs() const {
 
 int P1_FE::get_order() const {
   return 1;
-}
-
-std::vector<DOF> P1_FE::get_dofs() const {
-  return dofs;
 }
 
 std::vector<double> P1_FE::evaluate_bfs(double xi, double eta) const {

@@ -1,21 +1,10 @@
 #ifndef FINITE_ELEMENT_H
 #define FINITE_ELEMENT_H
 
+#include <memory>
 #include <vector>
 
-enum class DOFLoc { Vertex, Edge, Interior };
-
-/**
- * Represents a degree of freedom
- * local_index: the local index of the DOF for the specific finite element
- * location: whether the DOF lives on a vertex, edge or in the interior
- * entity_index: the local index of the edge / vertex (0,1,2)
- */
-struct DOF {
-  int local_index;
-  DOFLoc location;
-  int entity_index;
-};
+enum class FEType { P1, P2 };
 
 /**
  * An abstraction class (interface) for a finite element object
@@ -24,12 +13,13 @@ struct DOF {
  */
 class FE {
  public:
+  // Type of finite element
+  FEType type;
+  static std::unique_ptr<FE> build_fe_type(const FEType& type);
   // Get the number of degrees of freedom
   virtual int get_ndofs() const = 0;
   // Get the order of the finite element
   virtual int get_order() const = 0;
-  // Get the degrees of freedom
-  virtual std::vector<DOF> get_dofs() const = 0;
   // Evaluate basis (shape) functions at given reference point
   virtual std::vector<double> evaluate_bfs(double xi, double eta) const = 0;
   // Evaluate the gradients of the basis (shape) functions at given reference
