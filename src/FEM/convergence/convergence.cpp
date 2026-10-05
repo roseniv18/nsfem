@@ -1,35 +1,45 @@
 #include "convergence.h"
 
-double element_l2_err_sq(const Element& element,
+double element_l2_err_sq(const std::size_t element_id,
                          const Mesh& mesh,
+                         const FE& fe,
+                         const DOFHandler& dofh,
                          const VectorXd& fem_sol,
                          STFunction exact_sol,
                          const double t) {
-  std::vector<Node> tr_nodes = get_element_nodes(element, mesh);
+  const Element& element = mesh.elements.at(element_id);
 
-  const P1_FE P1_element;
-  FEMap2D mapping(element, tr_nodes, P1_element);
+  const std::vector<Node> tr_nodes = get_element_nodes(element, mesh);
 
-  const int ndofs = P1_element.get_ndofs();
-  VectorXd u_vals = VectorXd::Zero(ndofs);
+  const FEMap2D mapping(element, tr_nodes, fe);
 
-  for (std::size_t i = 0; i < element.node_ids.size(); i++) {
-    u_vals(i) = fem_sol(element.node_ids.at(i));
+  const int global_ndofs = dofh.get_global_ndofs();
+  const int local_ndofs = fe.get_ndofs();
+
+  //   Get local -> global DOF indices
+  const auto el_dofs = dofh.get_element_dof_indices(element_id);
+
+  VectorXd u_local(local_ndofs);
+
+  for (int i = 0; i < local_ndofs; i++) {
+    u_local(i) = fem_sol(el_dofs.at(i));
   }
 
-  const auto quad_basis = P1_element.bfs_at_quad(quad_nodes);
+  const auto quad_basis = fe.bfs_at_quad(quad_nodes);
   const auto phys_coords = mapping.get_phys_coords();
   const auto detJ = mapping.det_jacobian();
 
-  double element_l2err_sq{};
+  double element_l2err_sq = 0.0;
 
   for (std::size_t q = 0; q < quad_nodes.size(); q++) {
     const double u_exact =
         exact_sol(phys_coords.at(q).x, phys_coords.at(q).y, t);
 
-    const double u_h = u_vals(0) * quad_basis.at(0).at(q) +
-                       u_vals(1) * quad_basis.at(1).at(q) +
-                       u_vals(2) * quad_basis.at(2).at(q);
+    double u_h = 0.0;
+
+    for (int i = 0; i < local_ndofs; i++) {
+      u_h += u_local(i) * quad_basis.at(i).at(q);
+    }
 
     const double err = u_exact - u_h;
     element_l2err_sq += detJ * quad_weights.at(q) * err * err;
@@ -39,14 +49,19 @@ double element_l2_err_sq(const Element& element,
 }
 
 double global_l2_err(const Mesh& mesh,
+                     const FE& fe,
+                     const DOFHandler& dofh,
                      const VectorXd& fem_sol,
                      STFunction exact_sol,
                      const double t) {
-  double l2_error{};
+  double l2_error = 0.0;
 
-  for (const Element& el : mesh.elements) {
+  for (std::size_t e = 0; e < mesh.elements.size(); e++) {
+    const Element& el = mesh.elements.at(e);
+
     if (el.type == ElementType::Triangle3) {
-      double element_l2_sq = element_l2_err_sq(el, mesh, fem_sol, exact_sol, t);
+      double element_l2_sq =
+          element_l2_err_sq(e, mesh, fe, dofh, fem_sol, exact_sol, t);
       l2_error += element_l2_sq;
     }
   }
@@ -75,11 +90,40 @@ double sol_func(const double x, const double y, const double t) {
   return sin(pi * x) * sin(pi * y);
 }
 
-VectorXd analytical_sol(const Mesh& mesh) {
-  VectorXd vec = VectorXd::Zero(mesh.nodes.size());
+VectorXd analytical_sol(const Mesh& mesh,
+                        const FE& fe,
+                        const DOFHandler& dofh,
+                        STFunction exact_sol,
+                        const double t) {
+  const int global_ndofs = dofh.get_global_ndofs();
+  VectorXd vec = VectorXd::Zero(global_ndofs);
 
-  for (std::size_t i = 0; i < mesh.nodes.size(); i++) {
-    vec(i) = sol_func(mesh.nodes.at(i).x, mesh.nodes.at(i).y);
+  const std::size_t vertex_ndofs = mesh.nodes.size();
+  const std::size_t edge_dofs = mesh.unique_edges.size();
+
+  //   Vertex DOFs
+  for (std::size_t i = 0; i < vertex_ndofs; i++) {
+    const Node& node = mesh.nodes.at(i);
+
+    vec(i) = exact_sol(node.x, node.y, t);
+  }
+
+  //   Edge DOFs
+  if (fe.type == FEType::P2) {
+    for (std::size_t e = 0; e < edge_dofs; e++) {
+      const Edge& edge = mesh.unique_edges.at(e);
+
+      const Node& node1 = mesh.nodes.at(edge.node_id_1);
+      const Node& node2 = mesh.nodes.at(edge.node_id_2);
+
+      //   P2 DOF at the midpoint
+      const double x = 0.5 * (node1.x + node2.x);
+      const double y = 0.5 * (node1.y + node2.y);
+
+      const std::size_t global_dof = vertex_ndofs + e;
+
+      vec(global_dof) = exact_sol(x, y, t);
+    }
   }
 
   return vec;

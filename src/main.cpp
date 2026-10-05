@@ -55,6 +55,11 @@ int main() {
 
   file.close();
 
+  // SET THE FINITE ELEMENT TYPE
+  const std::unique_ptr<FE> fe = FE::build_fe_type(FEType::P2);
+  // GENERATE DOFHANDLER
+  const DOFHandler dofh(mesh, *fe);
+
   // --------------------------------------------------------------------------
   // Poisson
   // --------------------------------------------------------------------------
@@ -63,17 +68,22 @@ int main() {
   std::cout << "Poisson equation\n";
   std::cout << "========================================\n";
 
-  Poisson poisson(mesh, func, dir_func);
+  Poisson poisson(mesh, *fe, dofh, func, dir_func);
 
-  const VectorXd poisson_sol = poisson.solve(mesh);
+  const VectorXd poisson_sol = poisson.solve();
 
-  const VectorXd poisson_exact = analytical_sol(mesh);
+  const VectorXd poisson_exact = analytical_sol(mesh, *fe, dofh, sol_func, 0.0);
 
   std::cout << "----------\n";
-  std::cout << "L2 error = " << global_l2_err(mesh, poisson_sol, sol_func, 0.0)
+  std::cout << "L2 error = "
+            << global_l2_err(mesh, *fe, dofh, poisson_sol, sol_func, 0.0)
             << '\n';
 
   double poisson_max_error = 0.0;
+
+  std::cout << "poisson_sol.size() = " << poisson_sol.size() << '\n';
+  std::cout << "mesh.nodes.size() = " << mesh.nodes.size() << '\n';
+  std::cout << "global ndofs = " << dofh.get_global_ndofs() << '\n';
 
   for (std::size_t i = 0; i < poisson_sol.size(); ++i) {
     poisson_max_error = std::max(poisson_max_error,
@@ -99,31 +109,32 @@ int main() {
   constexpr double dt = 0.001;
   constexpr double T = 1.0;
 
-  HeatEq heat_eq(mesh, dt, T, h_func, h_dir_func);
+  HeatEq heat_eq(mesh, *fe, dofh, dt, T, h_func, h_dir_func);
 
-  const VectorXd heat_sol = heat_eq.solve(mesh);
+  const VectorXd heat_sol = heat_eq.solve();
 
   std::cout << "----------\n";
-  std::cout << "L2 error = " << global_l2_err(mesh, heat_sol, h_sol_func, T)
-            << '\n';
+  std::cout << "L2 error = "
+            << global_l2_err(mesh, *fe, dofh, heat_sol, h_sol_func, T) << '\n';
 
-  double heat_max_error = 0.0;
+  //   double heat_max_error = 0.0;
 
-  for (std::size_t i = 0; i < heat_sol.size(); ++i) {
-    const Node& node = mesh.nodes.at(i);
+  //   for (std::size_t i = 0; i < heat_sol.size(); ++i) {
+  //     const Node& node = mesh.nodes.at(i);
 
-    const double exact = h_sol_func(node.x, node.y, T);
+  //     const double exact = h_sol_func(node.x, node.y, T);
 
-    heat_max_error = std::max(heat_max_error, std::abs(heat_sol(i) - exact));
-  }
+  //     heat_max_error = std::max(heat_max_error, std::abs(heat_sol(i) -
+  //     exact));
+  //   }
 
-  std::cout << "Max nodal error = " << heat_max_error << '\n';
+  //   std::cout << "Max nodal error = " << heat_max_error << '\n';
 
-  auto [heat_min_it, heat_max_it] =
-      std::minmax_element(heat_sol.begin(), heat_sol.end());
+  //   auto [heat_min_it, heat_max_it] =
+  //       std::minmax_element(heat_sol.begin(), heat_sol.end());
 
-  std::cout << "FEM min = " << *heat_min_it << '\n';
-  std::cout << "FEM max = " << *heat_max_it << '\n';
+  //   std::cout << "FEM min = " << *heat_min_it << '\n';
+  //   std::cout << "FEM max = " << *heat_max_it << '\n';
 
   return 0;
 }

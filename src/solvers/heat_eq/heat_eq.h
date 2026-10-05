@@ -7,6 +7,7 @@
 #include <vector>
 #include "FEM/assemble/assemble.h"
 #include "FEM/convergence/convergence.h"
+#include "FEM/finite_element/finite_element.h"
 #include "linalg/conjugate_gradient.h"
 #include "mesh/mesh.h"
 
@@ -22,17 +23,25 @@ using std::numbers::pi;
  * u(.,.,t) = 0, dOmega (homogeneous Dirichlet BC)
  */
 
+#include "FEM/finite_element/finite_element.h"
+
 class HeatEq {
  public:
   HeatEq(const Mesh& mesh,
+         const FE& fe,
+         const DOFHandler& dofh,
          const double dt,
          double T,
          STFunction h_func,
          STFunction h_dir_func);
-  void update_rhs(const Mesh& mesh, double t);
-  VectorXd solve(const Mesh& mesh);
+  void update_rhs(double t);
+  VectorXd solve();
 
  private:
+  const Mesh& mesh;
+  const FE& fe;
+  const DOFHandler& dofh;
+
   VectorXd initial_condition;
   VectorXd rhs_vec;
 

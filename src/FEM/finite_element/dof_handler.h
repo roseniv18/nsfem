@@ -4,7 +4,8 @@
 #include <memory>
 #include <vector>
 #include "finite_element.h"
-#include "mesh/mesh.h"
+
+struct Mesh;
 
 enum class DOFLoc { Vertex, Edge, Interior };
 
@@ -31,8 +32,6 @@ class DOFHandler {
   std::size_t get_global_ndofs() const;
   std::vector<std::size_t> get_element_dof_indices(
       std::size_t element_id) const;
-  std::vector<std::vector<int>> build_local_to_global(const Mesh& mesh,
-                                                      const FEType& fe_type);
   //   Determine the number of global degrees of freedom based on the finite
   //   element type
   void generate_global_ndofs(const Mesh& mesh, const FEType& fe_type);

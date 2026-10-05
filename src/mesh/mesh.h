@@ -7,6 +7,8 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "FEM/finite_element/dof_handler.h"
+#include "FEM/finite_element/finite_element.h"
 #include "math/function.h"
 
 enum class ElementType { Line2, Triangle3, Line3, Triangle6 };
@@ -77,12 +79,16 @@ std::vector<Node> get_element_nodes(const Element& element, const Mesh& mesh);
 void build_unique_edges_list(Mesh& mesh);
 
 // get tags of dirichlet nodes
-std::vector<bool> get_dirichlet_nodes(const Mesh& mesh);
+std::vector<bool> get_dirichlet_nodes(const Mesh& mesh,
+                                      const int global_ndofs,
+                                      const FEType& fe_type);
 
 // get values of function at dirichlet nodes
 std::vector<double> get_dirichlet_values(const Mesh& mesh,
                                          const std::vector<bool>& is_dirichlet,
                                          STFunction fn,
+                                         const int global_ndofs,
+                                         const FEType& fe_type,
                                          double t);
 
 #endif

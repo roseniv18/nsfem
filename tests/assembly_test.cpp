@@ -1,8 +1,10 @@
 #include <gtest/gtest.h>
 
 #include <Eigen/Sparse>
+#include <memory>
 
 #include "FEM/assemble/assemble.h"
+#include "FEM/finite_element/dof_handler.h"
 #include "FEM/finite_element/finite_element.h"
 #include "mesh/parser.h"
 
@@ -16,6 +18,9 @@ using SparseMatrix = Eigen::SparseMatrix<double>;
  */
 TEST(GlobalAssemblyTest, SimpleMesh) {
   Mesh mesh;
+
+  const std::unique_ptr<FE> fe = FE::build_fe_type(FEType::P1);
+  const DOFHandler dofh(mesh, *fe);
 
   mesh.nodes = {
       {1, 0.0, 0.0},
@@ -41,7 +46,7 @@ TEST(GlobalAssemblyTest, SimpleMesh) {
       },
   };
 
-  const SparseMatrix K = asm_global_stiffness_matr(mesh, FEType::P1);
+  const SparseMatrix K = asm_global_stiffness_matr(mesh, *fe, dofh);
 
   const double expected[4][4] = {
       {1.0, -0.5, 0.0, -0.5},
@@ -66,6 +71,9 @@ TEST(GlobalAssemblyTest, SimpleMesh) {
 TEST(GlobalAssemblyTest, IsGlobalStiffnessMatrixSymmetric) {
   Mesh mesh;
 
+  const std::unique_ptr<FE> fe = FE::build_fe_type(FEType::P1);
+  const DOFHandler dofh(mesh, *fe);
+
   mesh.nodes = {
       {1, 0.0, 0.0},
       {2, 1.0, 0.0},
@@ -90,7 +98,7 @@ TEST(GlobalAssemblyTest, IsGlobalStiffnessMatrixSymmetric) {
       },
   };
 
-  const SparseMatrix K = asm_global_stiffness_matr(mesh, FEType::P1);
+  const SparseMatrix K = asm_global_stiffness_matr(mesh, *fe, dofh);
 
   for (Eigen::Index i = 0; i < K.rows(); ++i) {
     for (Eigen::Index j = 0; j < K.cols(); ++j) {

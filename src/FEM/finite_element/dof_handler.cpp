@@ -1,4 +1,5 @@
 #include "dof_handler.h"
+#include "mesh/mesh.h"
 
 DOFHandler::DOFHandler(const Mesh& mesh, const FE& element) {
   const int nelements = mesh.elements.size();
@@ -29,13 +30,8 @@ DOFHandler::DOFHandler(const Mesh& mesh, const FE& element) {
 
         // 2. next assign 3 DOFs to the Edge Midpoints
         for (int i = 0; i < 3; i++) {
-          mapping.at(i + 3) = mesh_element.edge_ids.at(i);
+          mapping.at(i + 3) = mesh.nodes.size() + mesh_element.edge_ids.at(i);
         }
-      }
-
-      for (int i = 0; i < local_ndofs; i++) {
-        // get dof indices of element e
-        mapping.at(i) = mesh_element.node_ids.at(i);
       }
     }
   }
@@ -48,22 +44,6 @@ std::size_t DOFHandler::get_global_ndofs() const {
 std::vector<std::size_t> DOFHandler::get_element_dof_indices(
     std::size_t element_id) const {
   return element_dof_indices.at(element_id);
-}
-
-std::vector<std::vector<int>> DOFHandler::build_local_to_global(
-    const Mesh& mesh,
-    const FEType& fe_type) {
-  // Return a pointer to a FE object with the specified type (P1, P2, ...)
-  std::unique_ptr<FE> fe = FE::build_fe_type(fe_type);
-
-  const int local_ndofs = fe->get_ndofs();
-  const int nelements = mesh.elements.size();
-
-  local_to_global.reserve(nelements);
-
-  for (std::size_t i = 0; i < local_ndofs; i++) {
-    local_to_global.reserve(local_ndofs);
-  }
 }
 
 void DOFHandler::generate_global_ndofs(const Mesh& mesh,

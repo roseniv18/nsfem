@@ -9,10 +9,12 @@
 
 #include "FEM/assemble/assemble.h"
 #include "FEM/convergence/convergence.h"
+#include "FEM/finite_element/dof_handler.h"
 #include "FEM/finite_element/finite_element.h"
 #include "helpers/helpers.h"
 #include "linalg/conjugate_gradient.h"
 #include "mesh/parser.h"
+#include "solvers/poisson/poisson.h"
 
 using Eigen::VectorXd;
 using SparseMatrix = Eigen::SparseMatrix<double>;
@@ -25,36 +27,17 @@ TEST(PoissonTest, L2Convergence) {
   for (const int n : resolutions) {
     Mesh mesh = make_unit_square_mesh(n);
 
-    // Assemble system
-    SparseMatrix K = asm_global_stiffness_matr(mesh, FEType::P1);
+    const std::unique_ptr<FE> fe = FE::build_fe_type(FEType::P1);
+    const DOFHandler dofh(mesh, *fe);
 
-    VectorXd rhs = asm_global_vec(mesh, func, 0.0);
+    Poisson poisson(mesh, *fe, dofh, h_func, h_dir_func);
 
-    // Find Dirichlet nodes
-    const auto is_dirichlet = get_dirichlet_nodes(mesh);
+    const VectorXd solution = poisson.solve();
 
-    // Compute Dirichlet values
-    const auto dirichlet_values =
-        get_dirichlet_values(mesh, is_dirichlet, dir_func, 0.0);
+    const double error =
+        global_l2_err(mesh, *fe, dofh, solution, h_sol_func, 0.05);
 
-    // Apply BCs
-    apply_dirichlet_bc(K, rhs, is_dirichlet, dirichlet_values);
-
-    const VectorXd initial_guess = VectorXd::Zero(mesh.nodes.size());
-
-    // Solve K u = f
-    ConjugateGradient cg(K, rhs, initial_guess);
-
-    const auto solution = cg.solve();
-
-    // Compute L2 error
-    const double error = global_l2_err(mesh, solution, sol_func, 0.0);
-
-    errors.push_back(error);
-
-    std::cout << "n = " << n << ", L2 error = " << error << '\n';
-
-    EXPECT_GT(error, 0.0);
+    EXPECT_LT(error, 0.1);
   }
 
   // ------------------------------------------------------------

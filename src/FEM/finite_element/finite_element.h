@@ -15,7 +15,7 @@ class FE {
  public:
   // Type of finite element
   FEType type;
-  static std::unique_ptr<FE> build_fe_type(const FEType& type);
+  static std::unique_ptr<FE> build_fe_type(FEType type);
   // Get the number of degrees of freedom
   virtual int get_ndofs() const = 0;
   // Get the order of the finite element
@@ -29,11 +29,11 @@ class FE {
       double eta) const = 0;
   // Evaluate basis (shape) functions at list of quadrature nodes
   virtual std::vector<std::vector<double>> bfs_at_quad(
-      std::vector<std::vector<double>> quad_nodes) const = 0;
+      const std::vector<std::vector<double>>& quad_nodes) const = 0;
   // Evaluate the gradients of the basis (shape) functions at given list
   // of quadrature nodes
   virtual std::vector<std::vector<double>> grad_bfs_at_quad(
-      std::vector<std::vector<double>> quad_nodes) const = 0;
+      const std::vector<std::vector<double>>& quad_nodes) const = 0;
 };
 
 #endif

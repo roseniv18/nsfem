@@ -4,7 +4,7 @@
 #include <Eigen/Dense>
 #include <functional>
 #include <vector>
-#include "FEM/finite_element/P1_element.h"
+#include "FEM/finite_element/finite_element.h"
 #include "FEM/mapping/fe_mapping.h"
 #include "math/function.h"
 #include "mesh/mesh.h"
@@ -12,13 +12,18 @@
 using Eigen::MatrixXd, Eigen::VectorXd;
 using std::sin, std::numbers::pi, std::exp;
 
-double element_l2_err_sq(const Element& element,
+double element_l2_err_sq(const std::size_t element_id,
+                         const Element& element,
                          const Mesh& mesh,
+                         const FE& fe,
+                         const DOFHandler& dofh,
                          const VectorXd& fem_sol,
                          STFunction exact_sol,
                          const double t);
 
 double global_l2_err(const Mesh& mesh,
+                     const FE& fe,
+                     const DOFHandler& dofh,
                      const VectorXd& fem_sol,
                      STFunction exact_sol,
                      const double t);
@@ -27,7 +32,11 @@ double global_l2_err(const Mesh& mesh,
 double dir_func(const double x, const double y, const double t = 0.0);
 double func(const double x, const double y, const double t = 0.0);
 double sol_func(const double x, const double y, const double t = 0.0);
-VectorXd analytical_sol(const Mesh& mesh);
+VectorXd analytical_sol(const Mesh& mesh,
+                        const FE& fe,
+                        const DOFHandler& dofh,
+                        STFunction exact_sol,
+                        const double t);
 
 // HEAT
 double h_dir_func(const double x, const double y, const double t);

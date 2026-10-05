@@ -64,12 +64,12 @@ MatrixXd gen_local_mass_matr(const FEMap2D& mapping, const FE& element) {
 }
 
 // assemble global mass matrix
-SparseMatrix asm_global_mass_matr(const Mesh& mesh, const FEType& fe_type) {
+SparseMatrix asm_global_mass_matr(const Mesh& mesh,
+                                  const FE& fe,
+                                  const DOFHandler& dofh) {
   // build a finite element object with the given type (P1, P2, ...)
-  const std::unique_ptr<FE> fe = FE::build_fe_type(fe_type);
-  const DOFHandler dofh{mesh, *fe};
   const int global_ndofs = dofh.get_global_ndofs();
-  const int local_ndofs = fe->get_ndofs();
+  const int local_ndofs = fe.get_ndofs();
 
   const Eigen::Index n = static_cast<Eigen::Index>(global_ndofs);
 
@@ -85,9 +85,9 @@ SparseMatrix asm_global_mass_matr(const Mesh& mesh, const FEType& fe_type) {
     if (element.type == ElementType::Triangle3) {
       const auto el_nodes = get_element_nodes(element, mesh);
       const auto el_dofs = dofh.get_element_dof_indices(e);
-      const FEMap2D tr_element(element, el_nodes, *fe);
+      const FEMap2D tr_element(element, el_nodes, fe);
 
-      const MatrixXd local_mass_matrix = gen_local_mass_matr(tr_element, *fe);
+      const MatrixXd local_mass_matrix = gen_local_mass_matr(tr_element, fe);
 
       for (std::size_t i = 0; i < el_dofs.size(); i++) {
         for (std::size_t j = 0; j < el_dofs.size(); j++) {
@@ -117,12 +117,11 @@ SparseMatrix asm_global_mass_matr(const Mesh& mesh, const FEType& fe_type) {
 
 // assemble global stiffness matrix
 SparseMatrix asm_global_stiffness_matr(const Mesh& mesh,
-                                       const FEType& fe_type) {
+                                       const FE& fe,
+                                       const DOFHandler& dofh) {
   // build a finite element object with the given type (P1, P2, ...)
-  const std::unique_ptr<FE> fe = FE::build_fe_type(fe_type);
-  const DOFHandler dofh{mesh, *fe};
   const int global_ndofs = dofh.get_global_ndofs();
-  const int local_ndofs = fe->get_ndofs();
+  const int local_ndofs = fe.get_ndofs();
 
   const Eigen::Index n = static_cast<Eigen::Index>(global_ndofs);
 
@@ -138,10 +137,10 @@ SparseMatrix asm_global_stiffness_matr(const Mesh& mesh,
     if (element.type == ElementType::Triangle3) {
       const auto el_nodes = get_element_nodes(element, mesh);
       const auto el_dofs = dofh.get_element_dof_indices(e);
-      const FEMap2D tr_element(element, el_nodes, *fe);
+      const FEMap2D tr_element(element, el_nodes, fe);
 
       const MatrixXd local_stiffness_matrix =
-          gen_local_stiffness_matr(tr_element, *fe);
+          gen_local_stiffness_matr(tr_element, fe);
 
       for (std::size_t i = 0; i < el_dofs.size(); i++) {
         for (std::size_t j = 0; j < el_dofs.size(); j++) {
@@ -194,9 +193,11 @@ VectorXd gen_local_vec(const FEMap2D& mapping,
 }
 
 // assemble global load vector
-VectorXd asm_global_vec(const Mesh& mesh, STFunction func, double t) {
-  const P1_FE P1_element{};
-  const DOFHandler dofh{mesh, P1_element};
+VectorXd asm_global_vec(const Mesh& mesh,
+                        const FE& fe,
+                        const DOFHandler& dofh,
+                        STFunction func,
+                        double t) {
   const int global_ndofs = dofh.get_global_ndofs();
 
   VectorXd gl_vector = VectorXd::Zero(global_ndofs);
@@ -207,9 +208,9 @@ VectorXd asm_global_vec(const Mesh& mesh, STFunction func, double t) {
     if (element.type == ElementType::Triangle3) {
       const auto el_nodes = get_element_nodes(element, mesh);
       const auto el_dofs = dofh.get_element_dof_indices(e);
-      const FEMap2D mapping(element, el_nodes, P1_element);
+      const FEMap2D mapping(element, el_nodes, fe);
 
-      VectorXd lv = gen_local_vec(mapping, func, P1_element, t);
+      VectorXd lv = gen_local_vec(mapping, func, fe, t);
 
       for (std::size_t i = 0; i < el_dofs.size(); ++i) {
         const std::size_t I = el_dofs.at(i);
