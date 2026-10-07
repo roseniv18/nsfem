@@ -3,6 +3,9 @@
 FEMap2D::FEMap2D(const Element& element,
                  const std::vector<Node>& nodes,
                  const FE& finite_element) {
+  // ! Note: Currently only supports Triangle3 geometric elements
+  // ! This means: isoparametric mapping for P1 elements
+  // ! subparametric mapping for P2 elements
   if (element.type != ElementType::Triangle3)
     throw std::invalid_argument("FEMap2D requires element of type Triangle3");
 

@@ -2,13 +2,12 @@
 
 double element_l2_err_sq(const std::size_t element_id,
                          const Mesh& mesh,
+                         const Element& element,
                          const FE& fe,
                          const DOFHandler& dofh,
                          const VectorXd& fem_sol,
                          STFunction exact_sol,
                          const double t) {
-  const Element& element = mesh.elements.at(element_id);
-
   const std::vector<Node> tr_nodes = get_element_nodes(element, mesh);
 
   const FEMap2D mapping(element, tr_nodes, fe);
@@ -42,7 +41,7 @@ double element_l2_err_sq(const std::size_t element_id,
     }
 
     const double err = u_exact - u_h;
-    element_l2err_sq += detJ * quad_weights.at(q) * err * err;
+    element_l2err_sq += std::abs(detJ) * quad_weights.at(q) * err * err;
   }
 
   return element_l2err_sq;
@@ -61,7 +60,7 @@ double global_l2_err(const Mesh& mesh,
 
     if (el.type == ElementType::Triangle3) {
       double element_l2_sq =
-          element_l2_err_sq(e, mesh, fe, dofh, fem_sol, exact_sol, t);
+          element_l2_err_sq(e, mesh, el, fe, dofh, fem_sol, exact_sol, t);
       l2_error += element_l2_sq;
     }
   }

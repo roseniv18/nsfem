@@ -122,5 +122,55 @@ Mesh make_unit_square_mesh(int n) {
     add_boundary_edge(node_index(0, j), node_index(0, j + 1));
   }
 
+  // build unique edges and element to edge mappings
+  build_unique_edges_list(mesh);
+
+  return mesh;
+}
+
+/**
+ * Creates a mesh consisting of 2 triangles with a shared edge:
+ * Nodes:
+ * 0 = (0, 0)
+ * 1 = (1, 0)
+ * 2 = (0, 1)
+ * 3 = (1, 1)
+ *
+ * Triangle 1 = (0, 1, 2)
+ * Triangle 2 = (1, 3, 2)
+ *
+ * This gives:
+ * 4 vertices
+ * 5 unique edges
+ * For P1: 4 DOFs
+ * For P2: 9 DOFs
+ */
+Mesh make_two_triangle_mesh() {
+  Mesh mesh{};
+
+  const std::vector<Node> nodes = {{0, 0.0, 0.0, 0.0},
+                                   {1, 1.0, 0.0, 0.0},
+                                   {2, 0.0, 1.0, 0.0},
+                                   {3, 1.0, 1.0, 0.0}};
+
+  const Element triangle_1{.dim = 2,
+                           .element_tag = 1,
+                           .type = ElementType::Triangle3,
+                           .physical_tags = {},
+                           .node_ids = {0, 1, 2}};
+
+  const Element triangle_2{.dim = 2,
+                           .element_tag = 1,
+                           .type = ElementType::Triangle3,
+                           .physical_tags = {},
+                           .node_ids = {1, 2, 3}};
+
+  mesh.nodes = nodes;
+  mesh.elements.push_back(triangle_1);
+  mesh.elements.push_back(triangle_2);
+
+  // build unique edges and element to edge mappings
+  build_unique_edges_list(mesh);
+
   return mesh;
 }

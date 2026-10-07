@@ -38,10 +38,6 @@ class FE {
   // Evaluate basis (shape) functions at list of quadrature nodes
   virtual std::vector<std::vector<double>> bfs_at_quad(
       const std::vector<std::vector<double>>& quad_nodes) const = 0;
-  // Evaluate the gradients of the basis (shape) functions at given list
-  // of quadrature nodes
-  virtual std::vector<std::vector<double>> grad_bfs_at_quad(
-      const std::vector<std::vector<double>>& quad_nodes) const = 0;
 };
 
 #endif

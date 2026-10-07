@@ -13,8 +13,8 @@ using Eigen::MatrixXd, Eigen::VectorXd;
 using std::sin, std::numbers::pi, std::exp;
 
 double element_l2_err_sq(const std::size_t element_id,
-                         const Element& element,
                          const Mesh& mesh,
+                         const Element& element,
                          const FE& fe,
                          const DOFHandler& dofh,
                          const VectorXd& fem_sol,

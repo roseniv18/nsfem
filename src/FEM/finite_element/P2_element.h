@@ -21,8 +21,6 @@ class P2_FE : public FE {
                                                      double eta) const override;
   std::vector<std::vector<double>> bfs_at_quad(
       const std::vector<std::vector<double>>& quad_nodes) const override;
-  std::vector<std::vector<double>> grad_bfs_at_quad(
-      const std::vector<std::vector<double>>& quad_nodes) const override;
 
  private:
   std::vector<DOF> dofs;

@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
+#include <iostream>
+#include <memory>
 
 #include "FEM/assemble/assemble.h"
 #include "helpers/helpers.h"
@@ -218,4 +220,44 @@ TEST(DirichletBCTest, ApplyDirichletValueToRhsOnly) {
       EXPECT_NEAR(K.coeff(i, j), K_original.coeff(i, j), test_dtol);
     }
   }
+}
+
+TEST(DirichletBCTest, P1DirichletNodes) {
+  Mesh mesh = make_unit_square_mesh(1);
+
+  const std::unique_ptr<FE> fe = FE::build_fe_type(FEType::P1);
+  const DOFHandler dofh(mesh, *fe);
+
+  const auto is_dirichlet =
+      get_dirichlet_nodes(mesh, dofh.get_global_ndofs(), fe->type);
+
+  int n_dirichlet = 0;
+
+  for (const bool is_dir : is_dirichlet) {
+    if (is_dir) {
+      n_dirichlet++;
+    }
+  }
+
+  EXPECT_EQ(n_dirichlet, 4);
+}
+
+TEST(DirichletBCTest, P2DirichletNodes) {
+  Mesh mesh = make_unit_square_mesh(1);
+
+  const std::unique_ptr<FE> fe = FE::build_fe_type(FEType::P2);
+  const DOFHandler dofh(mesh, *fe);
+
+  const auto is_dirichlet =
+      get_dirichlet_nodes(mesh, dofh.get_global_ndofs(), fe->type);
+
+  int n_dirichlet = 0;
+
+  for (const bool is_dir : is_dirichlet) {
+    if (is_dir) {
+      n_dirichlet++;
+    }
+  }
+
+  EXPECT_EQ(n_dirichlet, 8);
 }

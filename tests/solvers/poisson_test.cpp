@@ -39,6 +39,8 @@ TEST(PoissonTest, L2Convergence) {
 
     errors.push_back(error);
 
+    std::cout << "n = " << n << ", L2 error = " << error << '\n';
+
     EXPECT_LT(error, 0.1);
   }
 
@@ -48,6 +50,8 @@ TEST(PoissonTest, L2Convergence) {
 
   for (std::size_t i = 1; i < errors.size(); ++i) {
     const double rate = std::log(errors[i - 1] / errors[i]) / std::log(2.0);
+
+    std::cout << "rate[" << i - 1 << " -> " << i << "] = " << rate << '\n';
 
     EXPECT_GT(rate, 1.8);
     EXPECT_LT(rate, 2.2);

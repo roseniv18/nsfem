@@ -3,11 +3,11 @@
 #include "FEM/finite_element/P1_element.h"
 #include "helpers/helpers.h"
 
-TEST(P1_ELEMENT_TEST, NodalProperty) {
+TEST(P1_Element_Test, NodalProperty) {
   const P1_FE fe;
   const auto ref_nodes = fe.get_ref_nodes();
 
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < fe.get_ndofs(); i++) {
     auto bfs = fe.evaluate_bfs(ref_nodes.at(i).xi, ref_nodes.at(i).eta);
 
     for (int j = 0; j < 3; j++) {

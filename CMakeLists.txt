@@ -61,6 +61,7 @@ add_executable(tests
 	tests/mapping/mapping_test.cpp 
 	tests/FEM/finite_element/P1_element_test.cpp 
 	tests/FEM/finite_element/P2_element_test.cpp 
+	tests/FEM/finite_element/dof_test.cpp 
 	tests/FEM/assemble/local_stiffness_matrix_test.cpp
 	tests/FEM/assemble/local_mass_matrix_test.cpp
 	tests/FEM/assemble/assembly_test.cpp

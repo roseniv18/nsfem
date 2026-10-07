@@ -8,6 +8,7 @@ std::string strip_quotes(std::string& str);
 
 // n - resolution of mesh
 Mesh make_unit_square_mesh(int n);
+Mesh make_two_triangle_mesh();
 
 // tolerance (used for tests that use EXPECT_NEAR)
 const double test_dtol = 1e-12;

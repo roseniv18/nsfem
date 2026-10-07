@@ -107,3 +107,30 @@ TEST(GlobalAssemblyTest, IsGlobalStiffnessMatrixSymmetric) {
     }
   }
 }
+
+TEST(GlobalAssemblyTest, P2StiffnessMatrixSize) {
+  Mesh mesh = make_two_triangle_mesh();
+
+  const auto fe = FE::build_fe_type(FEType::P2);
+  const DOFHandler dofh(mesh, *fe);
+
+  const SparseMatrix K = asm_global_stiffness_matr(mesh, *fe, dofh);
+
+  EXPECT_EQ(K.rows(), 9);
+  EXPECT_EQ(K.cols(), 9);
+}
+
+TEST(GlobalAssemblyTest, P2StiffnessIsSymmetric) {
+  Mesh mesh = make_two_triangle_mesh();
+
+  const auto fe = FE::build_fe_type(FEType::P2);
+  const DOFHandler dofh(mesh, *fe);
+
+  const SparseMatrix K = asm_global_stiffness_matr(mesh, *fe, dofh);
+
+  for (Eigen::Index i = 0; i < K.rows(); ++i) {
+    for (Eigen::Index j = 0; j < K.cols(); ++j) {
+      EXPECT_NEAR(K.coeff(i, j), K.coeff(j, i), test_dtol);
+    }
+  }
+}

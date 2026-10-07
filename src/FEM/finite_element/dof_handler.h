@@ -30,6 +30,7 @@ class DOFHandler {
   DOFHandler(const Mesh& mesh, const FE& element);
 
   std::size_t get_global_ndofs() const;
+  //   Returns the global DOF positions for the given element
   std::vector<std::size_t> get_element_dof_indices(
       std::size_t element_id) const;
   //   Determine the number of global degrees of freedom based on the finite

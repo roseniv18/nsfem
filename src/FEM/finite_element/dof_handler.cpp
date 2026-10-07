@@ -9,20 +9,25 @@ DOFHandler::DOFHandler(const Mesh& mesh, const FE& element) {
   //   global number of dofs
   generate_global_ndofs(mesh, element.type);
 
+  //   Create the local to global mapping of DOF indices
   element_dof_indices.resize(nelements);
 
   for (std::size_t e = 0; e < nelements; e++) {
     const Element& mesh_element = mesh.elements.at(e);
 
+    // Triangle3 Geometry
     if (mesh_element.type == ElementType::Triangle3) {
       auto& mapping = element_dof_indices.at(e);
       mapping.resize(local_ndofs);
 
+      //   Geometry order = polynomial order -> Isoparametric mapping
       if (element.type == FEType::P1) {
         for (int i = 0; i < local_ndofs; i++) {
           mapping.at(i) = mesh_element.node_ids.at(i);
         }
-      } else if (element.type == FEType::P2) {
+      }
+      //  Geometry order < polynomial order -> Subparametric mapping
+      else if (element.type == FEType::P2) {
         // 1. first assign the 3 DOFs to Vertices
         for (int i = 0; i < 3; i++) {
           mapping.at(i) = mesh_element.node_ids.at(i);
