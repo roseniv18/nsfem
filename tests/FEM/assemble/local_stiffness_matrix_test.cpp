@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include "FEM/assemble/assemble.h"
 #include "FEM/finite_element/P1_element.h"
+#include "helpers/helpers.h"
 
 /** Local stiffness matrix for reference triangle
  * Test if the local stiffness matrix for the reference triangle
@@ -20,15 +21,15 @@ TEST(LocalStiffnessTest, ReferenceTriangle) {
 
   const auto ls_matrix = gen_local_stiffness_matr(ref_triangle, P1_element);
 
-  EXPECT_DOUBLE_EQ(ls_matrix(0, 0), 1.0);
-  EXPECT_DOUBLE_EQ(ls_matrix(1, 0), -0.5);
-  EXPECT_DOUBLE_EQ(ls_matrix(2, 0), -0.5);
-  EXPECT_DOUBLE_EQ(ls_matrix(0, 1), -0.5);
-  EXPECT_DOUBLE_EQ(ls_matrix(1, 1), 0.5);
-  EXPECT_DOUBLE_EQ(ls_matrix(2, 1), 0.0);
-  EXPECT_DOUBLE_EQ(ls_matrix(0, 2), -0.5);
-  EXPECT_DOUBLE_EQ(ls_matrix(1, 2), 0.0);
-  EXPECT_DOUBLE_EQ(ls_matrix(2, 2), 0.5);
+  EXPECT_NEAR(ls_matrix(0, 0), 1.0, test_dtol);
+  EXPECT_NEAR(ls_matrix(1, 0), -0.5, test_dtol);
+  EXPECT_NEAR(ls_matrix(2, 0), -0.5, test_dtol);
+  EXPECT_NEAR(ls_matrix(0, 1), -0.5, test_dtol);
+  EXPECT_NEAR(ls_matrix(1, 1), 0.5, test_dtol);
+  EXPECT_NEAR(ls_matrix(2, 1), 0.0, test_dtol);
+  EXPECT_NEAR(ls_matrix(0, 2), -0.5, test_dtol);
+  EXPECT_NEAR(ls_matrix(1, 2), 0.0, test_dtol);
+  EXPECT_NEAR(ls_matrix(2, 2), 0.5, test_dtol);
 }
 
 /** Local stiffness matrix for physical triangle
@@ -50,15 +51,15 @@ TEST(LocalStiffnessTest, PhysTriangle) {
 
   const auto phys_ls_matrix = gen_local_stiffness_matr(mapping, P1_element);
 
-  EXPECT_NEAR(phys_ls_matrix(0, 0), 25.0 / 24.0, 1e-12);
-  EXPECT_NEAR(phys_ls_matrix(1, 0), -2.0 / 3.0, 1e-12);
-  EXPECT_NEAR(phys_ls_matrix(2, 0), -3.0 / 8.0, 1e-12);
-  EXPECT_NEAR(phys_ls_matrix(0, 1), -2.0 / 3.0, 1e-12);
-  EXPECT_NEAR(phys_ls_matrix(1, 1), 2.0 / 3.0, 1e-12);
-  EXPECT_NEAR(phys_ls_matrix(2, 1), 0.0, 1e-12);
-  EXPECT_NEAR(phys_ls_matrix(0, 2), -3.0 / 8.0, 1e-12);
-  EXPECT_NEAR(phys_ls_matrix(1, 2), 0.0, 1e-12);
-  EXPECT_NEAR(phys_ls_matrix(2, 2), 3.0 / 8.0, 1e-12);
+  EXPECT_NEAR(phys_ls_matrix(0, 0), 25.0 / 24.0, test_dtol);
+  EXPECT_NEAR(phys_ls_matrix(1, 0), -2.0 / 3.0, test_dtol);
+  EXPECT_NEAR(phys_ls_matrix(2, 0), -3.0 / 8.0, test_dtol);
+  EXPECT_NEAR(phys_ls_matrix(0, 1), -2.0 / 3.0, test_dtol);
+  EXPECT_NEAR(phys_ls_matrix(1, 1), 2.0 / 3.0, test_dtol);
+  EXPECT_NEAR(phys_ls_matrix(2, 1), 0.0, test_dtol);
+  EXPECT_NEAR(phys_ls_matrix(0, 2), -3.0 / 8.0, test_dtol);
+  EXPECT_NEAR(phys_ls_matrix(1, 2), 0.0, test_dtol);
+  EXPECT_NEAR(phys_ls_matrix(2, 2), 3.0 / 8.0, test_dtol);
 }
 
 /** Local stiffness matrix for reference triangle
@@ -79,7 +80,7 @@ TEST(LocalStiffnessTest, IsSymmetric) {
 
   const auto ls_matrix = gen_local_stiffness_matr(ref_triangle, P1_element);
 
-  EXPECT_NEAR(ls_matrix(0, 1), ls_matrix(1, 0), 1e-12);
-  EXPECT_NEAR(ls_matrix(0, 2), ls_matrix(2, 0), 1e-12);
-  EXPECT_NEAR(ls_matrix(1, 2), ls_matrix(2, 1), 1e-12);
+  EXPECT_NEAR(ls_matrix(0, 1), ls_matrix(1, 0), test_dtol);
+  EXPECT_NEAR(ls_matrix(0, 2), ls_matrix(2, 0), test_dtol);
+  EXPECT_NEAR(ls_matrix(1, 2), ls_matrix(2, 1), test_dtol);
 }

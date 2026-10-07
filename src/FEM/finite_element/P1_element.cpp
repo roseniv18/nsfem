@@ -5,6 +5,7 @@ P1_FE::P1_FE()
             {1, DOFLoc::Vertex, 1},
             {2, DOFLoc::Vertex, 2}}) {
   type = FEType::P1;
+  ref_nodes = {{0.0, 0.0}, {1.0, 0.0}, {0.0, 1.0}};
 }
 
 int P1_FE::get_ndofs() const {
@@ -13,6 +14,10 @@ int P1_FE::get_ndofs() const {
 
 int P1_FE::get_order() const {
   return 1;
+}
+
+std::vector<RefNode> P1_FE::get_ref_nodes() const {
+  return ref_nodes;
 }
 
 std::vector<double> P1_FE::evaluate_bfs(double xi, double eta) const {

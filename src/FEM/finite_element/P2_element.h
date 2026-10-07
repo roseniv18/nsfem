@@ -14,6 +14,8 @@ class P2_FE : public FE {
   int get_ndofs() const override;
   int get_order() const override;
 
+  std::vector<RefNode> get_ref_nodes() const override;
+
   std::vector<double> evaluate_bfs(double xi, double eta) const override;
   std::vector<std::vector<double>> evaluate_grad_bfs(double xi,
                                                      double eta) const override;
@@ -24,6 +26,7 @@ class P2_FE : public FE {
 
  private:
   std::vector<DOF> dofs;
+  std::vector<RefNode> ref_nodes;
 };
 
 #endif

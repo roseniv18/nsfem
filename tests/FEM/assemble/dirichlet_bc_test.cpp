@@ -3,6 +3,7 @@
 #include <Eigen/Sparse>
 
 #include "FEM/assemble/assemble.h"
+#include "helpers/helpers.h"
 
 using Eigen::VectorXd;
 using SparseMatrix = Eigen::SparseMatrix<double>;
@@ -63,22 +64,22 @@ TEST(DirichletBCTest, ApplySingleDirichletValue) {
   apply_dirichlet_bc(K, f, is_dirichlet, dirichlet_vals);
 
   // Modified matrix
-  EXPECT_NEAR(K.coeff(0, 0), 1.0, 1e-12);
-  EXPECT_NEAR(K.coeff(0, 1), 0.0, 1e-12);
-  EXPECT_NEAR(K.coeff(0, 2), 0.0, 1e-12);
+  EXPECT_NEAR(K.coeff(0, 0), 1.0, test_dtol);
+  EXPECT_NEAR(K.coeff(0, 1), 0.0, test_dtol);
+  EXPECT_NEAR(K.coeff(0, 2), 0.0, test_dtol);
 
-  EXPECT_NEAR(K.coeff(1, 0), 0.0, 1e-12);
-  EXPECT_NEAR(K.coeff(1, 1), 2.0, 1e-12);
-  EXPECT_NEAR(K.coeff(1, 2), -1.0, 1e-12);
+  EXPECT_NEAR(K.coeff(1, 0), 0.0, test_dtol);
+  EXPECT_NEAR(K.coeff(1, 1), 2.0, test_dtol);
+  EXPECT_NEAR(K.coeff(1, 2), -1.0, test_dtol);
 
-  EXPECT_NEAR(K.coeff(2, 0), 0.0, 1e-12);
-  EXPECT_NEAR(K.coeff(2, 1), -1.0, 1e-12);
-  EXPECT_NEAR(K.coeff(2, 2), 2.0, 1e-12);
+  EXPECT_NEAR(K.coeff(2, 0), 0.0, test_dtol);
+  EXPECT_NEAR(K.coeff(2, 1), -1.0, test_dtol);
+  EXPECT_NEAR(K.coeff(2, 2), 2.0, test_dtol);
 
   // Modified RHS
-  EXPECT_NEAR(f(0), 5.0, 1e-12);
-  EXPECT_NEAR(f(1), 7.0, 1e-12);
-  EXPECT_NEAR(f(2), 3.0, 1e-12);
+  EXPECT_NEAR(f(0), 5.0, test_dtol);
+  EXPECT_NEAR(f(1), 7.0, test_dtol);
+  EXPECT_NEAR(f(2), 3.0, test_dtol);
 }
 
 /**
@@ -126,21 +127,21 @@ TEST(DirichletBCTest, AppliesMultipleDirichletValues) {
 
   apply_dirichlet_bc(K, f, is_dirichlet, dirichlet_vals);
 
-  EXPECT_NEAR(K.coeff(0, 0), 1.0, 1e-12);
-  EXPECT_NEAR(K.coeff(0, 1), 0.0, 1e-12);
-  EXPECT_NEAR(K.coeff(0, 2), 0.0, 1e-12);
+  EXPECT_NEAR(K.coeff(0, 0), 1.0, test_dtol);
+  EXPECT_NEAR(K.coeff(0, 1), 0.0, test_dtol);
+  EXPECT_NEAR(K.coeff(0, 2), 0.0, test_dtol);
 
-  EXPECT_NEAR(K.coeff(1, 0), 0.0, 1e-12);
-  EXPECT_NEAR(K.coeff(1, 1), 2.0, 1e-12);
-  EXPECT_NEAR(K.coeff(1, 2), 0.0, 1e-12);
+  EXPECT_NEAR(K.coeff(1, 0), 0.0, test_dtol);
+  EXPECT_NEAR(K.coeff(1, 1), 2.0, test_dtol);
+  EXPECT_NEAR(K.coeff(1, 2), 0.0, test_dtol);
 
-  EXPECT_NEAR(K.coeff(2, 0), 0.0, 1e-12);
-  EXPECT_NEAR(K.coeff(2, 1), 0.0, 1e-12);
-  EXPECT_NEAR(K.coeff(2, 2), 1.0, 1e-12);
+  EXPECT_NEAR(K.coeff(2, 0), 0.0, test_dtol);
+  EXPECT_NEAR(K.coeff(2, 1), 0.0, test_dtol);
+  EXPECT_NEAR(K.coeff(2, 2), 1.0, test_dtol);
 
-  EXPECT_NEAR(f(0), 5.0, 1e-12);
-  EXPECT_NEAR(f(1), 17.0, 1e-12);
-  EXPECT_NEAR(f(2), 10.0, 1e-12);
+  EXPECT_NEAR(f(0), 5.0, test_dtol);
+  EXPECT_NEAR(f(1), 17.0, test_dtol);
+  EXPECT_NEAR(f(2), 10.0, test_dtol);
 }
 
 /**
@@ -168,7 +169,7 @@ TEST(DirichletBCTest, PreservesSymmetry) {
 
   for (Eigen::Index i = 0; i < K.rows(); ++i) {
     for (Eigen::Index j = 0; j < K.cols(); ++j) {
-      EXPECT_NEAR(K.coeff(i, j), K.coeff(j, i), 1e-12);
+      EXPECT_NEAR(K.coeff(i, j), K.coeff(j, i), test_dtol);
     }
   }
 }
@@ -207,14 +208,14 @@ TEST(DirichletBCTest, ApplyDirichletValueToRhsOnly) {
 
   apply_dirichlet_bc_vec(K, f, is_dirichlet, dirichlet_vals);
 
-  EXPECT_NEAR(f(0), 5.0, 1e-12);
-  EXPECT_NEAR(f(1), 7.0, 1e-12);
-  EXPECT_NEAR(f(2), 3.0, 1e-12);
+  EXPECT_NEAR(f(0), 5.0, test_dtol);
+  EXPECT_NEAR(f(1), 7.0, test_dtol);
+  EXPECT_NEAR(f(2), 3.0, test_dtol);
 
   // Matrix must remain unchanged
   for (Eigen::Index i = 0; i < K.rows(); ++i) {
     for (Eigen::Index j = 0; j < K.cols(); ++j) {
-      EXPECT_NEAR(K.coeff(i, j), K_original.coeff(i, j), 1e-12);
+      EXPECT_NEAR(K.coeff(i, j), K_original.coeff(i, j), test_dtol);
     }
   }
 }

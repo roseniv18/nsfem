@@ -6,6 +6,7 @@
 #include "FEM/assemble/assemble.h"
 #include "FEM/finite_element/dof_handler.h"
 #include "FEM/finite_element/finite_element.h"
+#include "helpers/helpers.h"
 #include "mesh/parser.h"
 
 using SparseMatrix = Eigen::SparseMatrix<double>;
@@ -18,9 +19,6 @@ using SparseMatrix = Eigen::SparseMatrix<double>;
  */
 TEST(GlobalAssemblyTest, SimpleMesh) {
   Mesh mesh;
-
-  const std::unique_ptr<FE> fe = FE::build_fe_type(FEType::P1);
-  const DOFHandler dofh(mesh, *fe);
 
   mesh.nodes = {
       {1, 0.0, 0.0},
@@ -45,6 +43,9 @@ TEST(GlobalAssemblyTest, SimpleMesh) {
           .node_ids = {0, 2, 3},
       },
   };
+
+  const std::unique_ptr<FE> fe = FE::build_fe_type(FEType::P1);
+  const DOFHandler dofh(mesh, *fe);
 
   const SparseMatrix K = asm_global_stiffness_matr(mesh, *fe, dofh);
 
@@ -60,7 +61,7 @@ TEST(GlobalAssemblyTest, SimpleMesh) {
 
   for (std::size_t i = 0; i < 4; ++i) {
     for (std::size_t j = 0; j < 4; ++j) {
-      EXPECT_NEAR(K.coeff(i, j), expected[i][j], 1e-12);
+      EXPECT_NEAR(K.coeff(i, j), expected[i][j], test_dtol);
     }
   }
 }
@@ -70,9 +71,6 @@ TEST(GlobalAssemblyTest, SimpleMesh) {
  */
 TEST(GlobalAssemblyTest, IsGlobalStiffnessMatrixSymmetric) {
   Mesh mesh;
-
-  const std::unique_ptr<FE> fe = FE::build_fe_type(FEType::P1);
-  const DOFHandler dofh(mesh, *fe);
 
   mesh.nodes = {
       {1, 0.0, 0.0},
@@ -98,11 +96,14 @@ TEST(GlobalAssemblyTest, IsGlobalStiffnessMatrixSymmetric) {
       },
   };
 
+  const std::unique_ptr<FE> fe = FE::build_fe_type(FEType::P1);
+  const DOFHandler dofh(mesh, *fe);
+
   const SparseMatrix K = asm_global_stiffness_matr(mesh, *fe, dofh);
 
   for (Eigen::Index i = 0; i < K.rows(); ++i) {
     for (Eigen::Index j = 0; j < K.cols(); ++j) {
-      EXPECT_NEAR(K.coeff(i, j), K.coeff(j, i), 1e-12);
+      EXPECT_NEAR(K.coeff(i, j), K.coeff(j, i), test_dtol);
     }
   }
 }

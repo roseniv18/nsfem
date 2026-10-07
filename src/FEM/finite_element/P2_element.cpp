@@ -8,6 +8,8 @@ P2_FE::P2_FE()
             {4, DOFLoc::Edge, 1},
             {5, DOFLoc::Edge, 2}}) {
   type = FEType::P2;
+  ref_nodes = {{0.0, 0.0}, {1.0, 0.0}, {0.0, 1.0},
+               {0.5, 0.0}, {0.5, 0.5}, {0.0, 0.5}};
 }
 
 int P2_FE::get_ndofs() const {
@@ -16,6 +18,10 @@ int P2_FE::get_ndofs() const {
 
 int P2_FE::get_order() const {
   return 2;
+}
+
+std::vector<RefNode> P2_FE::get_ref_nodes() const {
+  return ref_nodes;
 }
 
 std::vector<double> P2_FE::evaluate_bfs(double xi, double eta) const {

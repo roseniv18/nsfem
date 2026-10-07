@@ -30,12 +30,14 @@ TEST(PoissonTest, L2Convergence) {
     const std::unique_ptr<FE> fe = FE::build_fe_type(FEType::P1);
     const DOFHandler dofh(mesh, *fe);
 
-    Poisson poisson(mesh, *fe, dofh, h_func, h_dir_func);
+    Poisson poisson(mesh, *fe, dofh, func, dir_func);
 
     const VectorXd solution = poisson.solve();
 
     const double error =
-        global_l2_err(mesh, *fe, dofh, solution, h_sol_func, 0.05);
+        global_l2_err(mesh, *fe, dofh, solution, sol_func, 0.0);
+
+    errors.push_back(error);
 
     EXPECT_LT(error, 0.1);
   }

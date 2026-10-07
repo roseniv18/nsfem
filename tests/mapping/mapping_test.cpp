@@ -185,6 +185,5 @@ TEST(FEMap2DTest, RejectsDegenerateTriangle) {
 
   const P1_FE P1_element;
 
-  EXPECT_THROW(FEMap2D mapping(element, nodes, P1_element),
-               std::invalid_argument);
+  EXPECT_THROW(FEMap2D mapping(element, nodes, P1_element), std::runtime_error);
 }
