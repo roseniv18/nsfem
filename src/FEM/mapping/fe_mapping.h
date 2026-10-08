@@ -3,9 +3,10 @@
 
 #include <Eigen/Dense>
 #include "FEM/finite_element/P1_element.h"
+#include "FEM/mapping/phys_node.h"
+#include "FEM/mapping/ref_node.h"
 #include "FEM/quadrature/quadrature.h"
 #include "mesh/mesh.h"
-#include "point2d.h"
 
 using Eigen::MatrixXd, Eigen::VectorXd;
 
@@ -19,15 +20,15 @@ class FEMap2D {
   MatrixXd jacobian() const;
   MatrixXd jacobianInvT() const;
   double det_jacobian() const;
-  std::vector<Point2D> get_phys_grads() const;
-  std::vector<Point2D> get_phys_coords() const;
+  std::vector<PhysNode> get_phys_grads() const;
+  std::vector<PhysNode> get_phys_coords() const;
 
  private:
   MatrixXd J{2, 2};
   MatrixXd JinvT{2, 2};
   double detJ{};
-  std::vector<Point2D> phys_grads;
-  std::vector<Point2D> phys_coords;
+  std::vector<PhysNode> phys_grads;
+  std::vector<PhysNode> phys_coords;
 };
 
 #endif

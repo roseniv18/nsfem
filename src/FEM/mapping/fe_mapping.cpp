@@ -37,16 +37,13 @@ FEMap2D::FEMap2D(const Element& element,
   // * compute physical coordinates and physical gradients
 
   for (std::size_t q = 0; q < n_quad; q++) {
-    // basis functions at quadrature points
-    // means: basis function i at quadrature node q
-    const double xi = quad_nodes.at(q).at(0);
-    const double eta = quad_nodes.at(q).at(1);
+    const RefNode& pt = quad_nodes.at(q);
 
-    const std::vector<double> N = finite_element.evaluate_bfs(xi, eta);
+    const std::vector<double> N = finite_element.evaluate_bfs(pt);
     const std::vector<std::vector<double>> gradN =
-        finite_element.evaluate_grad_bfs(xi, eta);
+        finite_element.evaluate_grad_bfs(pt);
 
-    double N_geo[3] = {1.0 - xi - eta, xi, eta};
+    double N_geo[3] = {1.0 - pt.xi - pt.eta, pt.xi, pt.eta};
     for (std::size_t i = 0; i < 3; i++) {
       phys_coords.at(q).x += nodes.at(i).x * N_geo[i];
       phys_coords.at(q).y += nodes.at(i).y * N_geo[i];
@@ -73,10 +70,10 @@ double FEMap2D::det_jacobian() const {
   return detJ;
 }
 
-std::vector<Point2D> FEMap2D::get_phys_grads() const {
+std::vector<PhysNode> FEMap2D::get_phys_grads() const {
   return phys_grads;
 }
 
-std::vector<Point2D> FEMap2D::get_phys_coords() const {
+std::vector<PhysNode> FEMap2D::get_phys_coords() const {
   return phys_coords;
 }

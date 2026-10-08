@@ -2,8 +2,9 @@
 #define QUADRATURE_H
 
 #include <vector>
+#include "FEM/mapping/ref_node.h"
 
-// const std::vector<std::vector<double>> quad_nodes = {
+// const std::vector<RefNode> quad_nodes = {
 //     {0.5, 0.0},
 //     {0.0, 0.5},
 //     {0.5, 0.5},
@@ -11,7 +12,7 @@
 
 // const std::vector<double> quad_weights = {1.0 / 6.0, 1.0 / 6.0, 1.0 / 6.0};
 
-const std::vector<std::vector<double>> quad_nodes = {
+const std::vector<RefNode> quad_nodes = {
     // Center point
     {1.0 / 3.0, 1.0 / 3.0},
 

@@ -8,7 +8,7 @@ TEST(P1_Element_Test, NodalProperty) {
   const auto ref_nodes = fe.get_ref_nodes();
 
   for (int i = 0; i < fe.get_ndofs(); i++) {
-    auto bfs = fe.evaluate_bfs(ref_nodes.at(i).xi, ref_nodes.at(i).eta);
+    auto bfs = fe.evaluate_bfs(ref_nodes.at(i));
 
     for (int j = 0; j < 3; j++) {
       double expected{};

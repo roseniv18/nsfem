@@ -10,13 +10,12 @@ MatrixXd gen_local_stiffness_matr(const FEMap2D& mapping, const FE& element) {
   const MatrixXd JinvT = mapping.jacobianInvT();
 
   for (std::size_t q = 0; q < quad_nodes.size(); q++) {
-    const double xi = quad_nodes.at(q).at(0);
-    const double eta = quad_nodes.at(q).at(1);
+    const RefNode& pt = quad_nodes.at(q);
 
-    const auto ref_grads = element.evaluate_grad_bfs(xi, eta);
+    const auto ref_grads = element.evaluate_grad_bfs(pt);
 
     // Physical gradients' values at this quadrature point (xi, eta)
-    std::vector<Point2D> phys_grads(ndofs);
+    std::vector<PhysNode> phys_grads(ndofs);
 
     for (int i = 0; i < ndofs; i++) {
       phys_grads.at(i).x = JinvT(0, 0) * ref_grads.at(i).at(0) +
@@ -48,10 +47,9 @@ MatrixXd gen_local_mass_matr(const FEMap2D& mapping, const FE& element) {
   const double detJ = std::abs(mapping.det_jacobian());
 
   for (std::size_t q = 0; q < quad_nodes.size(); q++) {
-    const double xi = quad_nodes.at(q).at(0);
-    const double eta = quad_nodes.at(q).at(1);
+    const RefNode& pt = quad_nodes.at(q);
 
-    const auto bfs = element.evaluate_bfs(xi, eta);
+    const auto bfs = element.evaluate_bfs(pt);
 
     for (int i = 0; i < ndofs; i++) {
       for (int j = 0; j < ndofs; j++) {

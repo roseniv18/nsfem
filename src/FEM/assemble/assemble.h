@@ -1,5 +1,5 @@
-#ifndef FEM_MATRIX_H
-#define FEM_MATRIX_H
+#ifndef FEM_ASSEMBLE_H
+#define FEM_ASSEMBLE_H
 
 #include <stdlib.h>
 #include <Eigen/Dense>
@@ -9,6 +9,8 @@
 #include "FEM/finite_element/dof_handler.h"
 #include "FEM/finite_element/finite_element.h"
 #include "FEM/mapping/fe_mapping.h"
+#include "FEM/mapping/phys_node.h"
+#include "FEM/mapping/ref_node.h"
 #include "math/function.h"
 #include "mesh/mesh.h"
 

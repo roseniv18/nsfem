@@ -4,13 +4,9 @@
 #include <memory>
 #include <vector>
 #include "FEM/finite_element/dof.h"
+#include "FEM/mapping/ref_node.h"
 
 enum class FEType { P1, P2 };
-
-struct RefNode {
-  double xi;
-  double eta;
-};
 
 /**
  * An abstraction class (interface) for a finite element object
@@ -32,15 +28,14 @@ class FE {
   // Get the order of the finite element
   virtual int get_order() const = 0;
   // Evaluate basis (shape) functions at given reference point
-  virtual std::vector<double> evaluate_bfs(double xi, double eta) const = 0;
+  virtual std::vector<double> evaluate_bfs(const RefNode& pt) const = 0;
   // Evaluate the gradients of the basis (shape) functions at given reference
   // point
   virtual std::vector<std::vector<double>> evaluate_grad_bfs(
-      double xi,
-      double eta) const = 0;
+      const RefNode& pt) const = 0;
   // Evaluate basis (shape) functions at list of quadrature nodes
   virtual std::vector<std::vector<double>> bfs_at_quad(
-      const std::vector<std::vector<double>>& quad_nodes) const = 0;
+      const std::vector<RefNode>& quad_nodes) const = 0;
 };
 
 #endif
