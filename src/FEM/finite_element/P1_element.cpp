@@ -8,8 +8,12 @@ P1_FE::P1_FE()
   ref_nodes = {{0.0, 0.0}, {1.0, 0.0}, {0.0, 1.0}};
 }
 
+std::vector<DOF> P1_FE::get_dofs() const {
+  return dofs;
+}
+
 int P1_FE::get_ndofs() const {
-  return 3;
+  return dofs.size();
 }
 
 int P1_FE::get_order() const {

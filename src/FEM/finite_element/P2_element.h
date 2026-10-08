@@ -2,7 +2,7 @@
 #define P2_ELEMENT_H
 
 #include <vector>
-#include "FEM/finite_element/dof_handler.h"
+#include "FEM/finite_element/dof.h"
 #include "FEM/quadrature/quadrature.h"
 #include "finite_element.h"
 
@@ -13,6 +13,8 @@ class P2_FE : public FE {
 
   int get_ndofs() const override;
   int get_order() const override;
+
+  std::vector<DOF> get_dofs() const override;
 
   std::vector<RefNode> get_ref_nodes() const override;
 

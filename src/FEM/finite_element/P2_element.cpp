@@ -12,8 +12,12 @@ P2_FE::P2_FE()
                {0.5, 0.0}, {0.5, 0.5}, {0.0, 0.5}};
 }
 
+std::vector<DOF> P2_FE::get_dofs() const {
+  return dofs;
+}
+
 int P2_FE::get_ndofs() const {
-  return 6;
+  return dofs.size();
 }
 
 int P2_FE::get_order() const {

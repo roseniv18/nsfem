@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <vector>
+#include "FEM/finite_element/dof.h"
 
 enum class FEType { P1, P2 };
 
@@ -24,6 +25,8 @@ class FE {
   static std::unique_ptr<FE> build_fe_type(FEType type);
   //  Get ref nodes
   virtual std::vector<RefNode> get_ref_nodes() const = 0;
+  //   Get DOFs
+  virtual std::vector<DOF> get_dofs() const = 0;
   // Get the number of degrees of freedom
   virtual int get_ndofs() const = 0;
   // Get the order of the finite element
