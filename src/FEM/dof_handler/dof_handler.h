@@ -5,7 +5,7 @@
 #include <memory>
 #include <utility>
 #include <vector>
-#include "finite_element.h"
+#include "FEM/finite_element/finite_element.h"
 
 struct Mesh;
 

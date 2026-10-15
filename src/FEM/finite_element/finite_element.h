@@ -3,7 +3,7 @@
 
 #include <memory>
 #include <vector>
-#include "FEM/finite_element/dof.h"
+#include "FEM/dof_handler/dof.h"
 #include "FEM/mapping/ref_node.h"
 
 enum class FEType { P1, P2 };

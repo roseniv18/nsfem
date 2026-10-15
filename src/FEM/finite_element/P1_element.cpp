@@ -37,7 +37,7 @@ std::vector<double> P1_FE::evaluate_bfs(const RefNode& pt) const {
 }
 
 std::vector<std::vector<double>> P1_FE::evaluate_grad_bfs(
-    const RefNode& pt) const {
+    const RefNode&) const {
   std::vector<std::vector<double>> grad_bfs(3, std::vector<double>(2));
 
   grad_bfs[0][0] = -1.0;
@@ -59,7 +59,7 @@ std::vector<std::vector<double>> P1_FE::bfs_at_quad(
   // matrix with dimensions n_dofs x n_quads
   std::vector<std::vector<double>> vals(n_dofs, std::vector<double>(n_quads));
 
-  for (std::size_t i = 0; i < n_dofs; i++) {
+  for (int i = 0; i < n_dofs; i++) {
     for (std::size_t j = 0; j < n_quads; j++) {
       const RefNode& pt = quad_nodes.at(j);
 

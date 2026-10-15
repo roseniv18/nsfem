@@ -1,4 +1,4 @@
-#include "dof_handler.h"
+#include "FEM/dof_handler/dof_handler.h"
 #include <limits>
 #include "mesh/mesh.h"
 

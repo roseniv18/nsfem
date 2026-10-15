@@ -2,7 +2,7 @@
 #define P2_ELEMENT_H
 
 #include <vector>
-#include "FEM/finite_element/dof.h"
+#include "FEM/dof_handler/dof.h"
 #include "FEM/quadrature/quadrature.h"
 #include "finite_element.h"
 

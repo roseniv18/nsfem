@@ -4,7 +4,7 @@
 #include <memory>
 
 #include "FEM/assemble/assemble.h"
-#include "FEM/finite_element/dof_handler.h"
+#include "FEM/dof_handler/dof_handler.h"
 #include "FEM/finite_element/finite_element.h"
 #include "helpers/helpers.h"
 #include "mesh/parser.h"

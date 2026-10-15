@@ -4,7 +4,7 @@
 #include <Eigen/Dense>
 #include <functional>
 #include <vector>
-#include "FEM/finite_element/dof_handler.h"
+#include "FEM/dof_handler/dof_handler.h"
 #include "FEM/finite_element/finite_element.h"
 #include "FEM/mapping/fe_mapping.h"
 #include "FEM/quadrature/quadrature.h"

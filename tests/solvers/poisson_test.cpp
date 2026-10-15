@@ -9,7 +9,7 @@
 
 #include "FEM/assemble/assemble.h"
 #include "FEM/convergence/convergence.h"
-#include "FEM/finite_element/dof_handler.h"
+#include "FEM/dof_handler/dof_handler.h"
 #include "FEM/finite_element/finite_element.h"
 #include "helpers/helpers.h"
 #include "linalg/conjugate_gradient.h"
