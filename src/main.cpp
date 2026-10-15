@@ -44,6 +44,8 @@ int main() {
 
   Mesh mesh = read_mesh(file, entities, physical_groups);
 
+  print_mesh(mesh);
+
   build_unique_edges_list(mesh);
 
   std::cout << "Number of elements: " << mesh.elements.size() << '\n';
@@ -85,7 +87,7 @@ int main() {
   std::cout << "mesh.nodes.size() = " << mesh.nodes.size() << '\n';
   std::cout << "global ndofs = " << dofh.get_global_ndofs() << '\n';
 
-  for (std::size_t i = 0; i < poisson_sol.size(); ++i) {
+  for (Eigen::Index i = 0; i < poisson_sol.size(); ++i) {
     poisson_max_error = std::max(poisson_max_error,
                                  std::abs(poisson_sol(i) - poisson_exact(i)));
   }
@@ -106,10 +108,11 @@ int main() {
   std::cout << "Heat equation\n";
   std::cout << "========================================\n";
 
-  constexpr double dt = 0.001;
+  constexpr double dt = 0.01;
   constexpr double T = 1.0;
 
-  HeatEq heat_eq(mesh, *fe, dofh, dt, T, h_func, h_dir_func);
+  HeatEq heat_eq(mesh, *fe, ElementType::Triangle3, dofh, dt, T, h_func,
+                 h_dir_func);
 
   const VectorXd heat_sol = heat_eq.solve();
 

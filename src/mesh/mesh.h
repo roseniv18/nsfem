@@ -7,11 +7,52 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include "FEM/finite_element/dof_handler.h"
-#include "FEM/finite_element/finite_element.h"
 #include "math/function.h"
 
-enum class ElementType { Line2, Triangle3, Line3, Triangle6 };
+class DOFHandler;
+class FE;
+class FEMap2D;
+
+enum class ElementType {
+  Line2,
+  Triangle3,
+  Line3,
+  Triangle6,
+  Triangle9,
+  Triangle10,
+  Triangle12,
+  Triangle15,
+  Triangle21
+};
+
+constexpr bool is_triangle(const ElementType type) {
+  switch (type) {
+    case ElementType::Triangle3:
+    case ElementType::Triangle6:
+    case ElementType::Triangle9:
+    case ElementType::Triangle10:
+    case ElementType::Triangle12:
+    case ElementType::Triangle15:
+    case ElementType::Triangle21:
+      return true;
+
+    default:
+      return false;
+  }
+}
+
+constexpr bool is_line(const ElementType type) {
+  switch (type) {
+    case ElementType::Line2:
+    case ElementType::Line3:
+      return true;
+
+    default:
+      return false;
+  }
+}
+
+inline constexpr std::string DIRICHLET = "Dirichlet";
 
 struct Node {
   int tag{};
@@ -21,8 +62,8 @@ struct Node {
 };
 
 struct Edge {
-  int node_id_1;
-  int node_id_2;
+  std::size_t node_id_1;
+  std::size_t node_id_2;
 
   bool operator<(const Edge& other) const {
     int min_this = std::min(node_id_1, node_id_2);
@@ -78,17 +119,15 @@ std::vector<Node> get_element_nodes(const Element& element, const Mesh& mesh);
 // get the unique edges of the mesh elements
 void build_unique_edges_list(Mesh& mesh);
 
-// get tags of dirichlet nodes
-std::vector<bool> get_dirichlet_nodes(const Mesh& mesh,
-                                      const int global_ndofs,
-                                      const FEType& fe_type);
+// get tags of dirichlet dofs
+std::vector<bool> get_dirichlet_dofs(const Mesh& mesh, const DOFHandler& dofh);
 
 // get values of function at dirichlet nodes
 std::vector<double> get_dirichlet_values(const Mesh& mesh,
+                                         const FE& fe,
+                                         const DOFHandler& dofh,
                                          const std::vector<bool>& is_dirichlet,
                                          STFunction fn,
-                                         const int global_ndofs,
-                                         const FEType& fe_type,
                                          double t);
 
 #endif

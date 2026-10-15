@@ -11,6 +11,7 @@
 #include "FEM/mapping/fe_mapping.h"
 #include "FEM/mapping/phys_node.h"
 #include "FEM/mapping/ref_node.h"
+#include "FEM/quadrature/quadrature.h"
 #include "math/function.h"
 #include "mesh/mesh.h"
 

@@ -1,6 +1,10 @@
 
 #include "mesh/mesh.h"
 
+#include "FEM/finite_element/dof_handler.h"
+#include "FEM/finite_element/finite_element.h"
+#include "FEM/mapping/fe_mapping.h"
+
 std::vector<Node> get_element_nodes(const Element& element, const Mesh& mesh) {
   std::vector<Node> nodes{};
   nodes.reserve(element.node_ids.size());
@@ -65,87 +69,91 @@ void build_unique_edges_list(Mesh& mesh) {
   }
 }
 
-std::vector<bool> get_dirichlet_nodes(const Mesh& mesh,
-                                      const int global_ndofs,
-                                      const FEType& fe_type) {
-  const std::size_t nvertices = mesh.nodes.size();
+std::vector<bool> get_dirichlet_dofs(const Mesh& mesh, const DOFHandler& dofh) {
+  std::vector<bool> is_dirichlet(dofh.get_global_ndofs(), false);
 
-  // this vector tells us which nodes are Dirichlet
-  std::vector<bool> is_dirichlet(global_ndofs, false);
+  for (const Element& element : mesh.elements) {
+    if (!is_line(element.type))
+      continue;
 
-  /**
-   * loop through all elements in the mesh
-   * for each element, analyze which physical groups it belongs to, as well if
-   * it is a line element (Dirichlet boundary line)
-   */
-  for (const auto& element : mesh.elements) {
-    for (const int pt : element.physical_tags) {
-      const auto& physical_group = mesh.physical_groups.at(pt);
+    bool is_dirichlet_boundary = false;
 
-      //   std::cout << physical_group.name << '\n';
-
-      if ((element.type == ElementType::Line2 ||
-           element.type == ElementType::Line3) &&
-          physical_group.name == "Dirichlet") {
-        // 1. Fix vertex DOFs (true for P1, P2)
-        for (int i = 0; i < 2; i++) {
-          const int global_vertex_id = element.node_ids.at(i);
-          is_dirichlet[global_vertex_id] = true;
-        }
-
-        // 2. Fix edge DOFs (for P2)
-        if (fe_type == FEType::P2) {
-          const int global_edge_id = element.edge_ids.at(0);
-          const int global_edge_dof = nvertices + global_edge_id;
-          is_dirichlet[global_edge_dof] = true;
-        }
+    for (const int tag : element.physical_tags) {
+      if (mesh.physical_groups.at(tag).name == DIRICHLET) {
+        is_dirichlet_boundary = true;
+        break;
       }
     }
+
+    if (!is_dirichlet_boundary)
+      continue;
+
+    //   Mark the 2 endpoint vertex DOFS
+    for (std::size_t i = 0; i < 2; i++) {
+      const std::size_t node_id = element.node_ids.at(i);
+      const std::size_t dof = dofh.get_vertex_dof_index(node_id);
+
+      is_dirichlet.at(dof) = true;
+    }
+
+    // Mark edge DOFs
+    const auto edge_dofs = dofh.get_edge_dof_indices(element.node_ids.at(0),
+                                                     element.node_ids.at(1));
+
+    for (const std::size_t dof : edge_dofs)
+      is_dirichlet.at(dof) = true;
   }
 
   return is_dirichlet;
 }
 
 std::vector<double> get_dirichlet_values(const Mesh& mesh,
+                                         const FE& fe,
+                                         const DOFHandler& dofh,
                                          const std::vector<bool>& is_dirichlet,
                                          STFunction fn,
-                                         const int global_ndofs,
-                                         const FEType& fe_type,
                                          double t) {
-  const std::size_t nvertices = mesh.nodes.size();
+  const std::size_t global_ndofs = dofh.get_global_ndofs();
+
+  if (is_dirichlet.size() != global_ndofs) {
+    throw std::invalid_argument(
+        "Dirichlet DOF count does not match global DOF count");
+  }
 
   std::vector<double> values(global_ndofs, 0.0);
 
-  //   Assign values to vertex DOFs
-  for (std::size_t i = 0; i < nvertices; i++) {
-    if (is_dirichlet.at(i)) {
-      values.at(i) = fn(mesh.nodes.at(i).x, mesh.nodes.at(i).y, t);
+  const auto ref_nodes = fe.get_ref_nodes();
+
+  if (ref_nodes.size() != static_cast<std::size_t>(fe.get_ndofs())) {
+    throw std::runtime_error(
+        "Reference node count does not match Finite Element DOF count");
+  }
+
+  for (std::size_t e = 0; e < mesh.elements.size(); e++) {
+    const Element& element = mesh.elements.at(e);
+
+    if (!is_triangle(element.type))
+      continue;
+
+    const auto geo_fe = FE::build_geo_type(element.type);
+
+    const auto element_nodes = get_element_nodes(element, mesh);
+
+    const FEMap2D mapping(element, element_nodes, *geo_fe);
+
+    const auto element_dofs = dofh.get_element_dof_indices(e);
+
+    for (std::size_t i = 0; i < element_dofs.size(); i++) {
+      const std::size_t global_dof = element_dofs.at(i);
+
+      if (!is_dirichlet.at(global_dof))
+        continue;
+
+      const auto phys_point = mapping.physical_point(ref_nodes.at(i));
+
+      values.at(global_dof) = fn(phys_point.x, phys_point.y, t);
     }
   }
 
-  //   Assign values to edge DOFs (for P2 elements)
-  if (fe_type == FEType::P2) {
-    for (const auto& element : mesh.elements) {
-      for (const int pt : element.physical_tags) {
-        const auto& physical_group = mesh.physical_groups.at(pt);
-
-        if ((element.type == ElementType::Line2 ||
-             element.type == ElementType::Line3) &&
-            physical_group.name == "Dirichlet") {
-          const int global_edge_id = element.edge_ids.at(0);
-          const int global_edge_dof = nvertices + global_edge_id;
-
-          if (is_dirichlet.at(global_edge_dof)) {
-            const auto& node1 = mesh.nodes.at(element.node_ids.at(0));
-            const auto& node2 = mesh.nodes.at(element.node_ids.at(1));
-            const double mid_x = 0.5 * (node1.x + node2.x);
-            const double mid_y = 0.5 * (node1.y + node2.y);
-
-            values.at(global_edge_dof) = fn(mid_x, mid_y, t);
-          }
-        }
-      }
-    }
-  }
   return values;
 }

@@ -8,6 +8,7 @@ P2_FE::P2_FE()
             {4, DOFLoc::Edge, 1},
             {5, DOFLoc::Edge, 2}}) {
   type = FEType::P2;
+  //   ? Order should match with basis functions' ordering
   ref_nodes = {{0.0, 0.0}, {1.0, 0.0}, {0.0, 1.0},
                {0.5, 0.0}, {0.5, 0.5}, {0.0, 0.5}};
 }
@@ -85,4 +86,12 @@ std::vector<std::vector<double>> P2_FE::bfs_at_quad(
   }
 
   return vals;
+}
+
+bool P2_FE::has_edge_dofs() const {
+  return true;
+}
+
+std::size_t P2_FE::n_edge_dofs() const {
+  return 1;
 }

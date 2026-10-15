@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include <iostream>
 #include <memory>
+#include "FEM/finite_element/dof_handler.h"
 #include "FEM/finite_element/finite_element.h"
 #include "helpers/helpers.h"
 #include "mesh/mesh.h"

@@ -28,20 +28,18 @@ TEST(GlobalAssemblyTest, SimpleMesh) {
   };
 
   mesh.elements = {
-      Element{
-          .dim = 2,
-          .element_tag = 1,
-          .type = ElementType::Triangle3,
-          .physical_tags = {},
-          .node_ids = {0, 1, 2},
-      },
-      Element{
-          .dim = 2,
-          .element_tag = 2,
-          .type = ElementType::Triangle3,
-          .physical_tags = {},
-          .node_ids = {0, 2, 3},
-      },
+      Element{.dim = 2,
+              .element_tag = 1,
+              .type = ElementType::Triangle3,
+              .physical_tags = {},
+              .node_ids = {0, 1, 2},
+              .edge_ids = {0, 1, 2}},
+      Element{.dim = 2,
+              .element_tag = 2,
+              .type = ElementType::Triangle3,
+              .physical_tags = {},
+              .node_ids = {0, 2, 3},
+              .edge_ids = {2, 3, 4}},
   };
 
   const std::unique_ptr<FE> fe = FE::build_fe_type(FEType::P1);
@@ -80,20 +78,18 @@ TEST(GlobalAssemblyTest, IsGlobalStiffnessMatrixSymmetric) {
   };
 
   mesh.elements = {
-      Element{
-          .dim = 2,
-          .element_tag = 1,
-          .type = ElementType::Triangle3,
-          .physical_tags = {},
-          .node_ids = {0, 1, 2},
-      },
-      Element{
-          .dim = 2,
-          .element_tag = 2,
-          .type = ElementType::Triangle3,
-          .physical_tags = {},
-          .node_ids = {0, 2, 3},
-      },
+      Element{.dim = 2,
+              .element_tag = 1,
+              .type = ElementType::Triangle3,
+              .physical_tags = {},
+              .node_ids = {0, 1, 2},
+              .edge_ids = {0, 1, 2}},
+      Element{.dim = 2,
+              .element_tag = 2,
+              .type = ElementType::Triangle3,
+              .physical_tags = {},
+              .node_ids = {0, 2, 3},
+              .edge_ids = {2, 3, 4}},
   };
 
   const std::unique_ptr<FE> fe = FE::build_fe_type(FEType::P1);

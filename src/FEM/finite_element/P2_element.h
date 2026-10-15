@@ -26,6 +26,10 @@ class P2_FE : public FE {
   std::vector<std::vector<double>> bfs_at_quad(
       const std::vector<RefNode>& quad_nodes) const override;
 
+  bool has_edge_dofs() const override;
+
+  std::size_t n_edge_dofs() const override;
+
  private:
   std::vector<DOF> dofs;
   std::vector<RefNode> ref_nodes;

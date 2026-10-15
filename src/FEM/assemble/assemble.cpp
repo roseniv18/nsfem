@@ -6,13 +6,13 @@ MatrixXd gen_local_stiffness_matr(const FEMap2D& mapping, const FE& element) {
 
   MatrixXd ls_matrix = MatrixXd::Zero(ndofs, ndofs);
 
-  const double detJ = std::abs(mapping.det_jacobian());
-  const MatrixXd JinvT = mapping.jacobianInvT();
-
   for (std::size_t q = 0; q < quad_nodes.size(); q++) {
     const RefNode& pt = quad_nodes.at(q);
 
     const auto ref_grads = element.evaluate_grad_bfs(pt);
+
+    const double detJ = std::abs(mapping.det_jacobian(pt));
+    const MatrixXd JinvT = mapping.jacobianInvT(pt);
 
     // Physical gradients' values at this quadrature point (xi, eta)
     std::vector<PhysNode> phys_grads(ndofs);
@@ -44,10 +44,10 @@ MatrixXd gen_local_mass_matr(const FEMap2D& mapping, const FE& element) {
 
   MatrixXd lm_matrix = MatrixXd::Zero(ndofs, ndofs);
 
-  const double detJ = std::abs(mapping.det_jacobian());
-
   for (std::size_t q = 0; q < quad_nodes.size(); q++) {
     const RefNode& pt = quad_nodes.at(q);
+
+    const double detJ = std::abs(mapping.det_jacobian(pt));
 
     const auto bfs = element.evaluate_bfs(pt);
 
@@ -65,7 +65,6 @@ MatrixXd gen_local_mass_matr(const FEMap2D& mapping, const FE& element) {
 SparseMatrix asm_global_mass_matr(const Mesh& mesh,
                                   const FE& fe,
                                   const DOFHandler& dofh) {
-  // build a finite element object with the given type (P1, P2, ...)
   const int global_ndofs = dofh.get_global_ndofs();
   const int local_ndofs = fe.get_ndofs();
 
@@ -80,22 +79,24 @@ SparseMatrix asm_global_mass_matr(const Mesh& mesh,
   for (std::size_t e = 0; e < mesh.elements.size(); e++) {
     const Element& element = mesh.elements.at(e);
 
-    if (element.type == ElementType::Triangle3) {
-      const auto el_nodes = get_element_nodes(element, mesh);
-      const auto el_dofs = dofh.get_element_dof_indices(e);
-      const FEMap2D tr_element(element, el_nodes, fe);
+    if (!is_triangle(element.type))
+      continue;
 
-      const MatrixXd local_mass_matrix = gen_local_mass_matr(tr_element, fe);
+    const auto el_nodes = get_element_nodes(element, mesh);
+    const auto el_dofs = dofh.get_element_dof_indices(e);
+    const auto fe_geo = FE::build_geo_type(element.type);
+    const FEMap2D tr_element(element, el_nodes, *fe_geo);
 
-      for (std::size_t i = 0; i < el_dofs.size(); i++) {
-        for (std::size_t j = 0; j < el_dofs.size(); j++) {
-          const std::size_t I = el_dofs.at(i);
-          const std::size_t J = el_dofs.at(j);
+    const MatrixXd local_mass_matrix = gen_local_mass_matr(tr_element, fe);
 
-          triplets.emplace_back(static_cast<Eigen::Index>(I),
-                                static_cast<Eigen::Index>(J),
-                                local_mass_matrix(i, j));
-        }
+    for (std::size_t i = 0; i < el_dofs.size(); i++) {
+      for (std::size_t j = 0; j < el_dofs.size(); j++) {
+        const std::size_t I = el_dofs.at(i);
+        const std::size_t J = el_dofs.at(j);
+
+        triplets.emplace_back(static_cast<Eigen::Index>(I),
+                              static_cast<Eigen::Index>(J),
+                              local_mass_matrix(i, j));
       }
     }
   }
@@ -117,7 +118,6 @@ SparseMatrix asm_global_mass_matr(const Mesh& mesh,
 SparseMatrix asm_global_stiffness_matr(const Mesh& mesh,
                                        const FE& fe,
                                        const DOFHandler& dofh) {
-  // build a finite element object with the given type (P1, P2, ...)
   const int global_ndofs = dofh.get_global_ndofs();
   const int local_ndofs = fe.get_ndofs();
 
@@ -132,23 +132,25 @@ SparseMatrix asm_global_stiffness_matr(const Mesh& mesh,
   for (std::size_t e = 0; e < mesh.elements.size(); e++) {
     const Element& element = mesh.elements.at(e);
 
-    if (element.type == ElementType::Triangle3) {
-      const auto el_nodes = get_element_nodes(element, mesh);
-      const auto el_dofs = dofh.get_element_dof_indices(e);
-      const FEMap2D tr_element(element, el_nodes, fe);
+    if (!is_triangle(element.type))
+      continue;
 
-      const MatrixXd local_stiffness_matrix =
-          gen_local_stiffness_matr(tr_element, fe);
+    const auto el_nodes = get_element_nodes(element, mesh);
+    const auto el_dofs = dofh.get_element_dof_indices(e);
+    const auto fe_geo = FE::build_geo_type(element.type);
+    const FEMap2D tr_element(element, el_nodes, *fe_geo);
 
-      for (std::size_t i = 0; i < el_dofs.size(); i++) {
-        for (std::size_t j = 0; j < el_dofs.size(); j++) {
-          const std::size_t I = el_dofs.at(i);
-          const std::size_t J = el_dofs.at(j);
+    const MatrixXd local_stiffness_matrix =
+        gen_local_stiffness_matr(tr_element, fe);
 
-          triplets.emplace_back(static_cast<Eigen::Index>(I),
-                                static_cast<Eigen::Index>(J),
-                                local_stiffness_matrix(i, j));
-        }
+    for (std::size_t i = 0; i < el_dofs.size(); i++) {
+      for (std::size_t j = 0; j < el_dofs.size(); j++) {
+        const std::size_t I = el_dofs.at(i);
+        const std::size_t J = el_dofs.at(j);
+
+        triplets.emplace_back(static_cast<Eigen::Index>(I),
+                              static_cast<Eigen::Index>(J),
+                              local_stiffness_matrix(i, j));
       }
     }
   }
@@ -175,12 +177,15 @@ VectorXd gen_local_vec(const FEMap2D& mapping,
 
   VectorXd lv = VectorXd::Zero(n_dofs);
 
-  auto phys_points = mapping.get_phys_coords();
-  const double detJ = std::abs(mapping.det_jacobian());
   std::vector<std::vector<double>> bfs = element.bfs_at_quad(quad_nodes);
 
   for (std::size_t q = 0; q < quad_nodes.size(); q++) {
-    double f_val = func(phys_points.at(q).x, phys_points.at(q).y, t);
+    const RefNode& pt = quad_nodes.at(q);
+
+    auto phys_point = mapping.physical_point(pt);
+
+    const double detJ = std::abs(mapping.det_jacobian(pt));
+    double f_val = func(phys_point.x, phys_point.y, t);
 
     for (int i = 0; i < n_dofs; i++) {
       lv(i) += detJ * quad_weights.at(q) * bfs.at(i).at(q) * f_val;
@@ -203,18 +208,20 @@ VectorXd asm_global_vec(const Mesh& mesh,
   for (std::size_t e = 0; e < mesh.elements.size(); e++) {
     const Element& element = mesh.elements.at(e);
 
-    if (element.type == ElementType::Triangle3) {
-      const auto el_nodes = get_element_nodes(element, mesh);
-      const auto el_dofs = dofh.get_element_dof_indices(e);
-      const FEMap2D mapping(element, el_nodes, fe);
+    if (!is_triangle(element.type))
+      continue;
 
-      VectorXd lv = gen_local_vec(mapping, func, fe, t);
+    const auto el_nodes = get_element_nodes(element, mesh);
+    const auto el_dofs = dofh.get_element_dof_indices(e);
+    const auto fe_geo = FE::build_geo_type(element.type);
+    const FEMap2D mapping(element, el_nodes, *fe_geo);
 
-      for (std::size_t i = 0; i < el_dofs.size(); ++i) {
-        const std::size_t I = el_dofs.at(i);
+    VectorXd lv = gen_local_vec(mapping, func, fe, t);
 
-        gl_vector(I) += lv(i);
-      }
+    for (std::size_t i = 0; i < el_dofs.size(); ++i) {
+      const std::size_t I = el_dofs.at(i);
+
+      gl_vector(I) += lv(i);
     }
   }
 

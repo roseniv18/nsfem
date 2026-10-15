@@ -8,6 +8,7 @@
 #include "FEM/assemble/assemble.h"
 #include "FEM/convergence/convergence.h"
 #include "FEM/finite_element/finite_element.h"
+#include "helpers/helpers.h"
 #include "linalg/conjugate_gradient.h"
 #include "mesh/mesh.h"
 
@@ -29,6 +30,7 @@ class HeatEq {
  public:
   HeatEq(const Mesh& mesh,
          const FE& fe,
+         const ElementType& geo_type,
          const DOFHandler& dofh,
          const double dt,
          double T,
@@ -40,6 +42,7 @@ class HeatEq {
  private:
   const Mesh& mesh;
   const FE& fe;
+  const ElementType& geo_type;
   const DOFHandler& dofh;
 
   VectorXd initial_condition;

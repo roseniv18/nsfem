@@ -14,7 +14,8 @@ TEST(HeatEqTest, MatchesAnalyticalSolution) {
   const std::unique_ptr<FE> fe = FE::build_fe_type(FEType::P1);
   const DOFHandler dofh(mesh, *fe);
 
-  HeatEq heat_eq(mesh, *fe, dofh, 0.01, 0.05, h_func, h_dir_func);
+  HeatEq heat_eq(mesh, *fe, ElementType::Triangle6, dofh, 0.01, 1.0, h_func,
+                 h_dir_func);
 
   const VectorXd solution = heat_eq.solve();
 

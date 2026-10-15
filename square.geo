@@ -25,3 +25,5 @@ Physical Curve("Dirichlet") = {1,2,3,4};
 Physical Surface("Domain") = {1};
 
 Mesh 2;
+Mesh.ElementOrder = 1;
+Mesh.SecondOrderIncomplete = 0;

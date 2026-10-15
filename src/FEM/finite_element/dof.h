@@ -8,15 +8,18 @@ enum class DOFLoc { Vertex, Edge, Interior };
  * local_index: the local index of the DOF for the specific finite element
  * location: whether the DOF lives on a vertex, edge or in the interior
  * entity_index: the local index of the edge / vertex (0,1,2)
+ * entity_dof_index: allows support for multiple dofs on the same edge
+ * (higher-order elements) ; defaults to 0
  *
  * Example for Lagrange P2 triangle with nodes (a,b,c) and edges (ab, bc, ca)
  * To describe the midpoint on edge ab:
- * DOF {4, DOFLoc::Edge, 0};
+ * DOF {4, DOFLoc::Edge, 0, 0};
  */
 struct DOF {
-  int local_index;
+  std::size_t local_index;
   DOFLoc location;
-  int entity_index;
+  std::size_t entity_index;
+  std::size_t entity_dof_index = 0;
 };
 
 #endif

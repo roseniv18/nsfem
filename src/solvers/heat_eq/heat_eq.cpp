@@ -2,15 +2,19 @@
 
 HeatEq::HeatEq(const Mesh& mesh_,
                const FE& fe_,
+               const ElementType& geo_type_,
                const DOFHandler& dofh_,
                double dt_,
                double T_,
                STFunction h_func_,
                STFunction h_dir_func_)
-    : mesh(mesh_), fe(fe_), dofh(dofh_) {
-  if (dt_ <= 1e-14 || T_ <= 1e-14) {
+    : mesh(mesh_), fe(fe_), geo_type(geo_type_), dofh(dofh_) {
+  if (!is_triangle(geo_type))
+    throw std::invalid_argument(
+        "Heat solver only accepts triangular mesh elements");
+
+  if (dt_ <= 1e-14 || T_ <= 1e-14)
     throw std::invalid_argument("Timestep dt and time T must be > 0");
-  }
 
   dt = dt_;
   T = T_;
@@ -19,60 +23,53 @@ HeatEq::HeatEq(const Mesh& mesh_,
   h_dir_func = std::move(h_dir_func_);
 
   const int global_ndofs = dofh.get_global_ndofs();
-  const int vertex_ndofs = mesh.nodes.size();
-  const int edge_dofs = mesh.unique_edges.size();
+  const auto geo_fe = FE::build_geo_type(geo_type);
 
-  initial_condition.resize(global_ndofs);
+  initial_condition =
+      interpolate_at_dofs(mesh, fe, *geo_fe, dofh, h_initial_func, 0.0);
+
   rhs_vec.resize(global_ndofs);
-
-  for (std::size_t i = 0; i < vertex_ndofs; i++) {
-    const Node& node = mesh.nodes.at(i);
-    initial_condition(i) = h_initial_func(node.x, node.y, 0.0);
-
-    if (fe.type == FEType::P2) {
-      for (int e = 0; e < edge_dofs; e++) {
-        const Edge& edge = mesh.unique_edges.at(e);
-
-        const Node& node1 = mesh.nodes.at(edge.node_id_1);
-        const Node& node2 = mesh.nodes.at(edge.node_id_2);
-
-        //   P2 DOF at the midpoint
-        const double x = 0.5 * (node1.x + node2.x);
-        const double y = 0.5 * (node1.y + node2.y);
-
-        const std::size_t global_dof = vertex_ndofs + e;
-
-        initial_condition(global_dof) = h_initial_func(x, y, 0.0);
-      }
-    }
-  }
 }
 
 void HeatEq::update_rhs(double t) {
-  const int global_ndofs = dofh.get_global_ndofs();
+  rhs_vec.setZero();
 
-  const int vertex_ndofs = mesh.nodes.size();
-  const int edge_dofs = mesh.unique_edges.size();
+  const auto geo_fe = FE::build_geo_type(geo_type);
 
-  for (int i = 0; i < vertex_ndofs; i++) {
-    const Node& node = mesh.nodes.at(i);
-    rhs_vec(i) = h_func(node.x, node.y, t);
+  for (std::size_t e = 0; e < mesh.elements.size(); e++) {
+    const Element& element = mesh.elements.at(e);
 
-    if (fe.type == FEType::P2) {
-      for (int e = 0; e < edge_dofs; e++) {
-        const Edge& edge = mesh.unique_edges.at(e);
+    if (!is_triangle(element.type))
+      continue;
 
-        const Node& node1 = mesh.nodes.at(edge.node_id_1);
-        const Node& node2 = mesh.nodes.at(edge.node_id_2);
+    if (element.type != geo_type)
+      throw std::runtime_error(
+          "Triangle element does not match geometry FE type");
 
-        //   P2 DOF at the midpoint
-        const double x = 0.5 * (node1.x + node2.x);
-        const double y = 0.5 * (node1.y + node2.y);
+    const auto element_nodes = get_element_nodes(element, mesh);
+    const auto element_global_dofs = dofh.get_element_dof_indices(e);
 
-        const std::size_t global_dof = vertex_ndofs + e;
+    FEMap2D mapping(element, element_nodes, *geo_fe);
 
-        rhs_vec(global_dof) = h_func(x, y, t);
+    VectorXd local_rhs = VectorXd::Zero(element_global_dofs.size());
+
+    const auto bfs_at_quad = fe.bfs_at_quad(quad_nodes);
+
+    for (std::size_t q = 0; q < quad_nodes.size(); q++) {
+      const RefNode& ref_point = quad_nodes.at(q);
+
+      const auto phys_point = mapping.physical_point(ref_point);
+
+      const double h = h_func(phys_point.x, phys_point.y, t);
+
+      for (std::size_t i = 0; i < element_global_dofs.size(); i++) {
+        local_rhs(i) += quad_weights.at(q) * mapping.det_jacobian(ref_point) *
+                        h * bfs_at_quad.at(i).at(q);
       }
+    }
+
+    for (std::size_t i = 0; i < element_global_dofs.size(); i++) {
+      rhs_vec(element_global_dofs.at(i)) += local_rhs(i);
     }
   }
 }
@@ -95,7 +92,7 @@ VectorXd HeatEq::solve() {
   std::cout << "nodes   = " << mesh.nodes.size() << '\n';
 
   //   Find Dirichlet nodes
-  const auto is_dirichlet = get_dirichlet_nodes(mesh, global_ndofs, fe.type);
+  const auto is_dirichlet = get_dirichlet_dofs(mesh, dofh);
 
   // Build matrix for implicit Euler (once before loop)
   SparseMatrix A = M + K * dt;
@@ -111,12 +108,11 @@ VectorXd HeatEq::solve() {
 
   //   Time stepping
   for (int i = 0; i < n_steps; i++) {
-    const double t_new = (i + 1) * dt;
     const double t = i * dt;
 
     // Compute Dirichlet values
-    const auto dirichlet_values = get_dirichlet_values(
-        mesh, is_dirichlet, h_dir_func, global_ndofs, fe.type, t);
+    const auto dirichlet_values =
+        get_dirichlet_values(mesh, fe, dofh, is_dirichlet, h_dir_func, t);
 
     update_rhs(t);
 

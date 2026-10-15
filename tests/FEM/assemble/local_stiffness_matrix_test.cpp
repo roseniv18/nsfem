@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <iostream>
 #include "FEM/assemble/assemble.h"
 #include "FEM/finite_element/P1_element.h"
 #include "helpers/helpers.h"
@@ -13,7 +14,8 @@ TEST(LocalStiffnessTest, ReferenceTriangle) {
                   .element_tag = 1,
                   .type = ElementType::Triangle3,
                   .physical_tags = {},
-                  .node_ids = {0, 1, 2}};
+                  .node_ids = {0, 1, 2},
+                  .edge_ids = {0, 1, 2}};
 
   const P1_FE P1_element;
 
@@ -43,7 +45,8 @@ TEST(LocalStiffnessTest, PhysTriangle) {
                        .element_tag = 1,
                        .type = ElementType::Triangle3,
                        .physical_tags = {},
-                       .node_ids = {0, 1, 2}};
+                       .node_ids = {0, 1, 2},
+                       .edge_ids = {0, 1, 2}};
 
   const P1_FE P1_element;
 
@@ -72,7 +75,8 @@ TEST(LocalStiffnessTest, IsSymmetric) {
                   .element_tag = 1,
                   .type = ElementType::Triangle3,
                   .physical_tags = {},
-                  .node_ids = {0, 1, 2}};
+                  .node_ids = {0, 1, 2},
+                  .edge_ids = {0, 1, 2}};
 
   const P1_FE P1_element;
 
@@ -96,13 +100,12 @@ TEST(LocalStiffnessTest, P2MatrixSize) {
       {3, 0.0, 1.0},
   };
 
-  Element element{
-      .dim = 2,
-      .element_tag = 1,
-      .type = ElementType::Triangle3,
-      .physical_tags = {},
-      .node_ids = {0, 1, 2},
-  };
+  Element element{.dim = 2,
+                  .element_tag = 1,
+                  .type = ElementType::Triangle3,
+                  .physical_tags = {},
+                  .node_ids = {0, 1, 2},
+                  .edge_ids = {0, 1, 2}};
 
   const auto fe = FE::build_fe_type(FEType::P2);
 
@@ -124,7 +127,8 @@ TEST(LocalStiffnessTest, IsSymmetricP2) {
                   .element_tag = 1,
                   .type = ElementType::Triangle3,
                   .physical_tags = {},
-                  .node_ids = {0, 1, 2}};
+                  .node_ids = {0, 1, 2},
+                  .edge_ids = {0, 1, 2}};
 
   const std::unique_ptr<FE> fe = FE::build_fe_type(FEType::P2);
 
@@ -132,8 +136,8 @@ TEST(LocalStiffnessTest, IsSymmetricP2) {
 
   const auto lm_matrix = gen_local_stiffness_matr(ref_triangle, *fe);
 
-  for (std::size_t i = 0; i < lm_matrix.rows(); i++) {
-    for (std::size_t j = 0; j < lm_matrix.cols(); j++) {
+  for (Eigen::Index i = 0; i < lm_matrix.rows(); i++) {
+    for (Eigen::Index j = 0; j < lm_matrix.cols(); j++) {
       EXPECT_NEAR(lm_matrix(i, j), lm_matrix(j, i), test_dtol);
     }
   }

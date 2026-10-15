@@ -51,7 +51,7 @@ Mesh make_unit_square_mesh(int n) {
   // Physical group used for Dirichlet boundary
   // ------------------------------------------------------------
 
-  mesh.physical_groups[1] = PhysicalGroup{.dim = 1, .name = "Dirichlet"};
+  mesh.physical_groups[1] = PhysicalGroup{.dim = 1, .name = DIRICHLET};
 
   // ------------------------------------------------------------
   // Helper for converting (i,j) -> node index
@@ -79,14 +79,16 @@ Mesh make_unit_square_mesh(int n) {
                                       .element_tag = element_tag++,
                                       .type = ElementType::Triangle3,
                                       .physical_tags = {},
-                                      .node_ids = {bl, br, tr}});
+                                      .node_ids = {bl, br, tr},
+                                      .edge_ids = {}});
 
       // Upper-left triangle
       mesh.elements.push_back(Element{.dim = 2,
                                       .element_tag = element_tag++,
                                       .type = ElementType::Triangle3,
                                       .physical_tags = {},
-                                      .node_ids = {bl, tr, tl}});
+                                      .node_ids = {bl, tr, tl},
+                                      .edge_ids = {}});
     }
   }
 
@@ -99,7 +101,8 @@ Mesh make_unit_square_mesh(int n) {
                                     .element_tag = element_tag++,
                                     .type = ElementType::Line2,
                                     .physical_tags = {1},
-                                    .node_ids = {a, b}});
+                                    .node_ids = {a, b},
+                                    .edge_ids = {}});
   };
 
   // Bottom
@@ -157,13 +160,15 @@ Mesh make_two_triangle_mesh() {
                            .element_tag = 1,
                            .type = ElementType::Triangle3,
                            .physical_tags = {},
-                           .node_ids = {0, 1, 2}};
+                           .node_ids = {0, 1, 2},
+                           .edge_ids = {}};
 
   const Element triangle_2{.dim = 2,
                            .element_tag = 1,
                            .type = ElementType::Triangle3,
                            .physical_tags = {},
-                           .node_ids = {1, 2, 3}};
+                           .node_ids = {1, 2, 3},
+                           .edge_ids = {}};
 
   mesh.nodes = nodes;
   mesh.elements.push_back(triangle_1);
@@ -173,4 +178,42 @@ Mesh make_two_triangle_mesh() {
   build_unique_edges_list(mesh);
 
   return mesh;
+}
+
+VectorXd interpolate_at_dofs(const Mesh& mesh,
+                             const FE& fe,
+                             const FE& geometry_fe,
+                             const DOFHandler& dofh,
+                             const STFunction& func,
+                             double t) {
+  const auto ndofs = dofh.get_global_ndofs();
+  const auto ref_nodes = fe.get_ref_nodes();
+
+  VectorXd values = VectorXd::Zero(ndofs);
+
+  std::vector<bool> assigned(ndofs, false);
+
+  for (std::size_t e = 0; e < mesh.elements.size(); e++) {
+    const Element& element = mesh.elements.at(e);
+
+    const auto element_nodes = get_element_nodes(element, mesh);
+    const auto element_global_dofs = dofh.get_element_dof_indices(e);
+
+    FEMap2D mapping(element, element_nodes, geometry_fe);
+
+    for (std::size_t i = 0; i < element_global_dofs.size(); i++) {
+      const auto element_global_dof = element_global_dofs.at(i);
+
+      if (assigned.at(element_global_dof))
+        continue;
+
+      const RefNode& ref_point = ref_nodes.at(i);
+      const auto phys_point = mapping.physical_point(ref_point);
+
+      values(element_global_dof) = func(phys_point.x, phys_point.y, t);
+      assigned.at(element_global_dof) = true;
+    }
+  }
+
+  return values;
 }

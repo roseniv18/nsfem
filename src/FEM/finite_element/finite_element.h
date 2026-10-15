@@ -8,6 +8,8 @@
 
 enum class FEType { P1, P2 };
 
+enum class ElementType;
+
 /**
  * An abstraction class (interface) for a finite element object
  * Note that the functions are pure virtual (=0)
@@ -18,7 +20,9 @@ class FE {
   // Type of finite element
   FEType type;
   // Build finite element object of given type
-  static std::unique_ptr<FE> build_fe_type(FEType type);
+  static std::unique_ptr<FE> build_fe_type(const FEType type);
+  // Create a geometry element
+  static std::unique_ptr<FE> build_geo_type(const ElementType& type);
   //  Get ref nodes
   virtual std::vector<RefNode> get_ref_nodes() const = 0;
   //   Get DOFs
@@ -36,6 +40,11 @@ class FE {
   // Evaluate basis (shape) functions at list of quadrature nodes
   virtual std::vector<std::vector<double>> bfs_at_quad(
       const std::vector<RefNode>& quad_nodes) const = 0;
+
+  //   Check if element has edge DOFs
+  virtual bool has_edge_dofs() const = 0;
+  //   Number of DOFs per edge
+  virtual std::size_t n_edge_dofs() const = 0;
 };
 
 #endif

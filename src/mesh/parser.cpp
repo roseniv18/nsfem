@@ -18,14 +18,34 @@ std::size_t local_node_count(ElementType type) {
 
 ElementType get_element_type(std::size_t gmsh_type) {
   switch (gmsh_type) {
+      // 2-node line
     case 1:
       return ElementType::Line2;
+      //   3-node triangle
     case 2:
       return ElementType::Triangle3;
+      //   3-node second order line
     case 8:
       return ElementType::Line3;
+      //   6-node second order triangle
     case 9:
       return ElementType::Triangle6;
+      //   9-node third order incomplete triangle
+    case 20:
+      return ElementType::Triangle9;
+      //   10-node third order triangle
+    case 21:
+      return ElementType::Triangle10;
+      //   12-node fourth order incomplete triangle
+    case 22:
+      return ElementType::Triangle12;
+      //   15-node fourth order complete triangle
+    case 23:
+      return ElementType::Triangle15;
+      //   21-node fifth order complete triangle
+    case 25:
+      return ElementType::Triangle21;
+
     default:
       throw std::invalid_argument("Unsupported gmsh element type: " +
                                   std::to_string(gmsh_type));

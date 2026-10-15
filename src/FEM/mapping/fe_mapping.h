@@ -2,33 +2,34 @@
 #define FE_MAPPING
 
 #include <Eigen/Dense>
-#include "FEM/finite_element/P1_element.h"
+#include <vector>
+
+#include "FEM/finite_element/finite_element.h"
 #include "FEM/mapping/phys_node.h"
 #include "FEM/mapping/ref_node.h"
-#include "FEM/quadrature/quadrature.h"
 #include "mesh/mesh.h"
 
-using Eigen::MatrixXd, Eigen::VectorXd;
+using Eigen::Matrix2d, Eigen::Vector2d;
 
 class FEMap2D {
  public:
   FEMap2D(const Element& element,
           const std::vector<Node>& nodes,
-          const FE& finite_element);
+          const FE& geometry_fe);
 
   //   access functions
-  MatrixXd jacobian() const;
-  MatrixXd jacobianInvT() const;
-  double det_jacobian() const;
-  std::vector<PhysNode> get_phys_grads() const;
-  std::vector<PhysNode> get_phys_coords() const;
+  PhysNode physical_point(const RefNode& pt) const;
+
+  Matrix2d jacobian(const RefNode& pt) const;
+
+  Matrix2d jacobianInvT(const RefNode& pt) const;
+
+  double det_jacobian(const RefNode& pt) const;
 
  private:
-  MatrixXd J{2, 2};
-  MatrixXd JinvT{2, 2};
-  double detJ{};
-  std::vector<PhysNode> phys_grads;
-  std::vector<PhysNode> phys_coords;
+  const Element& element;
+  const std::vector<Node>& nodes;
+  const FE& geometry_fe;
 };
 
 #endif
