@@ -75,7 +75,7 @@ std::vector<std::vector<double>> P2_FE::bfs_at_quad(
   // matrix with dimensions n_dofs x n_quads
   std::vector<std::vector<double>> vals(n_dofs, std::vector<double>(n_quads));
 
-  for (std::size_t i = 0; i < n_dofs; i++) {
+  for (int i = 0; i < n_dofs; i++) {
     for (std::size_t j = 0; j < n_quads; j++) {
       const RefNode& pt = quad_nodes.at(j);
 
