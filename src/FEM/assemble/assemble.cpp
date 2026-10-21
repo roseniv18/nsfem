@@ -79,7 +79,7 @@ SparseMatrix asm_global_mass_matr(const Mesh& mesh,
   for (std::size_t e = 0; e < mesh.elements.size(); e++) {
     const Element& element = mesh.elements.at(e);
 
-    if (!is_triangle(element.type))
+    if (!is_triangle_type(element.type))
       continue;
 
     const auto el_nodes = get_element_nodes(element, mesh);
@@ -132,7 +132,7 @@ SparseMatrix asm_global_stiffness_matr(const Mesh& mesh,
   for (std::size_t e = 0; e < mesh.elements.size(); e++) {
     const Element& element = mesh.elements.at(e);
 
-    if (!is_triangle(element.type))
+    if (!is_triangle_type(element.type))
       continue;
 
     const auto el_nodes = get_element_nodes(element, mesh);
@@ -208,7 +208,7 @@ VectorXd asm_global_vec(const Mesh& mesh,
   for (std::size_t e = 0; e < mesh.elements.size(); e++) {
     const Element& element = mesh.elements.at(e);
 
-    if (!is_triangle(element.type))
+    if (!is_triangle_type(element.type))
       continue;
 
     const auto el_nodes = get_element_nodes(element, mesh);

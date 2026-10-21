@@ -9,7 +9,7 @@ HeatEq::HeatEq(const Mesh& mesh_,
                STFunction h_func_,
                STFunction h_dir_func_)
     : mesh(mesh_), fe(fe_), geo_type(geo_type_), dofh(dofh_) {
-  if (!is_triangle(geo_type))
+  if (!is_triangle_type(geo_type))
     throw std::invalid_argument(
         "Heat solver only accepts triangular mesh elements");
 
@@ -39,7 +39,7 @@ void HeatEq::update_rhs(double t) {
   for (std::size_t e = 0; e < mesh.elements.size(); e++) {
     const Element& element = mesh.elements.at(e);
 
-    if (!is_triangle(element.type))
+    if (!is_triangle_type(element.type))
       continue;
 
     if (element.type != geo_type)

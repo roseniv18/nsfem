@@ -16,7 +16,7 @@ DOFHandler::DOFHandler(const Mesh& mesh_, const FE& element) : mesh(mesh_) {
   std::size_t n_vertex_dofs = 0;
 
   for (const Element& el : mesh.elements) {
-    if (!is_triangle(el.type))
+    if (!is_triangle_type(el.type))
       continue;
 
     //   The first 3 nodes are always vertices
@@ -66,7 +66,7 @@ DOFHandler::DOFHandler(const Mesh& mesh_, const FE& element) : mesh(mesh_) {
   for (std::size_t e = 0; e < nelements; e++) {
     const Element& mesh_element = mesh.elements.at(e);
 
-    if (!is_triangle(mesh_element.type))
+    if (!is_triangle_type(mesh_element.type))
       continue;
 
     // Each element is described by a set of global DOFs (mapping vector)

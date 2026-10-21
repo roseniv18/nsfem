@@ -8,7 +8,7 @@ double element_l2_err_sq(const std::size_t element_id,
                          const VectorXd& fem_sol,
                          STFunction exact_sol,
                          const double t) {
-  if (!is_triangle(element.type)) {
+  if (!is_triangle_type(element.type)) {
     throw std::invalid_argument(
         "L2 error integration requires a triangular element.");
   }
@@ -71,7 +71,7 @@ double global_l2_err(const Mesh& mesh,
   for (std::size_t e = 0; e < mesh.elements.size(); e++) {
     const Element& el = mesh.elements.at(e);
 
-    if (!is_triangle(el.type))
+    if (!is_triangle_type(el.type))
       continue;
 
     l2_error_sq +=
@@ -127,7 +127,7 @@ VectorXd analytical_sol(const Mesh& mesh,
   for (std::size_t e = 0; e < mesh.elements.size(); e++) {
     const Element& element = mesh.elements.at(e);
 
-    if (!is_triangle(element.type))
+    if (!is_triangle_type(element.type))
       continue;
 
     const auto element_nodes = get_element_nodes(element, mesh);

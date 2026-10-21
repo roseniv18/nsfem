@@ -25,33 +25,6 @@ enum class ElementType {
   Triangle21
 };
 
-constexpr bool is_triangle(const ElementType type) {
-  switch (type) {
-    case ElementType::Triangle3:
-    case ElementType::Triangle6:
-    case ElementType::Triangle9:
-    case ElementType::Triangle10:
-    case ElementType::Triangle12:
-    case ElementType::Triangle15:
-    case ElementType::Triangle21:
-      return true;
-
-    default:
-      return false;
-  }
-}
-
-constexpr bool is_line(const ElementType type) {
-  switch (type) {
-    case ElementType::Line2:
-    case ElementType::Line3:
-      return true;
-
-    default:
-      return false;
-  }
-}
-
 inline constexpr std::string DIRICHLET = "Dirichlet";
 
 struct Node {
@@ -129,5 +102,46 @@ std::vector<double> get_dirichlet_values(const Mesh& mesh,
                                          const std::vector<bool>& is_dirichlet,
                                          STFunction fn,
                                          double t);
+
+/**
+ * Check if provided element's type is a triangular type
+ */
+constexpr bool is_triangle_type(const ElementType type) {
+  switch (type) {
+    case ElementType::Triangle3:
+    case ElementType::Triangle6:
+    case ElementType::Triangle9:
+    case ElementType::Triangle10:
+    case ElementType::Triangle12:
+    case ElementType::Triangle15:
+    case ElementType::Triangle21:
+      return true;
+
+    default:
+      return false;
+  }
+}
+/**
+ * Check for 3 things that define a triangle:
+ * - ElementType should be a Triangular element (see is_triangle_type)
+ * - Element should be 2D
+ */
+constexpr bool is_triangle(const Element& element) {
+  return is_triangle_type(element.type) && element.dim == 2;
+}
+
+/**
+ * Check if provided element's type is a line type
+ */
+constexpr bool is_line_type(const ElementType type) {
+  switch (type) {
+    case ElementType::Line2:
+    case ElementType::Line3:
+      return true;
+
+    default:
+      return false;
+  }
+}
 
 #endif

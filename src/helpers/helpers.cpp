@@ -196,6 +196,9 @@ VectorXd interpolate_at_dofs(const Mesh& mesh,
   for (std::size_t e = 0; e < mesh.elements.size(); e++) {
     const Element& element = mesh.elements.at(e);
 
+    if (!is_triangle(element))
+      continue;
+
     const auto element_nodes = get_element_nodes(element, mesh);
     const auto element_global_dofs = dofh.get_element_dof_indices(e);
 

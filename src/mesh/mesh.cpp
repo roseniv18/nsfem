@@ -73,7 +73,7 @@ std::vector<bool> get_dirichlet_dofs(const Mesh& mesh, const DOFHandler& dofh) {
   std::vector<bool> is_dirichlet(dofh.get_global_ndofs(), false);
 
   for (const Element& element : mesh.elements) {
-    if (!is_line(element.type))
+    if (!is_line_type(element.type))
       continue;
 
     bool is_dirichlet_boundary = false;
@@ -132,7 +132,7 @@ std::vector<double> get_dirichlet_values(const Mesh& mesh,
   for (std::size_t e = 0; e < mesh.elements.size(); e++) {
     const Element& element = mesh.elements.at(e);
 
-    if (!is_triangle(element.type))
+    if (!is_triangle_type(element.type))
       continue;
 
     const auto geo_fe = FE::build_geo_type(element.type);

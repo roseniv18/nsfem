@@ -3,7 +3,11 @@
 FEMap2D::FEMap2D(const Element& element_,
                  const std::vector<Node>& nodes_,
                  const FE& geometry_fe_)
-    : element(element_), nodes(nodes_), geometry_fe(geometry_fe_) {}
+    : element(element_), nodes(nodes_), geometry_fe(geometry_fe_) {
+  if (!is_triangle(element_))
+    throw std::invalid_argument(
+        "Attempted to pass non-triangular element to mapping constructor!");
+}
 
 PhysNode FEMap2D::physical_point(const RefNode& ref_pt) const {
   const auto N = geometry_fe.evaluate_bfs(ref_pt);
