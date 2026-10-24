@@ -111,33 +111,13 @@ int main() {
   constexpr double dt = 0.01;
   constexpr double T = 1.0;
 
-  HeatEq heat_eq(mesh, *fe, ElementType::Triangle3, dofh, dt, T, h_func,
-                 h_dir_func);
+  HeatEq heat_eq(mesh, *fe, dofh, dt, T, h_func, h_dir_func);
 
   const VectorXd heat_sol = heat_eq.solve();
 
   std::cout << "----------\n";
   std::cout << "L2 error = "
             << global_l2_err(mesh, *fe, dofh, heat_sol, h_sol_func, T) << '\n';
-
-  //   double heat_max_error = 0.0;
-
-  //   for (std::size_t i = 0; i < heat_sol.size(); ++i) {
-  //     const Node& node = mesh.nodes.at(i);
-
-  //     const double exact = h_sol_func(node.x, node.y, T);
-
-  //     heat_max_error = std::max(heat_max_error, std::abs(heat_sol(i) -
-  //     exact));
-  //   }
-
-  //   std::cout << "Max nodal error = " << heat_max_error << '\n';
-
-  //   auto [heat_min_it, heat_max_it] =
-  //       std::minmax_element(heat_sol.begin(), heat_sol.end());
-
-  //   std::cout << "FEM min = " << *heat_min_it << '\n';
-  //   std::cout << "FEM max = " << *heat_max_it << '\n';
 
   return 0;
 }

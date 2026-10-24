@@ -2,17 +2,12 @@
 
 HeatEq::HeatEq(const Mesh& mesh_,
                const FE& fe_,
-               const ElementType& geo_type_,
                const DOFHandler& dofh_,
                double dt_,
                double T_,
                STFunction h_func_,
                STFunction h_dir_func_)
-    : mesh(mesh_), fe(fe_), geo_type(geo_type_), dofh(dofh_) {
-  if (!is_triangle_type(geo_type))
-    throw std::invalid_argument(
-        "Heat solver only accepts triangular mesh elements");
-
+    : mesh(mesh_), fe(fe_), dofh(dofh_) {
   if (dt_ <= 1e-14 || T_ <= 1e-14)
     throw std::invalid_argument("Timestep dt and time T must be > 0");
 
@@ -23,10 +18,8 @@ HeatEq::HeatEq(const Mesh& mesh_,
   h_dir_func = std::move(h_dir_func_);
 
   const int global_ndofs = dofh.get_global_ndofs();
-  const auto geo_fe = FE::build_geo_type(geo_type);
 
-  initial_condition =
-      interpolate_at_dofs(mesh, fe, *geo_fe, dofh, h_initial_func, 0.0);
+  initial_condition = interpolate_at_dofs(mesh, fe, dofh, h_initial_func, 0.0);
 
   rhs_vec.resize(global_ndofs);
 }
@@ -34,20 +27,16 @@ HeatEq::HeatEq(const Mesh& mesh_,
 void HeatEq::update_rhs(double t) {
   rhs_vec.setZero();
 
-  const auto geo_fe = FE::build_geo_type(geo_type);
-
   for (std::size_t e = 0; e < mesh.elements.size(); e++) {
     const Element& element = mesh.elements.at(e);
 
     if (!is_triangle_type(element.type))
       continue;
 
-    if (element.type != geo_type)
-      throw std::runtime_error(
-          "Triangle element does not match geometry FE type");
-
     const auto element_nodes = get_element_nodes(element, mesh);
     const auto element_global_dofs = dofh.get_element_dof_indices(e);
+
+    const auto geo_fe = FE::build_geo_type(element.type);
 
     FEMap2D mapping(element, element_nodes, *geo_fe);
 
@@ -106,15 +95,15 @@ VectorXd HeatEq::solve() {
   //   Initialize Eigen's CG solver
   Eigen::ConjugateGradient<SparseMatrix, Eigen::Lower | Eigen::Upper> cg;
 
-  //   Time stepping
+  //   Time stepping (Implicit Euler)
   for (int i = 0; i < n_steps; i++) {
-    const double t = i * dt;
+    const double t_next = (i + 1) * dt;
 
     // Compute Dirichlet values
     const auto dirichlet_values =
-        get_dirichlet_values(mesh, fe, dofh, is_dirichlet, h_dir_func, t);
+        get_dirichlet_values(mesh, fe, dofh, is_dirichlet, h_dir_func, t_next);
 
-    update_rhs(t);
+    update_rhs(t_next);
 
     // Compute rhs
     VectorXd rhs = M * u + dt * rhs_vec;

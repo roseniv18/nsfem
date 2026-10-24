@@ -182,7 +182,6 @@ Mesh make_two_triangle_mesh() {
 
 VectorXd interpolate_at_dofs(const Mesh& mesh,
                              const FE& fe,
-                             const FE& geometry_fe,
                              const DOFHandler& dofh,
                              const STFunction& func,
                              double t) {
@@ -202,7 +201,9 @@ VectorXd interpolate_at_dofs(const Mesh& mesh,
     const auto element_nodes = get_element_nodes(element, mesh);
     const auto element_global_dofs = dofh.get_element_dof_indices(e);
 
-    FEMap2D mapping(element, element_nodes, geometry_fe);
+    const auto geometry_fe = FE::build_geo_type(element.type);
+
+    FEMap2D mapping(element, element_nodes, *geometry_fe);
 
     for (std::size_t i = 0; i < element_global_dofs.size(); i++) {
       const auto element_global_dof = element_global_dofs.at(i);

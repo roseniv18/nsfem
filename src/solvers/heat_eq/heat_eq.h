@@ -30,7 +30,6 @@ class HeatEq {
  public:
   HeatEq(const Mesh& mesh,
          const FE& fe,
-         const ElementType& geo_type,
          const DOFHandler& dofh,
          const double dt,
          double T,
@@ -42,7 +41,6 @@ class HeatEq {
  private:
   const Mesh& mesh;
   const FE& fe;
-  const ElementType& geo_type;
   const DOFHandler& dofh;
 
   VectorXd initial_condition;
