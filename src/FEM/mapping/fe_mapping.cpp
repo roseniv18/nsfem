@@ -1,16 +1,21 @@
 #include "fe_mapping.h"
 
-FEMap2D::FEMap2D(const Element& element_,
+FEMap2D::FEMap2D(const Element& mesh_element,
                  const std::vector<Node>& nodes_,
-                 const FE& geometry_fe_)
-    : element(element_), nodes(nodes_), geometry_fe(geometry_fe_) {
-  if (!is_triangle(element_))
+                 const FE& element_)
+    : nodes(nodes_), element(element_) {
+  if (!is_triangle(mesh_element))
     throw std::invalid_argument(
         "Attempted to pass non-triangular element to mapping constructor!");
+
+  if (nodes_.size() != static_cast<std::size_t>(element_.get_ndofs())) {
+    throw std::invalid_argument(
+        "Geometry element DOF count does not match geometry node count!");
+  }
 }
 
 PhysNode FEMap2D::physical_point(const RefNode& ref_pt) const {
-  const auto N = geometry_fe.evaluate_bfs(ref_pt);
+  const auto N = element.evaluate_bfs(ref_pt);
   PhysNode phys_pt{};
 
   for (std::size_t a = 0; a < N.size(); a++) {
@@ -24,7 +29,7 @@ PhysNode FEMap2D::physical_point(const RefNode& ref_pt) const {
 }
 
 Matrix2d FEMap2D::jacobian(const RefNode& pt) const {
-  const auto gradN = geometry_fe.evaluate_grad_bfs(pt);
+  const auto gradN = element.evaluate_grad_bfs(pt);
   Matrix2d J = Matrix2d::Zero();
 
   for (std::size_t i = 0; i < gradN.size(); i++) {

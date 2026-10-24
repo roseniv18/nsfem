@@ -27,9 +27,8 @@ class FEMap2D {
   double det_jacobian(const RefNode& pt) const;
 
  private:
-  const Element& element;
   const std::vector<Node>& nodes;
-  const FE& geometry_fe;
+  const FE& element;
 };
 
 #endif

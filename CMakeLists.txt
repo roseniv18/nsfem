@@ -66,6 +66,7 @@ add_executable(tests
 	tests/FEM/assemble/local_mass_matrix_test.cpp
 	tests/FEM/assemble/assembly_test.cpp
 	tests/FEM/assemble/dirichlet_bc_test.cpp
+	tests/FEM/assemble/mixed_order_test.cpp
 	tests/linalg/cg_test.cpp
 	tests/solvers/poisson_test.cpp
 	tests/solvers/heat_eq_test.cpp
