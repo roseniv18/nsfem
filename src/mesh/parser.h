@@ -9,6 +9,9 @@
 #include <vector>
 #include "mesh/mesh.h"
 
+namespace nsfem::parser {
+using nsfem::mesh::Mesh, nsfem::mesh::Node, nsfem::mesh::Element,
+    nsfem::mesh::PhysicalGroup, nsfem::mesh::ElementType;
 /** Entity Physical Tags
  *
  * Store the physical groups associated with each entity.
@@ -75,5 +78,7 @@ std::size_t local_node_count(ElementType type);
 ElementType get_element_type(std::size_t gmsh_type);
 
 void print_mesh(const Mesh& mesh);
+
+}  // namespace nsfem::parser
 
 #endif

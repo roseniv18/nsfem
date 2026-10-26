@@ -26,6 +26,9 @@ using std::numbers::pi;
 
 #include "FEM/finite_element/finite_element.h"
 
+namespace nsfem::solvers {
+using nsfem::fem::FE, nsfem::fem::DOFHandler;
+
 class HeatEq {
  public:
   HeatEq(const Mesh& mesh,
@@ -53,5 +56,6 @@ class HeatEq {
   double T{};
   int n_steps{};
 };
+}  // namespace nsfem::solvers
 
 #endif

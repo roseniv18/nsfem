@@ -27,14 +27,14 @@ int main() {
   }
 
   std::string line;
-  EntitySectionHeader entities_header{};
-  EntityPhysicalTags entities{};
+  nsfem::parser::EntitySectionHeader entities_header{};
+  nsfem::parser::EntityPhysicalTags entities{};
   std::unordered_map<int, PhysicalGroup> physical_groups{};
 
   // $PhysicalNames and $Entities must be read before parsing elements.
   while (std::getline(file, line)) {
     if (line == "$PhysicalNames") {
-      physical_groups = read_physical_names(file);
+      physical_groups = nsfem::parser::read_physical_names(file);
     } else if (line == "$Entities") {
       read_entity_block_header(file, entities_header);
       entities = read_entities(file, entities_header);
@@ -44,7 +44,7 @@ int main() {
 
   Mesh mesh = read_mesh(file, entities, physical_groups);
 
-  print_mesh(mesh);
+  nsfem::parser::print_mesh(mesh);
 
   build_unique_edges_list(mesh);
 
@@ -58,7 +58,7 @@ int main() {
   file.close();
 
   // SET THE FINITE ELEMENT TYPE
-  const std::unique_ptr<FE> fe = FE::build_fe_type(FEType::P2);
+  const std::unique_ptr<FE> fe = FE::build_fe_type(nsfem::fem::FEType::P2);
   // GENERATE DOFHANDLER
   const DOFHandler dofh(mesh, *fe);
 
@@ -70,15 +70,19 @@ int main() {
   std::cout << "Poisson equation\n";
   std::cout << "========================================\n";
 
-  Poisson poisson(mesh, *fe, dofh, func, dir_func);
+  nsfem::solvers::Poisson poisson(mesh, *fe, dofh, nsfem::convergence::func,
+                                  nsfem::convergence::dir_func);
 
   const VectorXd poisson_sol = poisson.solve();
 
-  const VectorXd poisson_exact = analytical_sol(mesh, *fe, dofh, sol_func, 0.0);
+  const VectorXd poisson_exact = nsfem::convergence::analytical_sol(
+      mesh, *fe, dofh, nsfem::convergence::sol_func, 0.0);
 
   std::cout << "----------\n";
   std::cout << "L2 error = "
-            << global_l2_err(mesh, *fe, dofh, poisson_sol, sol_func, 0.0)
+            << nsfem::convergence::global_l2_err(mesh, *fe, dofh, poisson_sol,
+                                                 nsfem::convergence::sol_func,
+                                                 0.0)
             << '\n';
 
   double poisson_max_error = 0.0;
@@ -111,13 +115,17 @@ int main() {
   constexpr double dt = 0.01;
   constexpr double T = 1.0;
 
-  HeatEq heat_eq(mesh, *fe, dofh, dt, T, h_func, h_dir_func);
+  nsfem::solvers::HeatEq heat_eq(mesh, *fe, dofh, dt, T,
+                                 nsfem::convergence::h_func,
+                                 nsfem::convergence::h_dir_func);
 
   const VectorXd heat_sol = heat_eq.solve();
 
   std::cout << "----------\n";
   std::cout << "L2 error = "
-            << global_l2_err(mesh, *fe, dofh, heat_sol, h_sol_func, T) << '\n';
+            << nsfem::convergence::global_l2_err(
+                   mesh, *fe, dofh, heat_sol, nsfem::convergence::h_sol_func, T)
+            << '\n';
 
   return 0;
 }

@@ -2,6 +2,10 @@
 #include <limits>
 #include "mesh/mesh.h"
 
+namespace nsfem::fem {
+using nsfem::mesh::Mesh, nsfem::mesh::Element, nsfem::mesh::Node,
+    nsfem::mesh::Edge, nsfem::mesh::is_triangle_type;
+
 constexpr std::size_t invalid_dof = std::numeric_limits<std::size_t>::max();
 
 DOFHandler::DOFHandler(const Mesh& mesh_, const FE& element) : mesh(mesh_) {
@@ -148,3 +152,5 @@ std::vector<std::size_t> DOFHandler::get_edge_dof_indices(
 
   throw std::invalid_argument("Edge not found in mesh.unique_edges");
 }
+
+}  // namespace nsfem::fem

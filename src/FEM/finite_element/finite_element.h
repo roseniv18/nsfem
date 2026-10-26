@@ -6,9 +6,16 @@
 #include "FEM/finite_element/dof.h"
 #include "FEM/mapping/ref_node.h"
 
-enum class FEType { P1, P2 };
-
+// forward declaration
+namespace nsfem::mesh {
+class Element;
 enum class ElementType;
+}  // namespace nsfem::mesh
+
+namespace nsfem::fem {
+using nsfem::fem::DOFLoc;
+
+enum class FEType { P1, P2 };
 
 /**
  * An abstraction class (interface) for a finite element object
@@ -22,7 +29,8 @@ class FE {
   // Build finite element object of given type
   static std::unique_ptr<FE> build_fe_type(const FEType type);
   // Create a geometry element
-  static std::unique_ptr<FE> build_geo_type(const ElementType& type);
+  static std::unique_ptr<FE> build_geo_type(
+      const nsfem::mesh::ElementType& type);
   //  Get ref nodes
   virtual std::vector<RefNode> get_ref_nodes() const = 0;
   //   Get DOFs
@@ -46,5 +54,6 @@ class FE {
   //   Number of DOFs per edge
   virtual std::size_t n_edge_dofs() const = 0;
 };
+}  // namespace nsfem::fem
 
 #endif

@@ -9,9 +9,16 @@
 #include <vector>
 #include "math/function.h"
 
-class DOFHandler;
+namespace nsfem::fem {
 class FE;
+class DOFHandler;
+}  // namespace nsfem::fem
+
+namespace nsfem::mapping {
 class FEMap2D;
+}
+
+namespace nsfem::mesh {
 
 enum class ElementType {
   Line2,
@@ -93,12 +100,13 @@ std::vector<Node> get_element_nodes(const Element& element, const Mesh& mesh);
 void build_unique_edges_list(Mesh& mesh);
 
 // get tags of dirichlet dofs
-std::vector<bool> get_dirichlet_dofs(const Mesh& mesh, const DOFHandler& dofh);
+std::vector<bool> get_dirichlet_dofs(const Mesh& mesh,
+                                     const nsfem::fem::DOFHandler& dofh);
 
 // get values of function at dirichlet nodes
 std::vector<double> get_dirichlet_values(const Mesh& mesh,
-                                         const FE& fe,
-                                         const DOFHandler& dofh,
+                                         const nsfem::fem::FE& fe,
+                                         const nsfem::fem::DOFHandler& dofh,
                                          const std::vector<bool>& is_dirichlet,
                                          STFunction fn,
                                          double t);
@@ -143,5 +151,7 @@ constexpr bool is_line_type(const ElementType type) {
       return false;
   }
 }
+
+}  // namespace nsfem::mesh
 
 #endif

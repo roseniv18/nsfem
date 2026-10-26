@@ -12,7 +12,9 @@
 #include "FEM/mapping/fe_mapping.h"
 #include "helpers/helpers.h"
 
-using Eigen::VectorXd, Eigen::Matrix2d;
+using Eigen::VectorXd, Eigen::Matrix2d, Eigen::MatrixXd;
+using namespace nsfem::assembly;
+using nsfem::fem::P1_FE, nsfem::fem::P2_FE, nsfem::fem::FEType;
 
 /* ISOPARAMETRIC P1 + P1 */
 TEST(MixedOrderAssemblyTest, P1GeoP1Sol) {

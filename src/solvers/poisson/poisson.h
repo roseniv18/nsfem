@@ -11,8 +11,13 @@
 #include "math/function.h"
 #include "mesh/mesh.h"
 
+namespace nsfem::solvers {
 using Eigen::VectorXd, Eigen::MatrixXd;
 using SparseMatrix = Eigen::SparseMatrix<double>;
+using nsfem::assembly::asm_stiffness_matrix, nsfem::assembly::asm_global_vec,
+    nsfem::assembly::apply_dirichlet_bc;
+using nsfem::fem::FE, nsfem::fem::DOFHandler;
+using nsfem::mesh::Mesh;
 
 class Poisson {
  public:
@@ -32,5 +37,6 @@ class Poisson {
 
   VectorXd rhs_vec;
 };
+}  // namespace nsfem::solvers
 
 #endif

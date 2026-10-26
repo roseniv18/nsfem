@@ -1,5 +1,7 @@
 #include "assemble.h"
 
+namespace nsfem::assembly {
+
 // generate local stiffness matrix
 MatrixXd gen_local_stiffness_matr(const FEMap2D& mapping, const FE& element) {
   const int ndofs = element.get_ndofs();
@@ -62,9 +64,9 @@ MatrixXd gen_local_mass_matr(const FEMap2D& mapping, const FE& element) {
 }
 
 // assemble global mass matrix
-SparseMatrix asm_global_mass_matr(const Mesh& mesh,
-                                  const FE& fe,
-                                  const DOFHandler& dofh) {
+SparseMatrix asm_mass_matrix(const Mesh& mesh,
+                             const FE& fe,
+                             const DOFHandler& dofh) {
   const int global_ndofs = dofh.get_global_ndofs();
   const int local_ndofs = fe.get_ndofs();
 
@@ -115,9 +117,9 @@ SparseMatrix asm_global_mass_matr(const Mesh& mesh,
 }
 
 // assemble global stiffness matrix
-SparseMatrix asm_global_stiffness_matr(const Mesh& mesh,
-                                       const FE& fe,
-                                       const DOFHandler& dofh) {
+SparseMatrix asm_stiffness_matrix(const Mesh& mesh,
+                                  const FE& fe,
+                                  const DOFHandler& dofh) {
   const int global_ndofs = dofh.get_global_ndofs();
   const int local_ndofs = fe.get_ndofs();
 
@@ -297,3 +299,5 @@ void apply_dirichlet_bc_vec(const SparseMatrix& A,
     }
   }
 }
+
+}  // namespace nsfem::assembly

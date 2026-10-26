@@ -11,6 +11,12 @@
 #include "mesh/parser.h"
 
 using Eigen::VectorXd;
+using nsfem::fem::FE, nsfem::fem::DOFHandler;
+using nsfem::mesh::Mesh, nsfem::mesh::Node, nsfem::mesh::Element,
+    nsfem::mesh::ElementType, nsfem::mesh::PhysicalGroup,
+    nsfem::mesh::DIRICHLET;
+;
+using nsfem::mapping::FEMap2D;
 
 std::string strip_quotes(std::string& str);
 

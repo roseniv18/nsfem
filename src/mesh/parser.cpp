@@ -1,6 +1,7 @@
 #include "parser.h"
 #include "helpers/helpers.h"
 
+namespace nsfem::parser {
 std::size_t local_node_count(ElementType type) {
   switch (type) {
     case ElementType::Line2:
@@ -333,3 +334,5 @@ void print_mesh(const Mesh& mesh) {
 
   std::cout << "\n\n";
 }
+
+}  // namespace nsfem::parser

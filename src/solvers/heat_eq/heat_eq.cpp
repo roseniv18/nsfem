@@ -1,5 +1,11 @@
 #include "heat_eq.h"
 
+namespace nsfem::solvers {
+using namespace nsfem::assembly;
+using nsfem::convergence::h_initial_func;
+using nsfem::fem::FE, nsfem::fem::DOFHandler;
+using nsfem::mapping::FEMap2D;
+
 HeatEq::HeatEq(const Mesh& mesh_,
                const FE& fe_,
                const DOFHandler& dofh_,
@@ -65,8 +71,8 @@ void HeatEq::update_rhs(double t) {
 
 VectorXd HeatEq::solve() {
   // Assemble matrices
-  SparseMatrix K = asm_global_stiffness_matr(mesh, fe, dofh);
-  SparseMatrix M = asm_global_mass_matr(mesh, fe, dofh);
+  SparseMatrix K = asm_stiffness_matrix(mesh, fe, dofh);
+  SparseMatrix M = asm_mass_matrix(mesh, fe, dofh);
 
   // Initial condition
   VectorXd u = initial_condition;
@@ -129,3 +135,5 @@ VectorXd HeatEq::solve() {
 
   return u;
 }
+
+}  // namespace nsfem::solvers

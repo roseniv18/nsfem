@@ -5,6 +5,7 @@
 #include "FEM/finite_element/finite_element.h"
 #include "FEM/mapping/fe_mapping.h"
 
+namespace nsfem::mesh {
 std::vector<Node> get_element_nodes(const Element& element, const Mesh& mesh) {
   std::vector<Node> nodes{};
   nodes.reserve(element.node_ids.size());
@@ -69,7 +70,8 @@ void build_unique_edges_list(Mesh& mesh) {
   }
 }
 
-std::vector<bool> get_dirichlet_dofs(const Mesh& mesh, const DOFHandler& dofh) {
+std::vector<bool> get_dirichlet_dofs(const Mesh& mesh,
+                                     const nsfem::fem::DOFHandler& dofh) {
   std::vector<bool> is_dirichlet(dofh.get_global_ndofs(), false);
 
   for (const Element& element : mesh.elements) {
@@ -108,8 +110,8 @@ std::vector<bool> get_dirichlet_dofs(const Mesh& mesh, const DOFHandler& dofh) {
 }
 
 std::vector<double> get_dirichlet_values(const Mesh& mesh,
-                                         const FE& fe,
-                                         const DOFHandler& dofh,
+                                         const nsfem::fem::FE& fe,
+                                         const nsfem::fem::DOFHandler& dofh,
                                          const std::vector<bool>& is_dirichlet,
                                          STFunction fn,
                                          double t) {
@@ -135,11 +137,11 @@ std::vector<double> get_dirichlet_values(const Mesh& mesh,
     if (!is_triangle_type(element.type))
       continue;
 
-    const auto geo_fe = FE::build_geo_type(element.type);
+    const auto geo_fe = nsfem::fem::FE::build_geo_type(element.type);
 
     const auto element_nodes = get_element_nodes(element, mesh);
 
-    const FEMap2D mapping(element, element_nodes, *geo_fe);
+    const nsfem::mapping::FEMap2D mapping(element, element_nodes, *geo_fe);
 
     const auto element_dofs = dofh.get_element_dof_indices(e);
 
@@ -157,3 +159,5 @@ std::vector<double> get_dirichlet_values(const Mesh& mesh,
 
   return values;
 }
+
+}  // namespace nsfem::mesh

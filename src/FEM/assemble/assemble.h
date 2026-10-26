@@ -15,24 +15,29 @@
 #include "math/function.h"
 #include "mesh/mesh.h"
 
+namespace nsfem::assembly {
+
 using Eigen::MatrixXd, Eigen::VectorXd;
 using SparseMatrix = Eigen::SparseMatrix<double>;
+using nsfem::fem::FE, nsfem::fem::DOFHandler;
+using nsfem::mapping::FEMap2D;
+using nsfem::mesh::Mesh, nsfem::mesh::Element, nsfem::mesh::is_triangle_type;
 
 // generate a local stiffness matrix for given element
 MatrixXd gen_local_stiffness_matr(const FEMap2D& mapping, const FE& fe);
 
 // assemble global stiffness matrix
-SparseMatrix asm_global_stiffness_matr(const Mesh& mesh,
-                                       const FE& fe,
-                                       const DOFHandler& dofh);
+SparseMatrix asm_stiffness_matrix(const Mesh& mesh,
+                                  const FE& fe,
+                                  const DOFHandler& dofh);
 
 // generate a local mass matrix for given element
 MatrixXd gen_local_mass_matr(const FEMap2D& mapping, const FE& fe);
 
 // assemble global mass matrix
-SparseMatrix asm_global_mass_matr(const Mesh& mesh,
-                                  const FE& fe,
-                                  const DOFHandler& dofh);
+SparseMatrix asm_mass_matrix(const Mesh& mesh,
+                             const FE& fe,
+                             const DOFHandler& dofh);
 
 // generate a local load vector
 VectorXd gen_local_vec(const FEMap2D& mapping,
@@ -60,5 +65,7 @@ void apply_dirichlet_bc_vec(const SparseMatrix& A,
                             VectorXd& vec,
                             const std::vector<bool>& is_dirichlet,
                             const std::vector<double>& dirichlet_vals);
+
+}  // namespace nsfem::assembly
 
 #endif

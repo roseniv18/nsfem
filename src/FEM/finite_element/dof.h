@@ -1,6 +1,8 @@
 #ifndef DOF_H
 #define DOF_H
 
+namespace nsfem::fem {
+
 enum class DOFLoc { Vertex, Edge, Interior };
 
 /**
@@ -21,5 +23,7 @@ struct DOF {
   std::size_t entity_index;
   std::size_t entity_dof_index = 0;
 };
+
+}  // namespace nsfem::fem
 
 #endif

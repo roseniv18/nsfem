@@ -13,6 +13,9 @@
 #include "FEM/finite_element/P2_element.h"
 #include "helpers/helpers.h"
 
+using namespace nsfem::assembly;
+using nsfem::fem::P1_FE, nsfem::fem::P2_FE, nsfem::fem::FEType;
+
 /** Local stiffness matrix for reference triangle (P1)
  * Test if the local stiffness matrix for the reference triangle
  * is equal to [[1,-1/2,-1/2], [-1/2,1/2,0], [-1/2,0,1/2]]

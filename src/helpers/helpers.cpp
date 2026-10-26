@@ -23,8 +23,8 @@ Mesh make_unit_square_mesh(int n) {
          | /       |
       (i,j) ---- (i+1,j)
 
-      All triangles are oriented counter-clockwise,
-      so det(J) > 0.
+      Triangles are oriented counter-clockwise,
+      => det(J) > 0.
   */
 
   // ------------------------------------------------------------

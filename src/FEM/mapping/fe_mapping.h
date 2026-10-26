@@ -11,6 +11,10 @@
 
 using Eigen::Matrix2d, Eigen::Vector2d;
 
+namespace nsfem::mapping {
+using nsfem::fem::FE;
+using nsfem::mesh::Element, nsfem::mesh::Node;
+
 class FEMap2D {
  public:
   FEMap2D(const Element& element,
@@ -30,5 +34,6 @@ class FEMap2D {
   const std::vector<Node>& nodes;
   const FE& element;
 };
+}  // namespace nsfem::mapping
 
 #endif

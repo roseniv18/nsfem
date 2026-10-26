@@ -3,6 +3,8 @@
 #include "FEM/finite_element/P2_element.h"
 #include "helpers/helpers.h"
 
+using nsfem::fem::P2_FE;
+
 TEST(P2_Element_Test, NodalProperty) {
   const P2_FE fe;
   const auto ref_nodes = fe.get_ref_nodes();

@@ -1,5 +1,6 @@
 #include "convergence.h"
 
+namespace nsfem::convergence {
 double element_l2_err_sq(const std::size_t element_id,
                          const Mesh& mesh,
                          const Element& element,
@@ -188,3 +189,5 @@ double h_sol_func(const double x, const double y, const double t) {
 double h_initial_func(const double x, const double y, const double) {
   return sin(pi * x) * sin(pi * y);
 }
+
+}  // namespace nsfem::convergence

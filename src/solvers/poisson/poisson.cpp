@@ -1,5 +1,9 @@
 #include "poisson.h"
 
+namespace nsfem::solvers {
+using nsfem::assembly::asm_stiffness_matrix, nsfem::assembly::asm_global_vec;
+using nsfem::fem::FE, nsfem::fem::DOFHandler;
+
 Poisson::Poisson(const Mesh& mesh_,
                  const FE& fe_,
                  const DOFHandler& dofh_,
@@ -16,7 +20,7 @@ VectorXd Poisson::solve() {
   const int global_ndofs = dofh.get_global_ndofs();
 
   // Assemble stiffness matrix
-  SparseMatrix K = asm_global_stiffness_matr(mesh, fe, dofh);
+  SparseMatrix K = asm_stiffness_matrix(mesh, fe, dofh);
 
   // Find Dirichlet DOFs
   const auto is_dirichlet = get_dirichlet_dofs(mesh, dofh);
@@ -47,3 +51,5 @@ VectorXd Poisson::solve() {
 
   return solution;
 }
+
+}  // namespace nsfem::solvers

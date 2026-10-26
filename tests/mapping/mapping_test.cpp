@@ -6,6 +6,8 @@
 #include "helpers/helpers.h"
 
 using Eigen::VectorXd, Eigen::Matrix2d;
+using nsfem::fem::P1_FE, nsfem::fem::P2_FE;
+using nsfem::mapping::FEMap2D;
 
 /** Physical point mapping for linear Triangle3 geometry
  * x(xi, eta) = (1 + 3*xi, 2 + 4*eta)

@@ -20,6 +20,9 @@
 
 using Eigen::VectorXd;
 using SparseMatrix = Eigen::SparseMatrix<double>;
+using namespace nsfem::convergence;
+using nsfem::fem::P1_FE, nsfem::fem::P2_FE;
+using nsfem::solvers::Poisson;
 
 /**
  * Poisson 2D with P1 elements

@@ -3,6 +3,9 @@
 #include "P2_element.h"
 #include "mesh/mesh.h"
 
+namespace nsfem::fem {
+using nsfem::mesh::ElementType;
+
 std::unique_ptr<FE> FE::build_fe_type(const FEType type) {
   switch (type) {
     case FEType::P1:
@@ -27,3 +30,5 @@ std::unique_ptr<FE> FE::build_geo_type(const ElementType& type) {
           "Unsupported element type for 2D geometry mapping!");
   }
 }
+
+}  // namespace nsfem::fem

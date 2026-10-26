@@ -11,7 +11,12 @@
 #include "math/function.h"
 #include "mesh/mesh.h"
 
+namespace nsfem::convergence {
+
 using Eigen::MatrixXd, Eigen::VectorXd;
+using nsfem::fem::FE, nsfem::fem::DOFHandler;
+using nsfem::mapping::FEMap2D;
+using nsfem::mesh::Mesh, nsfem::mesh::Element, nsfem::mesh::Node;
 using std::sin, std::numbers::pi, std::exp;
 
 double element_l2_err_sq(const std::size_t element_id,
@@ -46,4 +51,5 @@ double h_func(const double x, const double y, const double t);
 double h_initial_func(const double x, const double y, const double t = 0.0);
 double h_sol_func(const double x, const double y, const double t);
 
+}  // namespace nsfem::convergence
 #endif

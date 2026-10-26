@@ -11,6 +11,9 @@
 #include "FEM/finite_element/P2_element.h"
 #include "helpers/helpers.h"
 
+using namespace nsfem::assembly;
+using nsfem::fem::P1_FE, nsfem::fem::P2_FE, nsfem::fem::FEType;
+
 /** Local mass matrix for reference triangle (P1)
  * Test if the local mass matrix for the reference triangle
  * is equal to [[1/12,1/24,1/24], [1/24,1/12,1/24], [1/24,1/24,1/12]]

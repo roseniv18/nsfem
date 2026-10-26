@@ -1,5 +1,6 @@
 #include "P1_element.h"
 
+namespace nsfem::fem {
 P1_FE::P1_FE()
     : dofs({{0, DOFLoc::Vertex, 0},
             {1, DOFLoc::Vertex, 1},
@@ -79,3 +80,4 @@ bool P1_FE::has_edge_dofs() const {
 std::size_t P1_FE::n_edge_dofs() const {
   return 0;
 }
+}  // namespace nsfem::fem

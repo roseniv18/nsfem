@@ -9,6 +9,8 @@
 #include "helpers/helpers.h"
 #include "mesh/parser.h"
 
+using namespace nsfem::assembly;
+using nsfem::fem::FEType;
 using SparseMatrix = Eigen::SparseMatrix<double>;
 
 /**
@@ -45,7 +47,7 @@ TEST(GlobalAssemblyTest, SimpleMesh) {
   const std::unique_ptr<FE> fe = FE::build_fe_type(FEType::P1);
   const DOFHandler dofh(mesh, *fe);
 
-  const SparseMatrix K = asm_global_stiffness_matr(mesh, *fe, dofh);
+  const SparseMatrix K = asm_stiffness_matrix(mesh, *fe, dofh);
 
   const double expected[4][4] = {
       {1.0, -0.5, 0.0, -0.5},
@@ -95,7 +97,7 @@ TEST(GlobalAssemblyTest, IsGlobalStiffnessMatrixSymmetric) {
   const std::unique_ptr<FE> fe = FE::build_fe_type(FEType::P1);
   const DOFHandler dofh(mesh, *fe);
 
-  const SparseMatrix K = asm_global_stiffness_matr(mesh, *fe, dofh);
+  const SparseMatrix K = asm_stiffness_matrix(mesh, *fe, dofh);
 
   for (Eigen::Index i = 0; i < K.rows(); ++i) {
     for (Eigen::Index j = 0; j < K.cols(); ++j) {
@@ -110,7 +112,7 @@ TEST(GlobalAssemblyTest, P2StiffnessMatrixSize) {
   const auto fe = FE::build_fe_type(FEType::P2);
   const DOFHandler dofh(mesh, *fe);
 
-  const SparseMatrix K = asm_global_stiffness_matr(mesh, *fe, dofh);
+  const SparseMatrix K = asm_stiffness_matrix(mesh, *fe, dofh);
 
   EXPECT_EQ(K.rows(), 9);
   EXPECT_EQ(K.cols(), 9);
@@ -122,7 +124,7 @@ TEST(GlobalAssemblyTest, P2StiffnessIsSymmetric) {
   const auto fe = FE::build_fe_type(FEType::P2);
   const DOFHandler dofh(mesh, *fe);
 
-  const SparseMatrix K = asm_global_stiffness_matr(mesh, *fe, dofh);
+  const SparseMatrix K = asm_stiffness_matrix(mesh, *fe, dofh);
 
   for (Eigen::Index i = 0; i < K.rows(); ++i) {
     for (Eigen::Index j = 0; j < K.cols(); ++j) {

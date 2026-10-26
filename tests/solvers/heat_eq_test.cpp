@@ -9,6 +9,10 @@
 #include "helpers/helpers.h"
 #include "mesh/mesh.h"
 
+using namespace nsfem::convergence;
+using nsfem::fem::P1_FE, nsfem::fem::P2_FE;
+using nsfem::solvers::HeatEq;
+
 // Check that the FEM heat equation solution matches the analytical solution
 TEST(HeatEqTest, MatchesAnalyticalSolution) {
   const double dt = 0.01;

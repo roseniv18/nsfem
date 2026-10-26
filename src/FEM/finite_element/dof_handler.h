@@ -7,11 +7,23 @@
 #include <vector>
 #include "finite_element.h"
 
+// forward declaration
+namespace nsfem::mesh {
 struct Mesh;
+struct Node;
+struct Element;
+struct Edge;
+enum class ElementType;
+constexpr bool is_triangle_type(const ElementType type);
+}  // namespace nsfem::mesh
+
+namespace nsfem::fem {
+
+using nsfem::fem::FE;
 
 class DOFHandler {
  public:
-  DOFHandler(const Mesh& mesh, const FE& element);
+  DOFHandler(const nsfem::mesh::Mesh& mesh, const FE& element);
 
   std::size_t get_global_ndofs() const;
   //   Returns the global DOF positions for the given element
@@ -27,7 +39,7 @@ class DOFHandler {
       const std::size_t endpoint_b) const;
 
  private:
-  const Mesh& mesh;
+  const nsfem::mesh::Mesh& mesh;
   std::size_t global_ndofs{};
   std::vector<int> local_to_global{};
   std::vector<std::vector<std::size_t>> element_dof_indices;
@@ -35,5 +47,7 @@ class DOFHandler {
   //   Global solution DOFs, mapped by unique mesh edge
   std::vector<std::vector<std::size_t>> edge_global_dofs;
 };
+
+}  // namespace nsfem::fem
 
 #endif

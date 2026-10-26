@@ -1,5 +1,7 @@
 #include "fe_mapping.h"
 
+namespace nsfem::mapping {
+
 FEMap2D::FEMap2D(const Element& mesh_element,
                  const std::vector<Node>& nodes_,
                  const FE& element_)
@@ -64,3 +66,5 @@ Matrix2d FEMap2D::jacobianInvT(const RefNode& pt) const {
 
   return J.inverse().transpose();
 }
+
+}  // namespace nsfem::mapping

@@ -7,7 +7,9 @@
 #include "FEM/assemble/assemble.h"
 #include "helpers/helpers.h"
 
+using namespace nsfem::assembly;
 using Eigen::VectorXd;
+using nsfem::fem::FEType;
 using SparseMatrix = Eigen::SparseMatrix<double>;
 
 /**

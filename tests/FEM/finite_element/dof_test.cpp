@@ -6,6 +6,8 @@
 #include "helpers/helpers.h"
 #include "mesh/mesh.h"
 
+using nsfem::fem::FEType;
+
 /**
  * Test DOFHandler on a mesh consisting of 2 triangles with a shared edge:
  * Nodes:

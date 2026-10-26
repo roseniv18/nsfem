@@ -6,6 +6,7 @@
 #include "FEM/quadrature/quadrature.h"
 #include "finite_element.h"
 
+namespace nsfem::fem {
 // Quadratic Lagrange Triangle
 class P2_FE : public FE {
  public:
@@ -34,5 +35,6 @@ class P2_FE : public FE {
   std::vector<DOF> dofs;
   std::vector<RefNode> ref_nodes;
 };
+}  // namespace nsfem::fem
 
 #endif
