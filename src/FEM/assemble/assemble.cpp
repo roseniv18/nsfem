@@ -67,7 +67,7 @@ MatrixXd gen_local_mass_matr(const FEMap2D& mapping, const FE& element) {
 SparseMatrix asm_mass_matrix(const Mesh& mesh,
                              const FE& fe,
                              const DOFHandler& dofh) {
-  const int global_ndofs = dofh.get_global_ndofs();
+  const std::size_t global_ndofs = dofh.get_global_ndofs();
   const int local_ndofs = fe.get_ndofs();
 
   const Eigen::Index n = static_cast<Eigen::Index>(global_ndofs);
@@ -120,7 +120,7 @@ SparseMatrix asm_mass_matrix(const Mesh& mesh,
 SparseMatrix asm_stiffness_matrix(const Mesh& mesh,
                                   const FE& fe,
                                   const DOFHandler& dofh) {
-  const int global_ndofs = dofh.get_global_ndofs();
+  const std::size_t global_ndofs = dofh.get_global_ndofs();
   const int local_ndofs = fe.get_ndofs();
 
   const Eigen::Index n = static_cast<Eigen::Index>(global_ndofs);
@@ -203,7 +203,7 @@ VectorXd asm_global_vec(const Mesh& mesh,
                         const DOFHandler& dofh,
                         STFunction func,
                         double t) {
-  const int global_ndofs = dofh.get_global_ndofs();
+  const std::size_t global_ndofs = dofh.get_global_ndofs();
 
   VectorXd gl_vector = VectorXd::Zero(global_ndofs);
 
@@ -228,6 +228,147 @@ VectorXd asm_global_vec(const Mesh& mesh,
   }
 
   return gl_vector;
+}
+
+MatrixXd gen_local_velocity_stiffness_matr(const FEMap2D& mapping,
+                                           const FE& fe,
+                                           const double viscosity = 1.0) {
+  const int ndofs = fe.get_ndofs();
+
+  // ndofs vector basis functions with 2 components each
+  MatrixXd K = MatrixXd::Zero(2 * ndofs, 2 * ndofs);
+
+  for (std::size_t q = 0; q < quad_nodes.size(); q++) {
+    const RefNode& pt = quad_nodes.at(q);
+    const double weight = quad_weights.at(q);
+
+    const double detJ = std::abs(mapping.det_jacobian(pt));
+    const auto grad_bfs = fe.evaluate_grad_bfs(pt);
+    const auto JinvT = mapping.jacobianInvT(pt);
+
+    // ref grad -> phys grad
+    std::vector<Eigen::Vector2d> phys_grads(ndofs);
+    for (int i = 0; i < ndofs; i++) {
+      const Eigen::Vector2d ref_grad(grad_bfs.at(i).at(0),
+                                     grad_bfs.at(i).at(1));
+
+      phys_grads.at(i) = JinvT * ref_grad;
+    }
+
+    for (int i = 0; i < ndofs; i++) {
+      for (int j = 0; j < ndofs; j++) {
+        const double kij =
+            viscosity * weight * detJ * phys_grads.at(i).dot(phys_grads.at(j));
+
+        K(i, j) += kij;
+
+        K(ndofs + i, ndofs + j) += kij;
+      }
+    }
+  }
+
+  return K;
+}
+
+MatrixXd gen_local_velocity_pressure_matr(const FEMap2D& mapping,
+                                          const FE& velocity_fe,
+                                          const FE& pressure_fe) {
+  const int velocity_ndofs = velocity_fe.get_ndofs();
+  const int pressure_ndofs = pressure_fe.get_ndofs();
+
+  MatrixXd B = MatrixXd::Zero(2 * velocity_ndofs, pressure_ndofs);
+
+  for (std::size_t q = 0; q < quad_nodes.size(); q++) {
+    const RefNode pt = quad_nodes.at(q);
+    const double weight = quad_weights.at(q);
+
+    const auto vel_grad_bfs = velocity_fe.evaluate_grad_bfs(pt);
+    const auto p_bfs = pressure_fe.evaluate_bfs(pt);
+
+    const auto detJ = mapping.det_jacobian(pt);
+    const auto JinvT = mapping.jacobianInvT(pt);
+
+    std::vector<Eigen::Vector2d> phys_grads(velocity_ndofs);
+
+    for (int i = 0; i < velocity_ndofs; i++) {
+      const Eigen::Vector2d grad_ref(vel_grad_bfs.at(i).at(0),
+                                     vel_grad_bfs.at(i).at(1));
+
+      phys_grads.at(i) = JinvT * grad_ref;
+    }
+
+    for (int i = 0; i < velocity_ndofs; i++) {
+      for (int a = 0; a < pressure_ndofs; a++) {
+        B(i, a) += std::abs(detJ) * weight * p_bfs.at(a) * phys_grads.at(i).x();
+
+        B(i + velocity_ndofs, a) +=
+            std::abs(detJ) * weight * p_bfs.at(a) * phys_grads.at(i).y();
+      }
+    }
+  }
+
+  return B;
+}
+
+VectorXd gen_local_stokes_forcing_vector(const FEMap2D& mapping,
+                                         const FE& velocity_fe,
+                                         const VecFunction& forcing) {
+  const int velocity_ndofs = velocity_fe.get_ndofs();
+
+  VectorXd F = VectorXd::Zero(2 * velocity_ndofs);
+
+  for (std::size_t q = 0; q < quad_nodes.size(); q++) {
+    const RefNode& pt = quad_nodes.at(q);
+
+    const double weight = quad_weights.at(q);
+
+    const auto bfs = velocity_fe.evaluate_bfs(pt);
+
+    const auto detJ = mapping.det_jacobian(pt);
+    const PhysNode phys_point = mapping.physical_point(pt);
+
+    const Eigen::Vector2d f = forcing(phys_point.x, phys_point.y);
+
+    for (int i = 0; i < velocity_ndofs; i++) {
+      F(i) += weight * std::abs(detJ) * bfs.at(i) * f.x();
+      F(velocity_ndofs + i) += weight * std::abs(detJ) * bfs.at(i) * f.y();
+    }
+  }
+
+  return F;
+}
+
+SparseMatrix asm_stokes_system(const Mesh& mesh,
+                               const FE& velocity_fe,
+                               const FE& pressure_fe,
+                               const DOFHandler& velocity_dofh,
+                               const DOFHandler& pressure_dofh,
+                               VecFunction stokes_f_func) {
+  const std::size_t velocity_ndofs = velocity_dofh.get_global_ndofs();
+  const std::size_t pressure_ndofs = pressure_dofh.get_global_ndofs();
+  const int local_velocity_ndofs = 2 * velocity_fe.get_ndofs();
+  const int local_pressure_ndofs = pressure_fe.get_ndofs();
+
+  const std::size_t global_ndofs = 2 * velocity_ndofs + pressure_ndofs;
+
+  const Eigen::Index n = static_cast<Eigen::Index>(global_ndofs);
+
+  std::vector<Eigen::Triplet<double>> triplets_vel_stiffness;
+  std::vector<Eigen::Triplet<double>> triplets_vel_pressure_coupling;
+
+  triplets_vel_stiffness.reserve(mesh.elements.size() * local_velocity_ndofs *
+                                 local_velocity_ndofs);
+
+  triplets_vel_pressure_coupling.reserve(
+      mesh.elements.size() * local_velocity_ndofs * local_pressure_ndofs);
+
+  //   Local velocity stiffness matrix
+  MatrixXd lvs_matrix =
+      MatrixXd::Zero(local_velocity_ndofs, local_velocity_ndofs);
+
+  //   Local velocity-pressure coupling matrix
+  MatrixXd lvp_matrix =
+      MatrixXd::Zero(local_velocity_ndofs, local_pressure_ndofs);
 }
 
 // apply Dirichlet boundary conditions

@@ -13,15 +13,17 @@ HeatEq::HeatEq(const Mesh& mesh_,
                double T_,
                STFunction h_func_,
                STFunction h_dir_func_)
-    : mesh(mesh_), fe(fe_), dofh(dofh_) {
+    : mesh(mesh_),
+      fe(fe_),
+      dofh(dofh_),
+      h_func(h_func_),
+      h_dir_func(h_dir_func_) {
   if (dt_ <= 1e-14 || T_ <= 1e-14)
     throw std::invalid_argument("Timestep dt and time T must be > 0");
 
   dt = dt_;
   T = T_;
   n_steps = static_cast<int>(T_ / dt_);
-  h_func = std::move(h_func_);
-  h_dir_func = std::move(h_dir_func_);
 
   const int global_ndofs = dofh.get_global_ndofs();
 

@@ -41,6 +41,7 @@ add_library(fem
 	src/linalg/conjugate_gradient.cpp
 	src/solvers/heat_eq/heat_eq.cpp
 	src/solvers/poisson/poisson.cpp
+	src/solvers/stokes/stokes.cpp
 	src/helpers/helpers.cpp
 )
 
@@ -64,6 +65,9 @@ add_executable(tests
 	tests/FEM/finite_element/dof_test.cpp 
 	tests/FEM/assemble/local_stiffness_matrix_test.cpp
 	tests/FEM/assemble/local_mass_matrix_test.cpp
+	tests/FEM/assemble/local_velocity_stiffness_matrix_test.cpp
+	tests/FEM/assemble/local_velocity_pressure_matrix_test.cpp
+	tests/FEM/assemble/local_forcing_vector_test.cpp
 	tests/FEM/assemble/assembly_test.cpp
 	tests/FEM/assemble/dirichlet_bc_test.cpp
 	tests/FEM/assemble/mixed_order_test.cpp

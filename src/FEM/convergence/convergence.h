@@ -35,6 +35,9 @@ double global_l2_err(const Mesh& mesh,
                      STFunction exact_sol,
                      const double t);
 
+//  STOKES
+Eigen::Vector2d stokes_func(const double x, const double y);
+
 //  POISSON
 double dir_func(const double x, const double y, const double t = 0.0);
 double func(const double x, const double y, const double t = 0.0);

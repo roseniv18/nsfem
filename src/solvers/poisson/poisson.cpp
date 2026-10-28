@@ -9,10 +9,7 @@ Poisson::Poisson(const Mesh& mesh_,
                  const DOFHandler& dofh_,
                  STFunction f_func_,
                  STFunction dir_func_)
-    : mesh(mesh_), fe(fe_), dofh(dofh_) {
-  f_func = std::move(f_func_);
-  dir_func = std::move(dir_func_);
-
+    : mesh(mesh_), fe(fe_), dofh(dofh_), f_func(f_func_), dir_func(dir_func_) {
   rhs_vec.resize(dofh.get_global_ndofs());
 }
 

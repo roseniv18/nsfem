@@ -52,6 +52,29 @@ VectorXd asm_global_vec(const Mesh& mesh,
                         STFunction func,
                         double t);
 
+// generate local velocity stiffness matrix (stokes)
+MatrixXd gen_local_velocity_stiffness_matr(const FEMap2D& mapping,
+                                           const FE& fe,
+                                           const double viscosity);
+
+// generate local velocity-pressure coupling matrix (stokes)
+MatrixXd gen_local_velocity_pressure_matr(const FEMap2D& mapping,
+                                          const FE& velocity_fe,
+                                          const FE& pressure_fe);
+
+// generate local forcing vector for Stokes
+VectorXd gen_local_stokes_forcing_vector(const FEMap2D& mapping,
+                                         const FE& velocity_fe,
+                                         const VecFunction& forcing);
+
+// assemble Stokes system
+SparseMatrix asm_stokes_system(const Mesh& mesh,
+                               const FE& velocity_fe,
+                               const FE& pressure_fe,
+                               const DOFHandler& velocity_dofh,
+                               const DOFHandler& pressure_dofh,
+                               VecFunction stokes_f_func);
+
 // apply Dirichlet boundary conditions
 void apply_dirichlet_bc(SparseMatrix& A,
                         VectorXd& vec,

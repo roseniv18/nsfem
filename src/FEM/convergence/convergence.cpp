@@ -82,6 +82,27 @@ double global_l2_err(const Mesh& mesh,
   return std::sqrt(l2_error_sq);
 }
 
+/** STOKES
+ * Analytical solution of -Δu + ∇p = f,  ∇·u = 0 (ν = 1)
+ * u_x(x,y) = sin²(πx) * sin(2πy)
+ * u_y(x,y) = -sin(2πx) * sin²(πy)
+ * p(x,y) = cos(πx) * cos(πy) (exact pressure solution)
+ * f = -Δu + ∇p (forcing term)
+ * u(.,.) = 0, dOmega (homogeneous Dirichlet BC)
+ * ∫_Ω p dΩ = 0 (zero-mean pressure constraint)
+ * domain is unit square [0,1] X [0,1]
+ */
+Eigen::Vector2d func(const double x, const double y) {
+  return Eigen::Vector2d(
+      -2.0 * pi * pi * cos(2.0 * pi * x) * sin(2.0 * pi * y) +
+          4.0 * pi * pi * sin(pi * x) * sin(pi * x) * sin(2.0 * pi * y) -
+          pi * sin(pi * x) * cos(pi * y),
+
+      -4.0 * pi * pi * sin(2.0 * pi * x) * sin(pi * y) * sin(pi * y) +
+          2.0 * pi * pi * sin(2.0 * pi * x) * cos(2.0 * pi * y) -
+          pi * cos(pi * x) * sin(pi * y));
+}
+
 /** POISSON
  * Analytical solution of -𝚫u = 2π^2*sin(πx)*sin(πy)
  * u = 0, boundary
@@ -97,7 +118,7 @@ double dir_func(const double, const double, const double) {
 // RHS Function
 // ? params: x,y,t
 double func(const double x, const double y, const double) {
-  return 2 * pi * pi * sin(pi * x) * sin(pi * y);
+  return 2.0 * pi * pi * sin(pi * x) * sin(pi * y);
 }
 
 // Analytical Solution Function
@@ -181,7 +202,7 @@ double h_func(const double, const double, const double) {
 // Analytical Solution Function
 // ? params: x,y,t
 double h_sol_func(const double x, const double y, const double t) {
-  return sin(pi * x) * sin(pi * y) * exp(-2 * pi * pi * t);
+  return sin(pi * x) * sin(pi * y) * exp(-2.0 * pi * pi * t);
 }
 
 // Initial Condition
