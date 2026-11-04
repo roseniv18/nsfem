@@ -338,12 +338,12 @@ VectorXd gen_local_stokes_forcing_vector(const FEMap2D& mapping,
   return F;
 }
 
-SparseMatrix asm_stokes_system(const Mesh& mesh,
+SparseMatrix asm_stokes_matrix(const Mesh& mesh,
                                const FE& velocity_fe,
                                const FE& pressure_fe,
                                const DOFHandler& velocity_dofh,
                                const DOFHandler& pressure_dofh,
-                               VecFunction stokes_f_func) {
+                               const double viscosity) {
   const std::size_t velocity_ndofs = velocity_dofh.get_global_ndofs();
   const std::size_t pressure_ndofs = pressure_dofh.get_global_ndofs();
   const int local_velocity_ndofs = 2 * velocity_fe.get_ndofs();
@@ -351,24 +351,176 @@ SparseMatrix asm_stokes_system(const Mesh& mesh,
 
   const std::size_t global_ndofs = 2 * velocity_ndofs + pressure_ndofs;
 
-  const Eigen::Index n = static_cast<Eigen::Index>(global_ndofs);
+  //   Global ordering follows component-major layout: [ux, uy, p]
+  const Eigen::Index velocity_offset =
+      static_cast<Eigen::Index>(velocity_ndofs);
 
-  std::vector<Eigen::Triplet<double>> triplets_vel_stiffness;
-  std::vector<Eigen::Triplet<double>> triplets_vel_pressure_coupling;
+  const Eigen::Index pressure_offset = 2 * velocity_offset;
 
-  triplets_vel_stiffness.reserve(mesh.elements.size() * local_velocity_ndofs *
-                                 local_velocity_ndofs);
+  std::vector<Eigen::Triplet<double>> triplets;
 
-  triplets_vel_pressure_coupling.reserve(
-      mesh.elements.size() * local_velocity_ndofs * local_pressure_ndofs);
+  const std::size_t entries_per_element =
+      static_cast<std::size_t>(local_velocity_ndofs) * local_velocity_ndofs +
+      2 * static_cast<std::size_t>(local_velocity_ndofs) * local_pressure_ndofs;
 
-  //   Local velocity stiffness matrix
-  MatrixXd lvs_matrix =
-      MatrixXd::Zero(local_velocity_ndofs, local_velocity_ndofs);
+  triplets.reserve(mesh.elements.size() * entries_per_element);
 
-  //   Local velocity-pressure coupling matrix
-  MatrixXd lvp_matrix =
-      MatrixXd::Zero(local_velocity_ndofs, local_pressure_ndofs);
+  for (std::size_t e = 0; e < mesh.elements.size(); e++) {
+    const Element& element = mesh.elements.at(e);
+
+    if (!is_triangle_type(element.type))
+      continue;
+
+    const auto el_nodes = get_element_nodes(element, mesh);
+
+    const auto el_vel_dofs = velocity_dofh.get_element_dof_indices(e);
+
+    const auto el_pres_dofs = pressure_dofh.get_element_dof_indices(e);
+
+    const auto fe_geo = FE::build_geo_type(element.type);
+
+    const FEMap2D mapping(element, el_nodes, *fe_geo);
+
+    // local velocity stiffness matrix
+    const MatrixXd K =
+        gen_local_velocity_stiffness_matr(mapping, velocity_fe, viscosity);
+
+    // local velocity-pressure coupling matrix
+    const MatrixXd B =
+        gen_local_velocity_pressure_matr(mapping, velocity_fe, pressure_fe);
+
+    /**
+     * Map local velocity DOF to global index
+     * ? This is not good code. The assembler should not need to manipulate the
+     * ? local->global DOF mapping. A better approach will be for a small Vector
+     * ? FE wrapper to handle local vector DOFs, and a Vector DOFHandler for
+     * ? the local->global map.
+     */
+    const auto global_velocity_dof = [&](const int local_dof) -> Eigen::Index {
+      const bool is_uy = local_dof >= local_velocity_ndofs;
+
+      const int scalar_local_dof =
+          is_uy ? local_dof - local_velocity_ndofs : local_dof;
+
+      const Eigen::Index scalar_global_dof =
+          static_cast<Eigen::Index>(el_vel_dofs.at(scalar_local_dof));
+
+      return scalar_global_dof + (is_uy ? velocity_offset : 0);
+    };
+
+    // Assemble velocity stiffness block
+    for (int i = 0; i < local_velocity_ndofs; i++) {
+      const Eigen::Index I = global_velocity_dof(i);
+
+      for (int j = 0; j < local_velocity_ndofs; j++) {
+        const double value = K(i, j);
+
+        if (value == 0.0)
+          continue;
+
+        const Eigen::Index J = global_velocity_dof(j);
+
+        triplets.emplace_back(I, J, value);
+      }
+    }
+
+    // Assemble pressure-velocity coupling block
+    for (int i = 0; i < local_velocity_ndofs; i++) {
+      const Eigen::Index I = global_velocity_dof(i);
+
+      for (int j = 0; j < local_pressure_ndofs; j++) {
+        const double value = -B(i, j);
+
+        if (value == 0.0)
+          continue;
+
+        const Eigen::Index J =
+            pressure_offset + static_cast<Eigen::Index>(el_pres_dofs.at(j));
+
+        triplets.emplace_back(I, J, value);
+        triplets.emplace_back(J, I, value);
+      }
+    }
+  }
+
+  SparseMatrix A(global_ndofs, global_ndofs);
+
+  A.setFromTriplets(triplets.begin(), triplets.end());
+
+  A.makeCompressed();
+
+  return A;
+}
+
+VectorXd asm_stokes_rhs(const Mesh& mesh,
+                        const FE& velocity_fe,
+                        const FE& pressure_fe,
+                        const DOFHandler& velocity_dofh,
+                        const DOFHandler& pressure_dofh,
+                        VecFunction stokes_f_func) {
+  const std::size_t velocity_ndofs = velocity_dofh.get_global_ndofs();
+  const std::size_t pressure_ndofs = pressure_dofh.get_global_ndofs();
+  const int local_velocity_ndofs = 2 * velocity_fe.get_ndofs();
+
+  const std::size_t global_ndofs = 2 * velocity_ndofs + pressure_ndofs;
+
+  //   Global ordering follows component-major layout: [ux, uy, p]
+  const Eigen::Index velocity_offset =
+      static_cast<Eigen::Index>(velocity_ndofs);
+
+  VectorXd rhs = VectorXd::Zero(global_ndofs);
+
+  for (std::size_t e = 0; e < mesh.elements.size(); e++) {
+    const Element& element = mesh.elements.at(e);
+
+    if (!is_triangle_type(element.type))
+      continue;
+
+    for (std::size_t e = 0; e < mesh.elements.size(); e++) {
+      const Element& element = mesh.elements.at(e);
+
+      if (!is_triangle_type(element.type))
+        continue;
+
+      const auto el_nodes = get_element_nodes(element, mesh);
+
+      const auto el_vel_dofs = velocity_dofh.get_element_dof_indices(e);
+
+      const auto el_pres_dofs = pressure_dofh.get_element_dof_indices(e);
+
+      const auto global_velocity_dof =
+          [&](const int local_dof) -> Eigen::Index {
+        const bool is_uy = local_dof >= local_velocity_ndofs;
+
+        const int scalar_local_dof =
+            is_uy ? local_dof - local_velocity_ndofs : local_dof;
+
+        const Eigen::Index scalar_global_dof =
+            static_cast<Eigen::Index>(el_vel_dofs.at(scalar_local_dof));
+
+        return scalar_global_dof + (is_uy ? velocity_offset : 0);
+      };
+
+      const auto fe_geo = FE::build_geo_type(element.type);
+
+      const FEMap2D mapping(element, el_nodes, *fe_geo);
+
+      // local forcing vector
+      const VectorXd F =
+          gen_local_stokes_forcing_vector(mapping, velocity_fe, stokes_f_func);
+
+      // Assemble global forcing vector
+      for (int i = 0; i < local_velocity_ndofs; i++) {
+        const Eigen::Index I = global_velocity_dof(i);
+
+        rhs(I) += F(i);
+
+        //   pressure part is 0
+      }
+    }
+  }
+
+  return rhs;
 }
 
 // apply Dirichlet boundary conditions
@@ -393,8 +545,8 @@ void apply_dirichlet_bc_matr(SparseMatrix& A,
       const Eigen::Index row = it.row();
       const Eigen::Index col = it.col();
 
-      // Copy the original value unchanged, if the row and col are not Dirichlet
-      // otherwise, leave row and col value of 0
+      // Copy the original value unchanged, if the row and col are not
+      // Dirichlet otherwise, leave row and col value of 0
       if (!is_dirichlet.at(row) && !is_dirichlet.at(col)) {
         triplets.emplace_back(row, col, it.value());
       }

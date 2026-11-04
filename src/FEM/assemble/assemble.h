@@ -21,7 +21,8 @@ using Eigen::MatrixXd, Eigen::VectorXd;
 using SparseMatrix = Eigen::SparseMatrix<double>;
 using nsfem::fem::FE, nsfem::fem::DOFHandler;
 using nsfem::mapping::FEMap2D;
-using nsfem::mesh::Mesh, nsfem::mesh::Element, nsfem::mesh::is_triangle_type;
+using nsfem::mesh::Mesh, nsfem::mesh::Element, nsfem::mesh::is_triangle_type,
+    nsfem::mesh::get_element_nodes;
 
 // generate a local stiffness matrix for given element
 MatrixXd gen_local_stiffness_matr(const FEMap2D& mapping, const FE& fe);
@@ -62,18 +63,26 @@ MatrixXd gen_local_velocity_pressure_matr(const FEMap2D& mapping,
                                           const FE& velocity_fe,
                                           const FE& pressure_fe);
 
+// assemble Stokes system
+SparseMatrix asm_stokes_matrix(const Mesh& mesh,
+                               const FE& velocity_fe,
+                               const FE& pressure_fe,
+                               const DOFHandler& velocity_dofh,
+                               const DOFHandler& pressure_dofh,
+                               double viscosity);
+
 // generate local forcing vector for Stokes
 VectorXd gen_local_stokes_forcing_vector(const FEMap2D& mapping,
                                          const FE& velocity_fe,
                                          const VecFunction& forcing);
 
-// assemble Stokes system
-SparseMatrix asm_stokes_system(const Mesh& mesh,
-                               const FE& velocity_fe,
-                               const FE& pressure_fe,
-                               const DOFHandler& velocity_dofh,
-                               const DOFHandler& pressure_dofh,
-                               VecFunction stokes_f_func);
+//  assemble global Stokes RHS
+VectorXd asm_stokes_rhs(const Mesh& mesh,
+                        const FE& velocity_fe,
+                        const FE& pressure_fe,
+                        const DOFHandler& velocity_dofh,
+                        const DOFHandler& pressure_dofh,
+                        VecFunction stokes_f_func);
 
 // apply Dirichlet boundary conditions
 void apply_dirichlet_bc(SparseMatrix& A,
