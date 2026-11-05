@@ -344,16 +344,17 @@ SparseMatrix asm_stokes_matrix(const Mesh& mesh,
                                const DOFHandler& velocity_dofh,
                                const DOFHandler& pressure_dofh,
                                const double viscosity) {
-  const std::size_t velocity_ndofs = velocity_dofh.get_global_ndofs();
-  const std::size_t pressure_ndofs = pressure_dofh.get_global_ndofs();
-  const int local_velocity_ndofs = 2 * velocity_fe.get_ndofs();
+  const std::size_t global_vel_ndofs = velocity_dofh.get_global_ndofs();
+  const std::size_t global_pres_ndofs = pressure_dofh.get_global_ndofs();
+  const int n_vel = velocity_fe.get_ndofs();
+  const int local_velocity_ndofs = 2 * n_vel;
   const int local_pressure_ndofs = pressure_fe.get_ndofs();
 
-  const std::size_t global_ndofs = 2 * velocity_ndofs + pressure_ndofs;
+  const std::size_t global_ndofs = 2 * global_vel_ndofs + global_pres_ndofs;
 
   //   Global ordering follows component-major layout: [ux, uy, p]
   const Eigen::Index velocity_offset =
-      static_cast<Eigen::Index>(velocity_ndofs);
+      static_cast<Eigen::Index>(global_vel_ndofs);
 
   const Eigen::Index pressure_offset = 2 * velocity_offset;
 
@@ -397,10 +398,9 @@ SparseMatrix asm_stokes_matrix(const Mesh& mesh,
      * ? the local->global map.
      */
     const auto global_velocity_dof = [&](const int local_dof) -> Eigen::Index {
-      const bool is_uy = local_dof >= local_velocity_ndofs;
+      const bool is_uy = local_dof >= n_vel;
 
-      const int scalar_local_dof =
-          is_uy ? local_dof - local_velocity_ndofs : local_dof;
+      const int scalar_local_dof = is_uy ? local_dof - n_vel : local_dof;
 
       const Eigen::Index scalar_global_dof =
           static_cast<Eigen::Index>(el_vel_dofs.at(scalar_local_dof));
@@ -454,19 +454,19 @@ SparseMatrix asm_stokes_matrix(const Mesh& mesh,
 
 VectorXd asm_stokes_rhs(const Mesh& mesh,
                         const FE& velocity_fe,
-                        const FE& pressure_fe,
                         const DOFHandler& velocity_dofh,
                         const DOFHandler& pressure_dofh,
                         VecFunction stokes_f_func) {
-  const std::size_t velocity_ndofs = velocity_dofh.get_global_ndofs();
+  const std::size_t global_vel_ndofs = velocity_dofh.get_global_ndofs();
   const std::size_t pressure_ndofs = pressure_dofh.get_global_ndofs();
-  const int local_velocity_ndofs = 2 * velocity_fe.get_ndofs();
+  const int n_vel = velocity_fe.get_ndofs();
+  const int local_velocity_ndofs = 2 * n_vel;
 
-  const std::size_t global_ndofs = 2 * velocity_ndofs + pressure_ndofs;
+  const std::size_t global_ndofs = 2 * global_vel_ndofs + pressure_ndofs;
 
   //   Global ordering follows component-major layout: [ux, uy, p]
   const Eigen::Index velocity_offset =
-      static_cast<Eigen::Index>(velocity_ndofs);
+      static_cast<Eigen::Index>(global_vel_ndofs);
 
   VectorXd rhs = VectorXd::Zero(global_ndofs);
 
@@ -476,47 +476,38 @@ VectorXd asm_stokes_rhs(const Mesh& mesh,
     if (!is_triangle_type(element.type))
       continue;
 
-    for (std::size_t e = 0; e < mesh.elements.size(); e++) {
-      const Element& element = mesh.elements.at(e);
+    const auto el_nodes = get_element_nodes(element, mesh);
 
-      if (!is_triangle_type(element.type))
-        continue;
+    const auto el_vel_dofs = velocity_dofh.get_element_dof_indices(e);
 
-      const auto el_nodes = get_element_nodes(element, mesh);
+    const auto el_pres_dofs = pressure_dofh.get_element_dof_indices(e);
 
-      const auto el_vel_dofs = velocity_dofh.get_element_dof_indices(e);
+    const auto global_velocity_dof = [&](const int local_dof) -> Eigen::Index {
+      const bool is_uy = local_dof >= n_vel;
 
-      const auto el_pres_dofs = pressure_dofh.get_element_dof_indices(e);
+      const int scalar_local_dof = is_uy ? local_dof - n_vel : local_dof;
 
-      const auto global_velocity_dof =
-          [&](const int local_dof) -> Eigen::Index {
-        const bool is_uy = local_dof >= local_velocity_ndofs;
+      const Eigen::Index scalar_global_dof =
+          static_cast<Eigen::Index>(el_vel_dofs.at(scalar_local_dof));
 
-        const int scalar_local_dof =
-            is_uy ? local_dof - local_velocity_ndofs : local_dof;
+      return scalar_global_dof + (is_uy ? velocity_offset : 0);
+    };
 
-        const Eigen::Index scalar_global_dof =
-            static_cast<Eigen::Index>(el_vel_dofs.at(scalar_local_dof));
+    const auto fe_geo = FE::build_geo_type(element.type);
 
-        return scalar_global_dof + (is_uy ? velocity_offset : 0);
-      };
+    const FEMap2D mapping(element, el_nodes, *fe_geo);
 
-      const auto fe_geo = FE::build_geo_type(element.type);
+    // local forcing vector
+    const VectorXd F =
+        gen_local_stokes_forcing_vector(mapping, velocity_fe, stokes_f_func);
 
-      const FEMap2D mapping(element, el_nodes, *fe_geo);
+    // Assemble global forcing vector
+    for (int i = 0; i < local_velocity_ndofs; i++) {
+      const Eigen::Index I = global_velocity_dof(i);
 
-      // local forcing vector
-      const VectorXd F =
-          gen_local_stokes_forcing_vector(mapping, velocity_fe, stokes_f_func);
+      rhs(I) += F(i);
 
-      // Assemble global forcing vector
-      for (int i = 0; i < local_velocity_ndofs; i++) {
-        const Eigen::Index I = global_velocity_dof(i);
-
-        rhs(I) += F(i);
-
-        //   pressure part is 0
-      }
+      //   pressure part is 0
     }
   }
 

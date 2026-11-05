@@ -79,7 +79,6 @@ VectorXd gen_local_stokes_forcing_vector(const FEMap2D& mapping,
 //  assemble global Stokes RHS
 VectorXd asm_stokes_rhs(const Mesh& mesh,
                         const FE& velocity_fe,
-                        const FE& pressure_fe,
                         const DOFHandler& velocity_dofh,
                         const DOFHandler& pressure_dofh,
                         VecFunction stokes_f_func);

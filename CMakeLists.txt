@@ -69,6 +69,7 @@ add_executable(tests
 	tests/FEM/assemble/local_velocity_pressure_matrix_test.cpp
 	tests/FEM/assemble/local_forcing_vector_test.cpp
 	tests/FEM/assemble/assembly_test.cpp
+	tests/FEM/assemble/stokes_assembly_test.cpp
 	tests/FEM/assemble/dirichlet_bc_test.cpp
 	tests/FEM/assemble/mixed_order_test.cpp
 	tests/linalg/cg_test.cpp
