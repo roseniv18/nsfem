@@ -13,9 +13,12 @@ DOFHandler::DOFHandler(const Mesh& mesh_, const FE& element) : mesh(mesh_) {
   const int local_ndofs = element.get_ndofs();
   const std::vector<DOF> fe_dofs = element.get_dofs();
 
+  const std::size_t n_nodes = mesh.nodes.size();
+  const std::size_t n_uedges = mesh.unique_edges.size();
+
   //   Determine the number of global DOFs
   // Create a vector that maps geometric nodes to unique vertex DOFs
-  node_to_vertex_dof.assign(mesh.nodes.size(), invalid_dof);
+  node_to_vertex_dof.assign(n_nodes, invalid_dof);
 
   std::size_t n_vertex_dofs = 0;
 
@@ -40,13 +43,13 @@ DOFHandler::DOFHandler(const Mesh& mesh_, const FE& element) : mesh(mesh_) {
   global_ndofs = n_vertex_dofs;
 
   if (element.has_edge_dofs())
-    global_ndofs += element.n_edge_dofs() * mesh.unique_edges.size();
+    global_ndofs += element.n_edge_dofs() * n_uedges;
 
-  edge_global_dofs.resize(mesh.unique_edges.size());
+  edge_global_dofs.resize(n_uedges);
   const std::size_t dofs_per_edge = element.n_edge_dofs();
   std::size_t next_dof = n_vertex_dofs;
 
-  for (std::size_t e = 0; e < mesh.unique_edges.size(); e++) {
+  for (std::size_t e = 0; e < n_uedges; e++) {
     auto& edge_dofs = edge_global_dofs.at(e);
 
     edge_dofs.resize(dofs_per_edge);
@@ -93,7 +96,7 @@ DOFHandler::DOFHandler(const Mesh& mesh_, const FE& element) : mesh(mesh_) {
           mapping.at(dof.local_index) = node_to_vertex_dof.at(node_id);
           break;
         }
-        //   Global Edge DOF index are offset with
+        //   Global Edge DOF index are offset with n_vertex_dofs (next_dof)
         case DOFLoc::Edge: {
           const std::size_t edge_id =
               mesh_element.edge_ids.at(dof.entity_index);

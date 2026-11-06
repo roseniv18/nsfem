@@ -7,6 +7,17 @@
 #include <vector>
 #include "finite_element.h"
 
+/** ------------------
+ *
+ * DOFHandler
+ *
+ * Handles the mapping from local degrees of freedom to global degrees of
+ * freedom, which are then used in the assembly phase and the Dirichlet boundary
+ * condition modification phase.
+ *
+ * ------------------
+ */
+
 // forward declaration
 namespace nsfem::mesh {
 struct Mesh;
@@ -25,7 +36,9 @@ class DOFHandler {
  public:
   DOFHandler(const nsfem::mesh::Mesh& mesh, const FE& element);
 
+  // Returns the amount of global DOFs
   std::size_t get_global_ndofs() const;
+
   //   Returns the global DOF positions for the given element
   std::vector<std::size_t> get_element_dof_indices(
       std::size_t element_id) const;
@@ -40,11 +53,13 @@ class DOFHandler {
 
  private:
   const nsfem::mesh::Mesh& mesh;
+  //   Amount of global DOFs
   std::size_t global_ndofs{};
-  std::vector<int> local_to_global{};
+  //   Matrix which associates each triangular element with a set of global DOFs
   std::vector<std::vector<std::size_t>> element_dof_indices;
+  //   Map global mesh node to unique global vertex DOF
   std::vector<std::size_t> node_to_vertex_dof;
-  //   Global solution DOFs, mapped by unique mesh edge
+  //   Map global mesh edges to a set of unique global edge DOFs
   std::vector<std::vector<std::size_t>> edge_global_dofs;
 };
 
