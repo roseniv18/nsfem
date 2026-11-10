@@ -5,14 +5,18 @@
 #include <Eigen/Sparse>
 #include <vector>
 #include "FEM/assemble/assemble.h"
+#include "FEM/finite_element/P1_element.h"
+#include "FEM/finite_element/P2_element.h"
 #include "FEM/finite_element/dof_handler.h"
 #include "FEM/finite_element/finite_element.h"
 #include "math/function.h"
 #include "mesh/mesh.h"
 
 namespace nsfem::solvers {
-using Eigen::VectorXd;
-using nsfem::fem::FE, nsfem::fem::DOFHandler;
+using nsfem::assembly::asm_stokes_matrix, nsfem::assembly::asm_stokes_rhs,
+    nsfem::assembly::apply_dirichlet_bc;
+using nsfem::fem::FE, nsfem::fem::P1_FE, nsfem::fem::P2_FE,
+    nsfem::fem::DOFHandler;
 using nsfem::mesh::Mesh;
 
 class Stokes {
@@ -22,10 +26,11 @@ class Stokes {
          const FE& pressure_fe,
          const DOFHandler& velocity_dofh,
          const DOFHandler& pressure_dofh,
-         STFunction stokes_f_func,
-         STFunction stokes_dir_func);
+         StokesFunction stokes_f_func,
+         VecFunction stokes_dir_func,
+         double viscosity);
 
-  VectorXd solve();
+  Eigen::VectorXd solve();
 
  private:
   const Mesh& mesh;
@@ -34,10 +39,11 @@ class Stokes {
   const DOFHandler& velocity_dofh;
   const DOFHandler& pressure_dofh;
   const std::size_t global_ndofs;
-  STFunction stokes_f_func;
-  STFunction stokes_dir_func;
+  StokesFunction stokes_f_func;
+  VecFunction stokes_dir_func;
+  double viscosity;
 
-  VectorXd rhs_vec;
+  Eigen::VectorXd rhs_vec;
 };
 }  // namespace nsfem::solvers
 

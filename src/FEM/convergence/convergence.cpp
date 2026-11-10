@@ -84,23 +84,54 @@ double global_l2_err(const Mesh& mesh,
 
 /** STOKES
  * Analytical solution of -Δu + ∇p = f,  ∇·u = 0 (ν = 1)
- * u_x(x,y) = sin²(πx) * sin(2πy)
- * u_y(x,y) = -sin(2πx) * sin²(πy)
- * p(x,y) = cos(πx) * cos(πy) (exact pressure solution)
- * f = -Δu + ∇p (forcing term)
  * u(.,.) = 0, dOmega (homogeneous Dirichlet BC)
  * ∫_Ω p dΩ = 0 (zero-mean pressure constraint)
  * domain is unit square [0,1] X [0,1]
+ *
+ * psi(x,y) = x^2(1-x)^2y^2(1-y)^2 (stream function)
+ * a(s) := s^2(1-s)^2
+ * u_x(x,y) = dPsi/dx = a(x)a'(y)
+ * u_y(x,y) = -dPsi/dy = -a'(x)a(y)
+ * p(x,y) = x
+ *
  */
-Eigen::Vector2d func(const double x, const double y) {
-  return Eigen::Vector2d(
-      -2.0 * pi * pi * cos(2.0 * pi * x) * sin(2.0 * pi * y) +
-          4.0 * pi * pi * sin(pi * x) * sin(pi * x) * sin(2.0 * pi * y) -
-          pi * sin(pi * x) * cos(pi * y),
+double a(double s) {
+  return s * s * (1.0 - s) * (1.0 - s);
+}
 
-      -4.0 * pi * pi * sin(2.0 * pi * x) * sin(pi * y) * sin(pi * y) +
-          2.0 * pi * pi * sin(2.0 * pi * x) * cos(2.0 * pi * y) -
-          pi * cos(pi * x) * sin(pi * y));
+double da(double s) {
+  return 2.0 * s - 6.0 * s * s + 4.0 * s * s * s;
+}
+
+double d2a(double s) {
+  return 2.0 - 12.0 * s + 12.0 * s * s;
+}
+
+double d3a(double s) {
+  return -12.0 + 24.0 * s;
+}
+
+Vector2d stokes_func(const double x, const double y, const double viscosity) {
+  const double fx = -viscosity * (d2a(x) * da(y) + a(x) * d3a(y)) + 1.0;
+  const double fy = viscosity * (d3a(x) * a(y) + da(x) * d2a(y));
+
+  return Vector2d(fx, fy);
+}
+
+Vector2d stokes_dir_func(const double, const double, const double) {
+  return Vector2d::Zero();
+}
+
+double stokes_ux_func(const double x, const double y, const double) {
+  return a(x) * da(y);
+}
+
+double stokes_uy_func(const double x, const double y, const double) {
+  return -da(x) * a(y);
+}
+
+double stokes_p_func(const double x, const double, const double) {
+  return x;
 }
 
 /** POISSON

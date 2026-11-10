@@ -160,4 +160,63 @@ std::vector<double> get_dirichlet_values(const Mesh& mesh,
   return values;
 }
 
+std::vector<double> get_dirichlet_values(const Mesh& mesh,
+                                         const nsfem::fem::FE& fe,
+                                         const nsfem::fem::DOFHandler& dofh,
+                                         const std::vector<bool>& is_dirichlet,
+                                         VecFunction fn,
+                                         double t) {
+  const std::size_t global_ndofs = dofh.get_global_ndofs();
+
+  // The mask contains scalar geometric DOFs
+  if (is_dirichlet.size() != global_ndofs) {
+    throw std::invalid_argument(
+        "Dirichlet DOF count does not match global "
+        "DOF count [VECTOR]");
+  }
+
+  // Component-major: [values_x, values_y]
+  std::vector<double> values(2 * global_ndofs, 0.0);
+
+  const auto ref_nodes = fe.get_ref_nodes();
+
+  if (ref_nodes.size() != static_cast<std::size_t>(fe.get_ndofs())) {
+    throw std::runtime_error(
+        "Reference node count does not match "
+        "Finite Element DOF count");
+  }
+
+  for (std::size_t e = 0; e < mesh.elements.size(); ++e) {
+    const Element& element = mesh.elements.at(e);
+
+    if (!is_triangle_type(element.type))
+      continue;
+
+    const auto element_nodes = get_element_nodes(element, mesh);
+
+    const auto geo_fe = nsfem::fem::FE::build_geo_type(element.type);
+
+    const nsfem::mapping::FEMap2D mapping(element, element_nodes, *geo_fe);
+
+    const auto element_dofs = dofh.get_element_dof_indices(e);
+
+    for (std::size_t i = 0; i < element_dofs.size(); ++i) {
+      const std::size_t global_dof = element_dofs.at(i);
+
+      if (!is_dirichlet.at(global_dof))
+        continue;
+
+      const auto phys_point = mapping.physical_point(ref_nodes.at(i));
+
+      const Eigen::Vector2d value = fn(phys_point.x, phys_point.y, t);
+
+      values.at(global_dof) = value.x();
+
+      values.at(global_ndofs + global_dof) = value.y();
+    }
+  }
+
+  return values;
+}
+
 }  // namespace nsfem::mesh

@@ -159,7 +159,10 @@ TEST(GlobalStokesAssemblyTest, GlobalRHSMatchesScalarLoadVectors) {
 
   const std::size_t N = 2 * Nu + Np;
 
-  const VecFunction forcing = [](double x, double y) -> Eigen::Vector2d {
+  const double viscosity = 1.0;
+
+  const StokesFunction forcing = [&viscosity](double x, double y,
+                                              double) -> Eigen::Vector2d {
     return Eigen::Vector2d(1.0 + x, 2.0 - y);
   };
 
@@ -167,8 +170,8 @@ TEST(GlobalStokesAssemblyTest, GlobalRHSMatchesScalarLoadVectors) {
 
   const STFunction forcing_y = [](double, double y, double) { return 2.0 - y; };
 
-  const VectorXd rhs =
-      asm_stokes_rhs(mesh, velocity_fe, velocity_dofh, pressure_dofh, forcing);
+  const VectorXd rhs = asm_stokes_rhs(mesh, velocity_fe, velocity_dofh,
+                                      pressure_dofh, forcing, viscosity);
 
   //   Independently assemble scalar load vectors
   const VectorXd F_x =

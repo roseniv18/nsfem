@@ -232,7 +232,7 @@ VectorXd asm_global_vec(const Mesh& mesh,
 
 MatrixXd gen_local_velocity_stiffness_matr(const FEMap2D& mapping,
                                            const FE& fe,
-                                           const double viscosity = 1.0) {
+                                           const double viscosity) {
   const int ndofs = fe.get_ndofs();
 
   // ndofs vector basis functions with 2 components each
@@ -312,7 +312,8 @@ MatrixXd gen_local_velocity_pressure_matr(const FEMap2D& mapping,
 
 VectorXd gen_local_stokes_forcing_vector(const FEMap2D& mapping,
                                          const FE& velocity_fe,
-                                         const VecFunction& forcing) {
+                                         const StokesFunction& forcing,
+                                         const double viscosity) {
   const int velocity_ndofs = velocity_fe.get_ndofs();
 
   VectorXd F = VectorXd::Zero(2 * velocity_ndofs);
@@ -327,7 +328,7 @@ VectorXd gen_local_stokes_forcing_vector(const FEMap2D& mapping,
     const auto detJ = mapping.det_jacobian(pt);
     const PhysNode phys_point = mapping.physical_point(pt);
 
-    const Eigen::Vector2d f = forcing(phys_point.x, phys_point.y);
+    const Eigen::Vector2d f = forcing(phys_point.x, phys_point.y, viscosity);
 
     for (int i = 0; i < velocity_ndofs; i++) {
       F(i) += weight * std::abs(detJ) * bfs.at(i) * f.x();
@@ -456,7 +457,8 @@ VectorXd asm_stokes_rhs(const Mesh& mesh,
                         const FE& velocity_fe,
                         const DOFHandler& velocity_dofh,
                         const DOFHandler& pressure_dofh,
-                        VecFunction stokes_f_func) {
+                        StokesFunction stokes_f_func,
+                        const double viscosity) {
   const std::size_t global_vel_ndofs = velocity_dofh.get_global_ndofs();
   const std::size_t pressure_ndofs = pressure_dofh.get_global_ndofs();
   const int n_vel = velocity_fe.get_ndofs();
@@ -498,8 +500,8 @@ VectorXd asm_stokes_rhs(const Mesh& mesh,
     const FEMap2D mapping(element, el_nodes, *fe_geo);
 
     // local forcing vector
-    const VectorXd F =
-        gen_local_stokes_forcing_vector(mapping, velocity_fe, stokes_f_func);
+    const VectorXd F = gen_local_stokes_forcing_vector(
+        mapping, velocity_fe, stokes_f_func, viscosity);
 
     // Assemble global forcing vector
     for (int i = 0; i < local_velocity_ndofs; i++) {

@@ -7,6 +7,9 @@
 using STFunction =
     std::function<double(const double x, const double y, const double t)>;
 
-using VecFunction = std::function<Eigen::Vector2d(double, double)>;
+using VecFunction = std::function<
+    Eigen::Vector2d(const double x, const double y, const double t)>;
+using StokesFunction = std::function<
+    Eigen::Vector2d(const double x, const double y, const double viscosity)>;
 
 #endif

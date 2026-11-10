@@ -74,14 +74,16 @@ SparseMatrix asm_stokes_matrix(const Mesh& mesh,
 // generate local forcing vector for Stokes
 VectorXd gen_local_stokes_forcing_vector(const FEMap2D& mapping,
                                          const FE& velocity_fe,
-                                         const VecFunction& forcing);
+                                         const StokesFunction& forcing,
+                                         const double viscosity);
 
 //  assemble global Stokes RHS
 VectorXd asm_stokes_rhs(const Mesh& mesh,
                         const FE& velocity_fe,
                         const DOFHandler& velocity_dofh,
                         const DOFHandler& pressure_dofh,
-                        VecFunction stokes_f_func);
+                        StokesFunction stokes_f_func,
+                        const double viscosity);
 
 // apply Dirichlet boundary conditions
 void apply_dirichlet_bc(SparseMatrix& A,

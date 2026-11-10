@@ -104,11 +104,20 @@ std::vector<bool> get_dirichlet_dofs(const Mesh& mesh,
                                      const nsfem::fem::DOFHandler& dofh);
 
 // get values of function at dirichlet nodes
+// scalar value
 std::vector<double> get_dirichlet_values(const Mesh& mesh,
                                          const nsfem::fem::FE& fe,
                                          const nsfem::fem::DOFHandler& dofh,
                                          const std::vector<bool>& is_dirichlet,
                                          STFunction fn,
+                                         double t);
+// 2D vector value (flattened vector with component-major ordering [.. ux .. uy
+// ..])
+std::vector<double> get_dirichlet_values(const Mesh& mesh,
+                                         const nsfem::fem::FE& fe,
+                                         const nsfem::fem::DOFHandler& dofh,
+                                         const std::vector<bool>& is_dirichlet,
+                                         VecFunction fn,
                                          double t);
 
 /**

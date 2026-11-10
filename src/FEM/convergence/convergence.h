@@ -13,7 +13,7 @@
 
 namespace nsfem::convergence {
 
-using Eigen::MatrixXd, Eigen::VectorXd;
+using Eigen::MatrixXd, Eigen::VectorXd, Eigen::Vector2d;
 using nsfem::fem::FE, nsfem::fem::DOFHandler;
 using nsfem::mapping::FEMap2D;
 using nsfem::mesh::Mesh, nsfem::mesh::Element, nsfem::mesh::Node;
@@ -36,7 +36,11 @@ double global_l2_err(const Mesh& mesh,
                      const double t);
 
 //  STOKES
-Eigen::Vector2d stokes_func(const double x, const double y);
+Vector2d stokes_func(const double x, const double y, const double viscosity);
+Vector2d stokes_dir_func(const double x, const double y, const double t);
+double stokes_ux_func(const double x, const double y, const double t);
+double stokes_uy_func(const double x, const double y, const double t);
+double stokes_p_func(const double x, const double y, const double t);
 
 //  POISSON
 double dir_func(const double x, const double y, const double t = 0.0);

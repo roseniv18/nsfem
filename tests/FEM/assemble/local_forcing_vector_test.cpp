@@ -27,12 +27,14 @@ TEST(LocalForcingVectorTest, HasExpectedEntries) {
 
   const FEMap2D mapping(phys_element_tr6, nodes, velocity_fe);
 
-  const VecFunction forcing = [](double, double) {
+  const double viscosity = 1.0;
+
+  const StokesFunction forcing = [&viscosity](double, double, double) {
     return Eigen::Vector2d(1.0, 2.0);
   };
 
   const VectorXd F =
-      gen_local_stokes_forcing_vector(mapping, velocity_fe, forcing);
+      gen_local_stokes_forcing_vector(mapping, velocity_fe, forcing, viscosity);
 
   const int n_vel = velocity_fe.get_ndofs();
 

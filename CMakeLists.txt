@@ -75,6 +75,7 @@ add_executable(tests
 	tests/linalg/cg_test.cpp
 	tests/solvers/poisson_test.cpp
 	tests/solvers/heat_eq_test.cpp
+	tests/solvers/stokes_test.cpp
 )
 
 target_link_libraries(tests PRIVATE fem GTest::gtest_main)
