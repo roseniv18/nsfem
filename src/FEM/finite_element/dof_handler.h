@@ -40,14 +40,14 @@ class DOFHandler {
   std::size_t get_global_ndofs() const;
 
   //   Returns the global DOF positions for the given element
-  std::vector<std::size_t> get_element_dof_indices(
+  const std::vector<std::size_t>& get_element_dof_indices(
       std::size_t element_id) const;
 
   //   Map mesh node index to global DOF index
   std::size_t get_vertex_dof_index(const std::size_t mesh_node_id) const;
 
   //   Map mesh edge midpoints to global DOF indices
-  std::vector<std::size_t> get_edge_dof_indices(
+  const std::vector<std::size_t>& get_edge_dof_indices(
       const std::size_t endpoint_a,
       const std::size_t endpoint_b) const;
 
@@ -62,6 +62,18 @@ class DOFHandler {
   //   Map global mesh edges to a set of unique global edge DOFs
   std::vector<std::vector<std::size_t>> edge_global_dofs;
 };
+
+/** Calculate the local-to-global mapping
+ * for elements whose DOFs have 2 components [x y]
+ * The global mapping follows a component-major ordering:
+ * [x1 x2 ... xn y1 y2 ... yn]
+ *
+ */
+std::size_t component_major_global_dof(
+    const std::size_t& local_dof,
+    const std::size_t& n_local_scalar_dofs,
+    const std::size_t& n_global_scalar_dofs,
+    const std::vector<std::size_t>& element_scalar_dofs);
 
 }  // namespace nsfem::fem
 

@@ -348,8 +348,8 @@ SparseMatrix asm_stokes_matrix(const Mesh& mesh,
   const std::size_t global_vel_ndofs = velocity_dofh.get_global_ndofs();
   const std::size_t global_pres_ndofs = pressure_dofh.get_global_ndofs();
   const int n_vel = velocity_fe.get_ndofs();
-  const int local_velocity_ndofs = 2 * n_vel;
-  const int local_pressure_ndofs = pressure_fe.get_ndofs();
+  const int local_vel_ndofs = 2 * n_vel;
+  const int local_pres_ndofs = pressure_fe.get_ndofs();
 
   const std::size_t global_ndofs = 2 * global_vel_ndofs + global_pres_ndofs;
 
@@ -362,8 +362,8 @@ SparseMatrix asm_stokes_matrix(const Mesh& mesh,
   std::vector<Eigen::Triplet<double>> triplets;
 
   const std::size_t entries_per_element =
-      static_cast<std::size_t>(local_velocity_ndofs) * local_velocity_ndofs +
-      2 * static_cast<std::size_t>(local_velocity_ndofs) * local_pressure_ndofs;
+      static_cast<std::size_t>(local_vel_ndofs) * local_vel_ndofs +
+      2 * static_cast<std::size_t>(local_vel_ndofs) * local_pres_ndofs;
 
   triplets.reserve(mesh.elements.size() * entries_per_element);
 
@@ -391,45 +391,38 @@ SparseMatrix asm_stokes_matrix(const Mesh& mesh,
     const MatrixXd B =
         gen_local_velocity_pressure_matr(mapping, velocity_fe, pressure_fe);
 
-    /**
-     * Map local velocity DOF to global index
-     * ? This is not good code. The assembler should not need to manipulate the
-     * ? local->global DOF mapping. A better approach will be for a small Vector
-     * ? FE wrapper to handle local vector DOFs, and a Vector DOFHandler for
-     * ? the local->global map.
-     */
-    const auto global_velocity_dof = [&](const int local_dof) -> Eigen::Index {
-      const bool is_uy = local_dof >= n_vel;
+    // precompute global DOF mapping for this element
+    std::vector<Eigen::Index> vel_global_dofs;
+    vel_global_dofs.reserve(local_vel_ndofs);
 
-      const int scalar_local_dof = is_uy ? local_dof - n_vel : local_dof;
+    for (int i = 0; i < local_vel_ndofs; i++) {
+      const Eigen::Index global_dof = static_cast<Eigen::Index>(
+          component_major_global_dof(i, n_vel, global_vel_ndofs, el_vel_dofs));
 
-      const Eigen::Index scalar_global_dof =
-          static_cast<Eigen::Index>(el_vel_dofs.at(scalar_local_dof));
-
-      return scalar_global_dof + (is_uy ? velocity_offset : 0);
-    };
+      vel_global_dofs.push_back(global_dof);
+    }
 
     // Assemble velocity stiffness block
-    for (int i = 0; i < local_velocity_ndofs; i++) {
-      const Eigen::Index I = global_velocity_dof(i);
+    for (int i = 0; i < local_vel_ndofs; i++) {
+      const Eigen::Index I = vel_global_dofs.at(i);
 
-      for (int j = 0; j < local_velocity_ndofs; j++) {
+      for (int j = 0; j < local_vel_ndofs; j++) {
         const double value = K(i, j);
 
         if (value == 0.0)
           continue;
 
-        const Eigen::Index J = global_velocity_dof(j);
+        const Eigen::Index J = vel_global_dofs.at(j);
 
         triplets.emplace_back(I, J, value);
       }
     }
 
     // Assemble pressure-velocity coupling block
-    for (int i = 0; i < local_velocity_ndofs; i++) {
-      const Eigen::Index I = global_velocity_dof(i);
+    for (int i = 0; i < local_vel_ndofs; i++) {
+      const Eigen::Index I = vel_global_dofs.at(i);
 
-      for (int j = 0; j < local_pressure_ndofs; j++) {
+      for (int j = 0; j < local_pres_ndofs; j++) {
         const double value = -B(i, j);
 
         if (value == 0.0)
@@ -462,13 +455,8 @@ VectorXd asm_stokes_rhs(const Mesh& mesh,
   const std::size_t global_vel_ndofs = velocity_dofh.get_global_ndofs();
   const std::size_t pressure_ndofs = pressure_dofh.get_global_ndofs();
   const int n_vel = velocity_fe.get_ndofs();
-  const int local_velocity_ndofs = 2 * n_vel;
-
+  const int local_vel_ndofs = 2 * n_vel;
   const std::size_t global_ndofs = 2 * global_vel_ndofs + pressure_ndofs;
-
-  //   Global ordering follows component-major layout: [ux, uy, p]
-  const Eigen::Index velocity_offset =
-      static_cast<Eigen::Index>(global_vel_ndofs);
 
   VectorXd rhs = VectorXd::Zero(global_ndofs);
 
@@ -484,17 +472,6 @@ VectorXd asm_stokes_rhs(const Mesh& mesh,
 
     const auto el_pres_dofs = pressure_dofh.get_element_dof_indices(e);
 
-    const auto global_velocity_dof = [&](const int local_dof) -> Eigen::Index {
-      const bool is_uy = local_dof >= n_vel;
-
-      const int scalar_local_dof = is_uy ? local_dof - n_vel : local_dof;
-
-      const Eigen::Index scalar_global_dof =
-          static_cast<Eigen::Index>(el_vel_dofs.at(scalar_local_dof));
-
-      return scalar_global_dof + (is_uy ? velocity_offset : 0);
-    };
-
     const auto fe_geo = FE::build_geo_type(element.type);
 
     const FEMap2D mapping(element, el_nodes, *fe_geo);
@@ -503,9 +480,20 @@ VectorXd asm_stokes_rhs(const Mesh& mesh,
     const VectorXd F = gen_local_stokes_forcing_vector(
         mapping, velocity_fe, stokes_f_func, viscosity);
 
+    // precompute global DOF mapping for this element
+    std::vector<Eigen::Index> vel_global_dofs;
+    vel_global_dofs.reserve(local_vel_ndofs);
+
+    for (int i = 0; i < local_vel_ndofs; i++) {
+      const Eigen::Index global_dof = static_cast<Eigen::Index>(
+          component_major_global_dof(i, n_vel, global_vel_ndofs, el_vel_dofs));
+
+      vel_global_dofs.push_back(global_dof);
+    }
+
     // Assemble global forcing vector
-    for (int i = 0; i < local_velocity_ndofs; i++) {
-      const Eigen::Index I = global_velocity_dof(i);
+    for (int i = 0; i < local_vel_ndofs; i++) {
+      const Eigen::Index I = vel_global_dofs.at(i);
 
       rhs(I) += F(i);
 

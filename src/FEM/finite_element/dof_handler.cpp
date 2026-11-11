@@ -122,7 +122,7 @@ std::size_t DOFHandler::get_global_ndofs() const {
   return global_ndofs;
 }
 
-std::vector<std::size_t> DOFHandler::get_element_dof_indices(
+const std::vector<std::size_t>& DOFHandler::get_element_dof_indices(
     std::size_t element_id) const {
   return element_dof_indices.at(element_id);
 }
@@ -139,7 +139,7 @@ std::size_t DOFHandler::get_vertex_dof_index(
   return dof;
 }
 
-std::vector<std::size_t> DOFHandler::get_edge_dof_indices(
+const std::vector<std::size_t>& DOFHandler::get_edge_dof_indices(
     const std::size_t endpoint_a,
     const std::size_t endpoint_b) const {
   for (std::size_t e = 0; e < mesh.unique_edges.size(); e++) {
@@ -154,6 +154,33 @@ std::vector<std::size_t> DOFHandler::get_edge_dof_indices(
   }
 
   throw std::invalid_argument("Edge not found in mesh.unique_edges");
+}
+
+std::size_t component_major_global_dof(
+    const std::size_t& local_dof,
+    const std::size_t& n_local_scalar_dofs,
+    const std::size_t& n_global_scalar_dofs,
+    const std::vector<std::size_t>& element_scalar_dofs) {
+  if (n_local_scalar_dofs != element_scalar_dofs.size())
+    throw std::invalid_argument("Invalid scalar DOF mapping!");
+
+  if (local_dof >= 2 * n_local_scalar_dofs)
+    throw std::out_of_range("Invalid local vector DOF!");
+
+  const bool is_y_comp = local_dof >= n_local_scalar_dofs;
+
+  const int scalar_local_dof =
+      is_y_comp ? local_dof - n_local_scalar_dofs : local_dof;
+
+  const std::size_t scalar_global_dof =
+      element_scalar_dofs.at(scalar_local_dof);
+
+  if (scalar_global_dof >= n_global_scalar_dofs)
+    throw std::out_of_range("Invalid global scalar DOF!");
+
+  const std::size_t offset = is_y_comp ? n_global_scalar_dofs : 0;
+
+  return scalar_global_dof + offset;
 }
 
 }  // namespace nsfem::fem

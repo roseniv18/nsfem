@@ -19,7 +19,8 @@ namespace nsfem::assembly {
 
 using Eigen::MatrixXd, Eigen::VectorXd;
 using SparseMatrix = Eigen::SparseMatrix<double>;
-using nsfem::fem::FE, nsfem::fem::DOFHandler;
+using nsfem::fem::FE, nsfem::fem::DOFHandler,
+    nsfem::fem::component_major_global_dof;
 using nsfem::mapping::FEMap2D;
 using nsfem::mesh::Mesh, nsfem::mesh::Element, nsfem::mesh::is_triangle_type,
     nsfem::mesh::get_element_nodes;

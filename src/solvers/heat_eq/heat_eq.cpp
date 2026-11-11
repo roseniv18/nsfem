@@ -89,7 +89,7 @@ VectorXd HeatEq::solve() {
   std::cout << "nodes   = " << mesh.nodes.size() << '\n';
 
   //   Find Dirichlet nodes
-  const auto is_dirichlet = get_dirichlet_dofs(mesh, dofh);
+  const std::vector<bool> is_dirichlet = get_dirichlet_dofs(mesh, dofh);
 
   // Build matrix for implicit Euler (once before loop)
   SparseMatrix A = M + K * dt;

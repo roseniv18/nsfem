@@ -53,12 +53,11 @@ Eigen::VectorXd Stokes::solve() {
   std::vector<bool> is_dirichlet(total_dofs, false);
   std::vector<double> dirichlet_vals(total_dofs, 0.0);
 
-  const auto velocity_dirichlet_dofs =
+  const std::vector<bool> velocity_dirichlet_dofs =
       nsfem::mesh::get_dirichlet_dofs(mesh, velocity_dofh);
 
   /**
    * Account for both velocity components
-   * TODO: extend get_dirichlet_dofs to handle scalar and vector values
    */
   for (Eigen::Index i = 0; i < n_velocity_dofs; i++) {
     if (!velocity_dirichlet_dofs.at(i))
