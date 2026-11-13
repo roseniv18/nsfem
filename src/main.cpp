@@ -32,7 +32,7 @@ int main() {
   std::string line;
   nsfem::parser::EntitySectionHeader entities_header{};
   nsfem::parser::EntityPhysicalTags entities{};
-  std::unordered_map<int, PhysicalGroup> physical_groups{};
+  std::map<PhysicalGroupKey, std::string> physical_groups;
 
   // $PhysicalNames and $Entities must be read before parsing elements.
   while (std::getline(file, line)) {

@@ -61,12 +61,12 @@ void read_entity_block_header(std::ifstream& file, EntitySectionHeader& e) {
   file >> e.num_points >> e.num_curves >> e.num_surfaces >> e.num_volumes;
 }
 
-std::unordered_map<int, PhysicalGroup> read_physical_names(
+std::map<PhysicalGroupKey, std::string> read_physical_names(
     std::ifstream& file) {
   int num_groups{};
   file >> num_groups;
 
-  std::unordered_map<int, PhysicalGroup> pgs;
+  std::map<PhysicalGroupKey, std::string> pgs;
 
   for (int i = 0; i < num_groups; i++) {
     int dim{}, tag{};
@@ -74,12 +74,10 @@ std::unordered_map<int, PhysicalGroup> read_physical_names(
 
     file >> dim >> tag >> name;
 
-    PhysicalGroup pg{};
-    pg.dim = dim;
     // .msh stores the names surrounded by quotes
-    pg.name = strip_quotes(name);
+    name = strip_quotes(name);
 
-    pgs[tag] = pg;
+    pgs[{dim, tag}] = name;
   }
 
   return pgs;
@@ -87,9 +85,9 @@ std::unordered_map<int, PhysicalGroup> read_physical_names(
 
 Mesh read_mesh(std::ifstream& file,
                const EntityPhysicalTags& entities,
-               const std::unordered_map<int, PhysicalGroup>& physical_groups) {
-  Mesh mesh{};
-  std::unordered_map<int, std::size_t> node_index{};
+               const std::map<PhysicalGroupKey, std::string>& physical_groups) {
+  Mesh mesh;
+  std::map<int, std::size_t> node_index{};
   std::string line{};
 
   mesh.physical_groups = physical_groups;
@@ -193,7 +191,7 @@ std::vector<int> get_physical_tags(const EntityPhysicalTags& entities,
 
 void read_nodes(std::ifstream& file,
                 Mesh& mesh,
-                std::unordered_map<int, std::size_t>& node_index,
+                std::map<int, std::size_t>& node_index,
                 SectionHeader& nh) {
   // reserve memory for storing the nodes
   mesh.nodes.reserve(nh.num_objects);
@@ -225,7 +223,7 @@ void read_nodes(std::ifstream& file,
 
 void read_elements(std::ifstream& file,
                    Mesh& mesh,
-                   std::unordered_map<int, std::size_t>& node_index,
+                   std::map<int, std::size_t>& node_index,
                    SectionHeader& eh,
                    const EntityPhysicalTags& entities) {
   // reserve memory for storing the elements
@@ -272,9 +270,9 @@ void print_mesh(const Mesh& mesh) {
 
   std::cout << "\nPhysical groups:\n";
 
-  for (const auto& [tag, pg] : mesh.physical_groups) {
-    std::cout << "tag = " << tag << ", dim = " << pg.dim
-              << ", name = " << pg.name << '\n';
+  for (const auto& [pg_key, pg_name] : mesh.physical_groups) {
+    std::cout << "tag = " << pg_key.second << ", dim = " << pg_key.first
+              << ", name = " << pg_name << '\n';
   }
 
   std::cout << "\nElements\n";
@@ -322,7 +320,7 @@ void print_mesh(const Mesh& mesh) {
 
     for (int tag : e.physical_tags) {
       std::cout << "    physical tag = " << tag
-                << ", name = " << mesh.physical_groups.at(tag).name << '\n';
+                << ", name = " << mesh.physical_groups.at({e.dim, tag}) << '\n';
     }
   }
 

@@ -70,8 +70,10 @@ void build_unique_edges_list(Mesh& mesh) {
   }
 }
 
-std::vector<bool> get_dirichlet_dofs(const Mesh& mesh,
-                                     const nsfem::fem::DOFHandler& dofh) {
+std::vector<bool> get_physical_group_dofs(
+    const Mesh& mesh,
+    const nsfem::fem::DOFHandler& dofh,
+    const std::vector<std::string>& groups) {
   std::vector<bool> is_dirichlet(dofh.get_global_ndofs(), false);
 
   for (const Element& element : mesh.elements) {
@@ -81,7 +83,13 @@ std::vector<bool> get_dirichlet_dofs(const Mesh& mesh,
     bool is_dirichlet_boundary = false;
 
     for (const int tag : element.physical_tags) {
-      if (mesh.physical_groups.at(tag).name == DIRICHLET) {
+      const auto& element_physical_group =
+          mesh.physical_groups.at({element.dim, tag});
+
+      const auto& it =
+          find(groups.begin(), groups.end(), element_physical_group);
+
+      if (it != groups.end()) {
         is_dirichlet_boundary = true;
         break;
       }

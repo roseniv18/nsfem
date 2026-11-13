@@ -3,6 +3,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -11,7 +12,7 @@
 
 namespace nsfem::parser {
 using nsfem::mesh::Mesh, nsfem::mesh::Node, nsfem::mesh::Element,
-    nsfem::mesh::PhysicalGroup, nsfem::mesh::ElementType;
+    nsfem::mesh::ElementType, nsfem::mesh::PhysicalGroupKey;
 /** Entity Physical Tags
  *
  * Store the physical groups associated with each entity.
@@ -54,22 +55,23 @@ std::vector<int> get_physical_tags(const EntityPhysicalTags& entities,
 // main function to read .msh
 Mesh read_mesh(std::ifstream& file,
                const EntityPhysicalTags& entities,
-               const std::unordered_map<int, PhysicalGroup>& physical_groups);
+               const std::map<PhysicalGroupKey, std::string>& physical_groups);
 
 void read_nodes(std::ifstream& file,
                 Mesh& mesh,
-                std::unordered_map<int, std::size_t>& node_index,
+                std::map<int, std::size_t>& node_index,
                 SectionHeader& node_header);
 
 void read_elements(std::ifstream& file,
                    Mesh& mesh,
-                   std::unordered_map<int, std::size_t>& node_index,
+                   std::map<int, std::size_t>& node_index,
                    SectionHeader& element_header,
                    const EntityPhysicalTags& entities);
 
 void read_block_header(std::ifstream& file, SectionHeader& h);
 
-std::unordered_map<int, PhysicalGroup> read_physical_names(std::ifstream& file);
+std::map<PhysicalGroupKey, std::string> read_physical_names(
+    std::ifstream& file);
 
 void read_entity_block_header(std::ifstream& file, EntitySectionHeader& h);
 

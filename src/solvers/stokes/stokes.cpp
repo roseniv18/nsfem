@@ -54,7 +54,7 @@ Eigen::VectorXd Stokes::solve() {
   std::vector<double> dirichlet_vals(total_dofs, 0.0);
 
   const std::vector<bool> velocity_dirichlet_dofs =
-      nsfem::mesh::get_dirichlet_dofs(mesh, velocity_dofh);
+      nsfem::mesh::get_physical_group_dofs(mesh, velocity_dofh, {"Dirichlet"});
 
   /**
    * Account for both velocity components

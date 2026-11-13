@@ -20,7 +20,8 @@ VectorXd Poisson::solve() {
   SparseMatrix K = asm_stiffness_matrix(mesh, fe, dofh);
 
   // Find Dirichlet DOFs
-  const std::vector<bool> is_dirichlet = get_dirichlet_dofs(mesh, dofh);
+  const std::vector<bool> is_dirichlet =
+      get_physical_group_dofs(mesh, dofh, {"Dirichlet"});
 
   // Assemble RHS
   rhs_vec = asm_global_vec(mesh, fe, dofh, f_func, 0.0);

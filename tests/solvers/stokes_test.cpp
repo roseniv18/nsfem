@@ -43,7 +43,7 @@ TEST(StokesTest, P2P1) {
   VectorXd p = solution.tail(np);
 
   const auto velocity_dirichlet =
-      nsfem::mesh::get_dirichlet_dofs(mesh, velocity_dofh);
+      nsfem::mesh::get_physical_group_dofs(mesh, velocity_dofh, {"Dirichlet"});
 
   const auto velocity_dirichlet_vals = nsfem::mesh::get_dirichlet_values(
       mesh, velocity_fe, velocity_dofh, velocity_dirichlet,
@@ -136,8 +136,8 @@ TEST(StokesTest, L2ConvergenceP2P1) {
     const VectorXd uy = solution.segment(nv, nv);
     VectorXd p = solution.tail(np);
 
-    const auto velocity_dirichlet =
-        nsfem::mesh::get_dirichlet_dofs(mesh, velocity_dofh);
+    const auto velocity_dirichlet = nsfem::mesh::get_physical_group_dofs(
+        mesh, velocity_dofh, {"Dirichlet"});
 
     const auto velocity_dirichlet_vals = nsfem::mesh::get_dirichlet_values(
         mesh, velocity_fe, velocity_dofh, velocity_dirichlet,

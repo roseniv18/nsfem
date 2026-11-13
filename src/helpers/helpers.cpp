@@ -51,7 +51,9 @@ Mesh make_unit_square_mesh(int n) {
   // Physical group used for Dirichlet boundary
   // ------------------------------------------------------------
 
-  mesh.physical_groups[1] = PhysicalGroup{.dim = 1, .name = DIRICHLET};
+  constexpr int LINE_DIM{1};
+
+  mesh.physical_groups[{LINE_DIM, 1}] = "Dirichlet";
 
   // ------------------------------------------------------------
   // Helper for converting (i,j) -> node index

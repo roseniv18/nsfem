@@ -132,7 +132,8 @@ TEST(PoissonTest, CorrectDirichletBC) {
 
   ASSERT_TRUE(solution.allFinite());
 
-  const auto is_dirichlet = get_dirichlet_dofs(mesh, dofh);
+  const auto is_dirichlet = get_physical_group_dofs(mesh, dofh, {"Dirichlet"});
+
   const auto dirichlet_values =
       get_dirichlet_values(mesh, fe, dofh, is_dirichlet, dir_func, 0.0);
 

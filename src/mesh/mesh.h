@@ -5,7 +5,7 @@
 #include <array>
 #include <map>
 #include <string>
-#include <unordered_map>
+#include <utility>
 #include <vector>
 #include "math/function.h"
 
@@ -31,8 +31,6 @@ enum class ElementType {
   Triangle15,
   Triangle21
 };
-
-inline constexpr std::string DIRICHLET = "Dirichlet";
 
 struct Node {
   int tag{};
@@ -76,21 +74,17 @@ struct Element {
  * Physical groups can be used to describe mathematical notions like boundary
  * conditions.
  *
- * ? Note 'tag' is omitted.
- * ? This is because in the unordered_map of physical groups,
- * ? the tag is the given key of the map
- *
  */
-struct PhysicalGroup {
-  int dim;
-  std::string name;
-};
+
+//   gmsh identifies physical groups by (dimension, tag)
+using PhysicalGroupKey = std::pair<int, int>;
 
 struct Mesh {
   std::vector<Node> nodes;
   std::vector<Edge> unique_edges;
   std::vector<Element> elements;
-  std::unordered_map<int, PhysicalGroup> physical_groups;
+  //   key->name map
+  std::map<PhysicalGroupKey, std::string> physical_groups;
 };
 
 // get the nodes of an element
@@ -99,9 +93,12 @@ std::vector<Node> get_element_nodes(const Element& element, const Mesh& mesh);
 // get the unique edges of the mesh elements
 void build_unique_edges_list(Mesh& mesh);
 
-// get tags of dirichlet dofs
-std::vector<bool> get_dirichlet_dofs(const Mesh& mesh,
-                                     const nsfem::fem::DOFHandler& dofh);
+//  Get the DOFs belonging to a given list of physical groups (e.g. Dirichlet,
+//  Wall, Interior,...)
+std::vector<bool> get_physical_group_dofs(
+    const Mesh& mesh,
+    const nsfem::fem::DOFHandler& dofh,
+    const std::vector<std::string>& groups);
 
 // get values of function at dirichlet nodes
 // scalar value

@@ -230,7 +230,7 @@ TEST(DirichletBCTest, P1DirichletNodes) {
   const std::unique_ptr<FE> fe = FE::build_fe_type(FEType::P1);
   const DOFHandler dofh(mesh, *fe);
 
-  const auto is_dirichlet = get_dirichlet_dofs(mesh, dofh);
+  const auto is_dirichlet = get_physical_group_dofs(mesh, dofh, {"Dirichlet"});
 
   int n_dirichlet = 0;
 
@@ -249,7 +249,7 @@ TEST(DirichletBCTest, P2DirichletNodes) {
   const std::unique_ptr<FE> fe = FE::build_fe_type(FEType::P2);
   const DOFHandler dofh(mesh, *fe);
 
-  const auto is_dirichlet = get_dirichlet_dofs(mesh, dofh);
+  const auto is_dirichlet = get_physical_group_dofs(mesh, dofh, {"Dirichlet"});
 
   int n_dirichlet = 0;
 
